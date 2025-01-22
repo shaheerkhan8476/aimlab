@@ -1,15 +1,16 @@
 # team-corewell-capstone-2025
 
 How to run frontend:
-cd to frontend folder in vscode
-npm i
-npm start
+
+1. cd to frontend folder in vscode
+2. npm i
+3. npm start
 
 How to run backend:
-cd to backend folder in vscode
-go run .
+1. cd to backend folder in vscode
+2. go run .
 
-
+<br />
 
 # Gitlab stuff below
 
