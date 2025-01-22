@@ -1,6 +1,17 @@
 # team-corewell-capstone-2025
 
+How to run frontend:
+cd to frontend folder in vscode
+npm i
+npm start
 
+How to run backend:
+cd to backend folder in vscode
+go run .
+
+
+
+# Gitlab stuff below
 
 ## Getting started
 
