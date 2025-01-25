@@ -3,20 +3,33 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
-	"gitlab.msu.edu/team-corewell-2025/routes/database"
-	"gitlab.msu.edu/team-corewell-2025/routes/user"
+	"github.com/joho/godotenv"
+	"gitlab.msu.edu/team-corewell-2025/routes/supabase"
 )
 
 func main() {
+
+	// Load env vars
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		fmt.Println("Error loading in .env")
+	}
+
+	// Create client
+	url := os.Getenv("SUPABASE_URL")
+	key := os.Getenv("SUPABASE_KEY")
+
+	supabase.InitClient(url, key)
+
 	//http router
 	m := mux.NewRouter()
-	fmt.Println("Hello World")
-	m.HandleFunc("/patients", database.ReadPatientsTest).Methods("GET")
-	m.HandleFunc("/addUser", user.AddUser).Methods("POST")
 	//server port connection
-	err := http.ListenAndServe(":8080", m)
+	m.HandleFunc("/addUser", supabase.SignUpUser)
+	err = http.ListenAndServe(":8080", m)
 	if err != nil {
 		fmt.Println(err)
 	}
