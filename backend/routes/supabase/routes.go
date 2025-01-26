@@ -36,5 +36,8 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	b, err := json.Marshal(user)
+	if err != nil {
+		print("Error", err)
+	}
 	w.Write(b)
 }
