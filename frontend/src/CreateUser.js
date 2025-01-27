@@ -20,6 +20,7 @@ function CreateUser()
 
     //Handle submit button and make POST request to backend to run /addUser
     const handleSubmit = async (e) => {
+        e.preventDefault();
         try {
             const response = await fetch('http://localhost:8080/addUser',{
                 method: 'POST',
