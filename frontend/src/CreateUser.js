@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 
 function CreateUser()
 {
+    //Create blank form for data user enters
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
     });
 
+    //Listen for user adjustment of html and apply to form
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({
@@ -16,6 +18,7 @@ function CreateUser()
         });
     };
 
+    //Handle submit button and make POST request to backend to run /addUser
     const handleSubmit = async (e) => {
         try {
             const response = await fetch('http://localhost:8080/addUser',{
@@ -40,6 +43,7 @@ function CreateUser()
             console.error('Error creating user:', error);
         }
     }
+    //Render the HTML form so the user can interact
     return(
             
         <form onSubmit={handleSubmit}>
