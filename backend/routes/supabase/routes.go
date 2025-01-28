@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 
+	"fmt"
+
 	"github.com/google/uuid"
 	supabase "github.com/nedpals/supabase-go"
 	model "gitlab.msu.edu/team-corewell-2025/models"
@@ -52,4 +54,25 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		print("Error", err)
 	}
 	w.Write(b)
+}
+func SignInUser(w http.ResponseWriter, r *http.Request) {
+	var userRequest UserLoginRequest
+	bodyBytes, _ := io.ReadAll(r.Body)
+	err := json.Unmarshal(bodyBytes, &userRequest)
+	if err != nil {
+		http.Error(w, "Cannot read request body", http.StatusBadRequest)
+		return
+	}
+	ctx := context.Background()
+	user, err := Supabase.Auth.SignIn(ctx, supabase.UserCredentials{
+		Email:    userRequest.Email,
+		Password: userRequest.Password,
+	})
+	if err != nil {
+		fmt.Println("Error signing in:", err)
+		http.Error(w, "Sign-in failed", http.StatusUnauthorized)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
 }
