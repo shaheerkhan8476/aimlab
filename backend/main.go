@@ -29,12 +29,13 @@ func main() {
 	//http router
 	m := mux.NewRouter()
 	//server port connection
-	m.HandleFunc("/addUser", supabase.SignUpUser)
+	m.HandleFunc("/addUser", supabase.SignUpUser).Methods("POST")
+	m.HandleFunc("/login", supabase.SignInUser).Methods("POST")
 	handler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"}, 
-        AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowedHeaders:   []string{"Content-Type", "Authorization"},
-        AllowCredentials: true,
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
 	}).Handler(m)
 	err = http.ListenAndServe(":8080", handler)
 	if err != nil {
