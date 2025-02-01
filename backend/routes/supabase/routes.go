@@ -76,3 +76,32 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }
+
+/**
+ * GetPatientByID fetches a patient by ID from the database
+ * @param w http.ResponseWriter
+ * @param r *http.Request
+ */
+func GetPatientByID(w http.ResponseWriter, r *http.Request) {
+	// vars := mux.Vars(r)
+	// id := vars["id"]
+	var patients []model.Patient
+	// response := Supabase.DB.From("patients").Select("*").Single().Eq("id", id).Execute(ctx)
+	err := Supabase.DB.From("patients").Select("*").Execute(&patients)
+	fmt.Println(patients)
+	if err != nil {
+		http.Error(w, "Patient not found", http.StatusNotFound)
+		return
+	}
+
+	// // Parse the JSON response
+	// var patients []model.Patient
+	// err := json.Unmarshal(response.Data, &patients)
+	// if err != nil || len(patients) == 0 {
+	// 	http.Error(w, "Patient not found", http.StatusNotFound)
+	// 	return
+	// }
+
+	// w.Header().Set("Content-Type", "application/json")
+	// json.NewEncoder(w).Encode(patients[0])
+}
