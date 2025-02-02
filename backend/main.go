@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
+	"gitlab.msu.edu/team-corewell-2025/routes/llm"
 	"gitlab.msu.edu/team-corewell-2025/routes/supabase"
 )
 
@@ -41,6 +42,7 @@ func main() {
 	m.HandleFunc("/students/{id}", supabase.GetStudentById).Methods("GET")
 	m.HandleFunc("/results", supabase.GetResults).Methods("GET")
 	m.HandleFunc("/results/{id}", supabase.GetResultByID).Methods("GET")
+	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
 
 	// Allow API requests from frontend
 	handler := cors.New(cors.Options{
