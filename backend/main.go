@@ -31,7 +31,6 @@ func main() {
 	//server port connection
 	m.HandleFunc("/addUser", supabase.SignUpUser).Methods("POST")
 	m.HandleFunc("/login", supabase.SignInUser).Methods("POST")
-	m.HandleFunc("/patients", supabase.GetPatients).Methods("GET")
 	m.HandleFunc("/patients/{id}", supabase.GetPatientByID).Methods("GET")
 
 	handler := cors.New(cors.Options{
