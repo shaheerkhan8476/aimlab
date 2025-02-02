@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	supabase "github.com/nedpals/supabase-go"
 	model "gitlab.msu.edu/team-corewell-2025/models"
 )
@@ -83,25 +84,20 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
  * @param r *http.Request
  */
 func GetPatientByID(w http.ResponseWriter, r *http.Request) {
-	// vars := mux.Vars(r)
-	// id := vars["id"]
+	vars := mux.Vars(r)
+	id := vars["id"]
+	fmt.Println("Searching for id:", id)
 	var patients []model.Patient
-	// response := Supabase.DB.From("patients").Select("*").Single().Eq("id", id).Execute(ctx)
+	// ctx := context.Background()
 	err := Supabase.DB.From("patients").Select("*").Execute(&patients)
+	// err := Supabase.DB.From("patients").Select("*").ExecuteWithContext(ctx, &patients)
 	fmt.Println(patients)
-	if err != nil {
+	fmt.Println(err)
+	if err != nil || len(patients) == 0 {
 		http.Error(w, "Patient not found", http.StatusNotFound)
 		return
 	}
 
-	// // Parse the JSON response
-	// var patients []model.Patient
-	// err := json.Unmarshal(response.Data, &patients)
-	// if err != nil || len(patients) == 0 {
-	// 	http.Error(w, "Patient not found", http.StatusNotFound)
-	// 	return
-	// }
-
-	// w.Header().Set("Content-Type", "application/json")
-	// json.NewEncoder(w).Encode(patients[0])
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(patients)
 }
