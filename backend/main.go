@@ -39,7 +39,7 @@ func main() {
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}).Handler(m)
-	err = http.ListenAndServe(":8080", handler)
+	err = http.ListenAndServe(":8060", handler)
 	if err != nil {
 		fmt.Println(err)
 	}
