@@ -87,6 +87,7 @@ func GetPatients(w http.ResponseWriter, r *http.Request) {
 	// vars := mux.Vars(r)
 	// id := vars["id"]
 	var request map[string]interface{}
+
 	var patients []model.Patient
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
