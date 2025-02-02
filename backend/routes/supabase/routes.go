@@ -78,11 +78,7 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-/**
- * GetPatientByID fetches a patient by ID from the database
- * @param w http.ResponseWriter
- * @param r *http.Request
- */
+
 func GetPatients(w http.ResponseWriter, r *http.Request) {
 	var request map[string]interface{}
 	var patients []model.Patient
