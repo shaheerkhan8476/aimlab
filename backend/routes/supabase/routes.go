@@ -79,19 +79,6 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-func GetPatients(w http.ResponseWriter, r *http.Request) {
-	var patients []model.Patient
-	// response := Supabase.DB.From("patients").Select("*").Single().Eq("id", id).Execute(ctx)
-	err := Supabase.DB.From("patients").Select("*").Execute(&patients)
-
-	if err != nil {
-		http.Error(w, "Patient not found", http.StatusNotFound)
-		return
-	}
-
-	fmt.Println(patients)
-}
-
 /**
  * GetPatientByID fetches a patient by ID from the database
  * @param w http.ResponseWriter
