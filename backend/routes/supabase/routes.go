@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	supabase "github.com/nedpals/supabase-go"
 	model "gitlab.msu.edu/team-corewell-2025/models"
 )
@@ -78,31 +79,10 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-/**
- * GetPatientByID fetches a patient by ID from the database
- * @param w http.ResponseWriter
- * @param r *http.Request
- */
 func GetPatients(w http.ResponseWriter, r *http.Request) {
-	// vars := mux.Vars(r)
-	// id := vars["id"]
-	var request map[string]interface{}
-
 	var patients []model.Patient
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Println("Error reading request body:", err)
-		http.Error(w, "Failed to read request body", http.StatusBadRequest)
-		return
-	}
-	err = json.Unmarshal(bodyBytes, &request)
-	if err != nil {
-		fmt.Println("Error unmarshaling JSON:", err)
-		http.Error(w, "Failed to parse request body", http.StatusBadRequest)
-		return
-	}
 	// response := Supabase.DB.From("patients").Select("*").Single().Eq("id", id).Execute(ctx)
-	err = Supabase.DB.From("patients").Select("*").Execute(&patients)
+	err := Supabase.DB.From("patients").Select("*").Execute(&patients)
 
 	if err != nil {
 		http.Error(w, "Patient not found", http.StatusNotFound)
@@ -110,14 +90,29 @@ func GetPatients(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(patients)
-	// // Parse the JSON response
-	// var patients []model.Patient
-	// err := json.Unmarshal(response.Data, &patients)
-	// if err != nil || len(patients) == 0 {
-	// 	http.Error(w, "Patient not found", http.StatusNotFound)
-	// 	return
-	// }
+}
 
-	// w.Header().Set("Content-Type", "application/json")
-	// json.NewEncoder(w).Encode(patients[0])
+/**
+ * GetPatientByID fetches a patient by ID from the database
+ * @param w http.ResponseWriter
+ * @param r *http.Request	Authenticated request
+ */
+func GetPatientByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"] // gets ID from URL
+
+	var patient []model.Patient // holds query output
+
+	// Queries database for patient using ID from URL, unmarshals into patient struct and returns error, if any
+	err := Supabase.DB.From("patients").Select("*").Eq("id", id).Execute(&patient)
+
+	if err != nil || len(patient) == 0 { // len of 0 means no patient found in DB
+		http.Error(w, "Patient not found", http.StatusNotFound)
+		return
+	}
+
+	// fmt.Println("Patient found:", patient)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(patient[0])
 }
