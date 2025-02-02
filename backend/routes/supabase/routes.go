@@ -73,6 +73,7 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Sign-in failed", http.StatusUnauthorized)
 		return
 	}
+	Supabase.DB.AddHeader("Authorization", "Bearer "+user.AccessToken)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }
@@ -82,18 +83,32 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
  * @param w http.ResponseWriter
  * @param r *http.Request
  */
-func GetPatientByID(w http.ResponseWriter, r *http.Request) {
+func GetPatients(w http.ResponseWriter, r *http.Request) {
 	// vars := mux.Vars(r)
 	// id := vars["id"]
+	var request map[string]interface{}
 	var patients []model.Patient
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		fmt.Println("Error reading request body:", err)
+		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+		return
+	}
+	err = json.Unmarshal(bodyBytes, &request)
+	if err != nil {
+		fmt.Println("Error unmarshaling JSON:", err)
+		http.Error(w, "Failed to parse request body", http.StatusBadRequest)
+		return
+	}
 	// response := Supabase.DB.From("patients").Select("*").Single().Eq("id", id).Execute(ctx)
-	err := Supabase.DB.From("patients").Select("*").Execute(&patients)
-	fmt.Println(patients)
+	err = Supabase.DB.From("patients").Select("*").Execute(&patients)
+
 	if err != nil {
 		http.Error(w, "Patient not found", http.StatusNotFound)
 		return
 	}
 
+	fmt.Println(patients)
 	// // Parse the JSON response
 	// var patients []model.Patient
 	// err := json.Unmarshal(response.Data, &patients)
