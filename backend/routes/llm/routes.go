@@ -13,7 +13,6 @@ func RequestMessage(w http.ResponseWriter, r *http.Request) {
 	bodyBytes, _ := io.ReadAll(r.Body)
 	err := json.Unmarshal(bodyBytes, &msgRequest)
 	if err != nil {
-		// Print the error and return a bad request response
 		fmt.Println("Error unmarshaling message:", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -24,6 +23,7 @@ func RequestMessage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to marshal message", http.StatusInternalServerError)
 		return
 	}
+	//specific to Brad's URL we're going to need to Dockerize this
 	flaskURL := "http://localhost:5050/messageRequest"
 	response, err := http.Post(flaskURL, "application/json", bytes.NewBuffer(msgData))
 	if err != nil {
