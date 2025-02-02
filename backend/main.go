@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
+	"gitlab.msu.edu/team-corewell-2025/routes/llm"
 	"gitlab.msu.edu/team-corewell-2025/routes/supabase"
 )
 
@@ -31,6 +32,7 @@ func main() {
 	//server port connection
 	m.HandleFunc("/addUser", supabase.SignUpUser).Methods("POST")
 	m.HandleFunc("/login", supabase.SignInUser).Methods("POST")
+	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
