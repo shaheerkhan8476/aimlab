@@ -24,7 +24,7 @@ func RequestMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//specific to Brad's URL we're going to need to Dockerize this
-	flaskURL := "http://localhost:5050/messageRequest"
+	flaskURL := "http://127.0.0.1:5001/api/message-request"
 	response, err := http.Post(flaskURL, "application/json", bytes.NewBuffer(msgData))
 	if err != nil {
 		fmt.Println("Error sending message to Flask:", err)
