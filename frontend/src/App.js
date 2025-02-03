@@ -1,10 +1,14 @@
 import React from 'react';
 import CreateUser from './CreateUser';
+import SignInUser from './SignInUser';
 
 
 function App() {
   return (
-    <CreateUser />
+    <div>
+      <CreateUser />
+      <SignInUser />
+    </div>
   );
 }
 
