@@ -16,11 +16,13 @@ import (
 
 var Supabase *supabase.Client
 
+// Initializes the Database client
 func InitClient(url, key string) *supabase.Client {
 	Supabase = supabase.CreateClient(url, key)
 	return Supabase
 }
 
+// Signs up the user
 func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	var userRequest UserCreateRequest
 	bodyBytes, _ := io.ReadAll(r.Body)
@@ -44,7 +46,7 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		Id:      parsedID,
 		Name:    userRequest.Name,
 		Email:   userRequest.Email,
-		IsAdmin: false,
+		IsAdmin: userRequest.IsAdmin,
 	}
 	err = Supabase.DB.From("users").Insert(newUser).Execute(nil)
 	if err != nil {
@@ -56,6 +58,8 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(b)
 }
+
+// Signs in the user
 func SignInUser(w http.ResponseWriter, r *http.Request) {
 	var userRequest UserLoginRequest
 	bodyBytes, _ := io.ReadAll(r.Body)
@@ -79,6 +83,7 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+// Function to grab all patients from patients table
 func GetPatients(w http.ResponseWriter, r *http.Request) {
 	var request map[string]interface{}
 	var patients []model.Patient
