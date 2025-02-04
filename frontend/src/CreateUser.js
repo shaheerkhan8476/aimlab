@@ -7,14 +7,15 @@ function CreateUser()
         name: '',
         email: '',
         password: '',
+        isAdmin: null,
     });
 
     //Listen for user adjustment of html and apply to form
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value,type } = e.target;
         setFormData({
             ...formData,
-            [name]: value,
+            [name]: type === "radio" ? value === "true" : value,
         });
     };
 
@@ -48,7 +49,7 @@ function CreateUser()
     return(
             
         <form onSubmit={handleSubmit}>
-            <h1>This is where you create user hahahhahahaa</h1>
+            <h1>Create User:</h1>
             <label htmlFor="name">Name:</label>
             <input 
                 type="text" 
@@ -82,15 +83,33 @@ function CreateUser()
                 required>
 
             </input>
+            <input 
+                type="radio"
+                name="isAdmin" 
+                value= "true"
+                checked={formData.isAdmin === true}
+                onChange={handleChange}
+                required>
+
+            </input>
+            <label htmlFor="Instructor">Instructor</label>
+            <input 
+                type="radio" 
+                name="isAdmin"
+                value = "false"
+                checked={formData.isAdmin === false}
+                onChange={handleChange}
+                required>
+
+            </input>
+            <label htmlFor="Student">Student</label>
+    
+
 
             <button type="submit">Sign up!</button>
 
         </form>
       
-
-
-
-
 
 
     )
