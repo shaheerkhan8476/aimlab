@@ -9,17 +9,20 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	supabase "github.com/nedpals/supabase-go"
 	model "gitlab.msu.edu/team-corewell-2025/models"
 )
 
 var Supabase *supabase.Client
 
+// Initializes the Database client
 func InitClient(url, key string) *supabase.Client {
 	Supabase = supabase.CreateClient(url, key)
 	return Supabase
 }
 
+// Signs up the user
 func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	var userRequest UserCreateRequest
 	bodyBytes, _ := io.ReadAll(r.Body)
@@ -43,7 +46,7 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		Id:      parsedID,
 		Name:    userRequest.Name,
 		Email:   userRequest.Email,
-		IsAdmin: false,
+		IsAdmin: userRequest.IsAdmin,
 	}
 	err = Supabase.DB.From("users").Insert(newUser).Execute(nil)
 	if err != nil {
@@ -55,6 +58,8 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(b)
 }
+
+// Signs in the user
 func SignInUser(w http.ResponseWriter, r *http.Request) {
 	var userRequest UserLoginRequest
 	bodyBytes, _ := io.ReadAll(r.Body)
@@ -78,23 +83,12 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-
+// Function to grab all patients from patients table
+//I removed any body parsing because it's a GET -Julian
 func GetPatients(w http.ResponseWriter, r *http.Request) {
-	var request map[string]interface{}
 	var patients []model.Patient
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Println("Error reading request body:", err)
-		http.Error(w, "Failed to read request body", http.StatusBadRequest)
-		return
-	}
-	err = json.Unmarshal(bodyBytes, &request)
-	if err != nil {
-		fmt.Println("Error unmarshaling JSON:", err)
-		http.Error(w, "Failed to parse request body", http.StatusBadRequest)
-		return
-	}
-	err = Supabase.DB.From("patients").Select("*").Execute(&patients)
+
+	err := Supabase.DB.From("patients").Select("*").Execute(&patients)
 
 	if err != nil {
 		http.Error(w, "Patient not found", http.StatusNotFound)
@@ -108,4 +102,59 @@ func GetPatients(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(patientsJSON)
+}
+
+/**
+ * GetPatientByID fetches a patient by ID from the database
+ * @param w http.ResponseWriter
+ * @param r *http.Request	Authenticated request
+ */
+func GetPatientByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"] // gets ID from URL
+
+	var patient []model.Patient // holds query output
+
+	// Queries database for patient using ID from URL, unmarshals into patient struct and returns error, if any
+	err := Supabase.DB.From("patients").Select("*").Eq("id", id).Execute(&patient)
+
+	if err != nil || len(patient) == 0 { // len of 0 means no patient found in DB
+		http.Error(w, "Patient not found", http.StatusNotFound)
+		return
+	}
+
+	// fmt.Println("Patient found:", patient)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(patient[0])
+}
+
+func GetPrescriptions(w http.ResponseWriter, r *http.Request) {
+	var prescriptions []model.Prescription
+	err := Supabase.DB.From("prescriptions").Select("*").Execute(&prescriptions)
+	if err != nil {
+		fmt.Println(err)
+	}
+	prescriptionsJSON, err := json.MarshalIndent(prescriptions, "", "  ")
+	if err != nil {
+		fmt.Println("Error marshaling prescriptions:", err)
+		http.Error(w, "Failed to convert prescriptions to JSON", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(prescriptionsJSON)
+
+}
+
+func GetPrescriptionByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var prescription []model.Prescription
+	err := Supabase.DB.From("prescriptions").Select("*").Eq("id", id).Execute(&prescription)
+	if err != nil {
+		http.Error(w, "Prescription not found", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(prescription[0])
+
 }
