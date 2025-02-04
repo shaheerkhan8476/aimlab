@@ -16,6 +16,7 @@ import (
 
 var Supabase *supabase.Client
 
+// Initializes the Database client
 func InitClient(url, key string) *supabase.Client {
 	Supabase = supabase.CreateClient(url, key)
 	return Supabase
