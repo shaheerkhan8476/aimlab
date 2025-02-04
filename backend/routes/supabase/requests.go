@@ -4,6 +4,7 @@ type UserCreateRequest struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
 	Email    string `json:"email"`
+	IsAdmin  bool   `json:"isAdmin"`
 }
 
 type UserLoginRequest struct {

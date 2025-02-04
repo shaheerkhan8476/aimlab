@@ -44,7 +44,7 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		Id:      parsedID,
 		Name:    userRequest.Name,
 		Email:   userRequest.Email,
-		IsAdmin: false,
+		IsAdmin: userRequest.IsAdmin,
 	}
 	err = Supabase.DB.From("users").Insert(newUser).Execute(nil)
 	if err != nil {
