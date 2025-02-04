@@ -58,6 +58,8 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(b)
 }
+
+// Signs in the user
 func SignInUser(w http.ResponseWriter, r *http.Request) {
 	var userRequest UserLoginRequest
 	bodyBytes, _ := io.ReadAll(r.Body)
@@ -81,6 +83,7 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+// Function to grab all patients from patients table
 func GetPatients(w http.ResponseWriter, r *http.Request) {
 	var request map[string]interface{}
 	var patients []model.Patient
