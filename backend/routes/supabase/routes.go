@@ -84,22 +84,11 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // Function to grab all patients from patients table
+//I removed any body parsing because it's a GET -Julian
 func GetPatients(w http.ResponseWriter, r *http.Request) {
-	var request map[string]interface{}
 	var patients []model.Patient
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Println("Error reading request body:", err)
-		http.Error(w, "Failed to read request body", http.StatusBadRequest)
-		return
-	}
-	err = json.Unmarshal(bodyBytes, &request)
-	if err != nil {
-		fmt.Println("Error unmarshaling JSON:", err)
-		http.Error(w, "Failed to parse request body", http.StatusBadRequest)
-		return
-	}
-	err = Supabase.DB.From("patients").Select("*").Execute(&patients)
+
+	err := Supabase.DB.From("patients").Select("*").Execute(&patients)
 
 	if err != nil {
 		http.Error(w, "Patient not found", http.StatusNotFound)

@@ -1,19 +1,21 @@
 import React from 'react';
-import CreateUser from './CreateUser';
-import SignInUser from './SignInUser';
+import { Routes, Route } from 'react-router-dom';
+import CreateUser from './pages/CreateUser';
+import SignInUser from './pages/SignInUser';
+import StudentDashboard from './pages/StudentDashboard';
 
 //Main App entry point
-//I am not doing a phony comment commit to cheese contribution score.
-//I am testing a legitimate issue with git code ownership.
-//The initial_token did indeed get me.
-//Pushing again to see if Personal Access TOken fixes.
 function App() {
   return (
-    <div>
-      <CreateUser />
-      <SignInUser />
-    </div>
+    <>
+      <Routes>
+        <Route path="/" element={<CreateUser />} />
+        <Route path="/SignInUser" element={<SignInUser />} />
+        <Route path="/StudentDashboard" element={<StudentDashboard />} />
+      </Routes>
+    </>
   );
-}
+  
+};
 
 export default App;
