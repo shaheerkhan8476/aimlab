@@ -15,3 +15,12 @@ type Patient struct {
 	Medications          string `json:"medications"`
 	PatientMessage       string `json:"patient_message"`
 }
+
+type Prescription struct {
+	ID            int    `json:"id"`
+	Patient_id    int    `json:"patient_id"`
+	Name          string `json:"name"`
+	Medication    string `json:"medication"`
+	Dose          string `json:"dose"`
+	Refill_status string `json:"refill_status"`
+}

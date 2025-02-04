@@ -139,3 +139,33 @@ func GetPatientByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(patient[0])
 }
+
+func GetPrescriptions(w http.ResponseWriter, r *http.Request) {
+	var prescriptions []model.Prescription
+	err := Supabase.DB.From("prescriptions").Select("*").Execute(&prescriptions)
+	if err != nil {
+		fmt.Println(err)
+	}
+	prescriptionsJSON, err := json.MarshalIndent(prescriptions, "", "  ")
+	if err != nil {
+		fmt.Println("Error marshaling prescriptions:", err)
+		http.Error(w, "Failed to convert prescriptions to JSON", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(prescriptionsJSON)
+
+}
+
+func GetPrescriptionByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var prescription []model.Prescription
+	err := Supabase.DB.From("prescriptions").Select("*").Eq("id", id).Execute(&prescription)
+	if err != nil {
+		http.Error(w, "Prescription not found", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(prescription[0])
+
+}
