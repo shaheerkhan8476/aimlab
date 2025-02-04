@@ -160,23 +160,23 @@ func GetPrescriptionByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetStudents(w http.ResponseWriter, r *http.Request) {
-	var modelRequest []map[string]interface{}
-	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&modelRequest)
+	var students []model.User
+	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
 	if err != nil {
 		http.Error(w, "No Students Found", http.StatusNotFound)
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(modelRequest)
+	json.NewEncoder(w).Encode(students)
 }
 
 func GetStudentById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	var user []model.User
-	err := Supabase.DB.From("users").Select("*").Eq("id", id).Execute(&user)
+	var student []model.User
+	err := Supabase.DB.From("users").Select("*").Eq("id", id).Execute(&student)
 	if err != nil {
 		http.Error(w, "Student not found", http.StatusNotFound)
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user[0])
+	json.NewEncoder(w).Encode(student[0])
 }
