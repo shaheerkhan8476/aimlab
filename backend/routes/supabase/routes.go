@@ -22,6 +22,7 @@ func InitClient(url, key string) *supabase.Client {
 	return Supabase
 }
 
+// Signs up the user
 func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	var userRequest UserCreateRequest
 	bodyBytes, _ := io.ReadAll(r.Body)
