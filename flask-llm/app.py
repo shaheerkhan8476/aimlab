@@ -9,7 +9,7 @@ api_key = "Get from discord important channel ! "
 client = OpenAI(api_key=api_key)
 
 app = Flask(__name__)
-
+#test comment
 @app.route("/", methods=["GET"])
 def home():
     """
