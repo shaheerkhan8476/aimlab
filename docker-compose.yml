@@ -1,0 +1,12 @@
+
+version: "3.9"
+services:
+  flask-llm:
+    build: ./flask-llm
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./flask-llm/.env
+    volumes:
+      - ./flask-llm:/app
+    restart: always
