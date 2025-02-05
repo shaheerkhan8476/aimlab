@@ -5,8 +5,13 @@ from openai import OpenAI
 
 load_dotenv()
 
-api_key = "Get from discord important channel ! "
-client = OpenAI(api_key=api_key)
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+# if OpenAI API key is missing, then raise an error
+if not openai_api_key:
+    raise ValueError("Missing OpenAI API Key. Please set OPENAI_API_KEY in the .env file.")
+
+client = OpenAI(api_key=openai_api_key)
 
 app = Flask(__name__)
 
@@ -158,5 +163,5 @@ def feedback_on_response():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Run on port 5001 for local testing
-    app.run(port=5001, debug=True)
+    # Run on port 5000 for local testing
+    app.run(host="0.0.0.0", port=5000)
