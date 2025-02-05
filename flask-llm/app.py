@@ -53,8 +53,27 @@ def message_request():
     user_message = data.get("message", "")
     if not user_message:
         return jsonify({"error": "No message provided"}), 400
-    print(user_message)
-    return user_message
+    else:
+        print("Message:", user_message)
+
+    prompt = data.get("message", "")
+
+    if not prompt:
+        return jsonify({"error": "No prompt provided"}), 400
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=50,
+            temperature=0.7
+        )
+        text_output = response.choices[0].message.content.strip()
+        return jsonify({"completion": text_output})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    # return user_message
 
 @app.route("/api/hardcoded-case", methods=["GET"])
 def get_enhanced_case():
