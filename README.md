@@ -19,6 +19,21 @@ How to run flask:
 4. Open docker desktop
 5. Run docker container with image
 
+Make request to LLM microservice:
+
+1. Run go backend
+2. Run docker image
+3. Open postman, make a POST request to [http://localhost:8060/messageRequest](http://localhost:8060/messageRequest)
+4. Add the following to the body of the request:
+
+```json
+    {
+        "message" : "Your message here"
+    }
+```
+
+5. Send request through postman, check go backend terminal to ensure response was received
+
 <br />
 
 # Gitlab stuff below
