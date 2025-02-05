@@ -7,8 +7,17 @@ How to run frontend:
 3. npm start
 
 How to run backend:
+
 1. cd to backend folder in vscode
 2. go run .
+
+How to run flask:
+
+1. cd to flask-llm
+2. python -m venv venv
+3. .\venv\Scripts\activate
+4. pip install flask openai python-dotenv
+5. python app.py
 
 <br />
 
