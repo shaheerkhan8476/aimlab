@@ -84,7 +84,7 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // Function to grab all patients from patients table
-//I removed any body parsing because it's a GET -Julian
+// I removed any body parsing because it's a GET -Julian
 func GetPatients(w http.ResponseWriter, r *http.Request) {
 	var patients []model.Patient
 
@@ -157,4 +157,26 @@ func GetPrescriptionByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(prescription[0])
 
+}
+
+func GetStudents(w http.ResponseWriter, r *http.Request) {
+	var students []model.User
+	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
+	if err != nil {
+		http.Error(w, "No Students Found", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(students)
+}
+
+func GetStudentById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var student []model.User
+	err := Supabase.DB.From("users").Select("*").Eq("id", id).Execute(&student)
+	if err != nil {
+		http.Error(w, "Student not found", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(student[0])
 }
