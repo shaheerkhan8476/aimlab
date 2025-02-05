@@ -13,11 +13,10 @@ How to run backend:
 
 How to run flask:
 
-1. cd to flask-llm
-2. python -m venv venv
-3. .\venv\Scripts\activate
-4. pip install flask openai python-dotenv
-5. python app.py
+1. cd to main directory (team-corewell-capstone-2025)
+2. docker-compose -f docker-compose.yml -p flask-llm up
+3. Open docker desktop
+4. Run docker container with image
 
 <br />
 
