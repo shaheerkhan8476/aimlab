@@ -46,7 +46,7 @@ function SignInUser()
                 localStorage.setItem("userPassword", loginData.password);
                 console.log('Login Successful', data);
                 //compares if user is instructor or student
-                if(loginData.isAdmin === 'True')
+                if(loginData.isAdmin = 'True')
                 {
                     navigate("/InstructorDashboard");
                 }
