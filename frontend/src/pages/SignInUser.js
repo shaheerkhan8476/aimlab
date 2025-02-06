@@ -8,6 +8,7 @@ function SignInUser()
     const [loginData, setLoginData] = useState({
         email: '',
         password: '',
+        isAdmin: null,
      });
 
      //For error stuff if login fail
@@ -26,7 +27,6 @@ function SignInUser()
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
-
         try {
             const response = await fetch('http://localhost:8080/login',{
                 method: 'POST',
@@ -41,10 +41,19 @@ function SignInUser()
                 const data = await response.json();
                 const token = data.access_token;
                 localStorage.setItem("accessToken", token);
+                localStorage.setItem("isAdmin", loginData.isAdmin);
                 localStorage.setItem("userEmail", loginData.email);
                 localStorage.setItem("userPassword", loginData.password);
                 console.log('Login Successful', data);
-                navigate("/StudentDashboard");
+                //compares if user is instructor or student
+                if(loginData.isAdmin === 'True')
+                {
+                    navigate("/InstructorDashboard");
+                }
+                else{
+                    navigate("/StudentDashboard")
+                }
+                
             }
             else
             {
@@ -57,6 +66,7 @@ function SignInUser()
             setError("Failed login!")
             console.error('Error logining user', error);
         }
+        
     }
 
     //Render the HTML form so the user can interact
