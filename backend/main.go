@@ -29,7 +29,7 @@ func main() {
 
 	//http router
 	m := mux.NewRouter()
-	//server port connection
+	//endpoints
 	m.HandleFunc("/addUser", supabase.SignUpUser).Methods("POST")
 	m.HandleFunc("/login", supabase.SignInUser).Methods("POST")
 	m.HandleFunc("/patients", supabase.GetPatients).Methods("GET")
@@ -37,13 +37,17 @@ func main() {
 	m.HandleFunc("/prescriptions", supabase.GetPrescriptions).Methods("GET")
 	m.HandleFunc("/prescriptions/{id}", supabase.GetPrescriptionByID).Methods("GET")
 	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
+	m.HandleFunc("/students", supabase.GetStudents).Methods("GET")
+	m.HandleFunc("/students/{id}", supabase.GetStudentById).Methods("GET")
+	//allow API requests from react frontend
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}).Handler(m)
-	err = http.ListenAndServe(":8060", handler)
+	//server port
+	err = http.ListenAndServe(":8080", handler)
 	if err != nil {
 		fmt.Println(err)
 	}
