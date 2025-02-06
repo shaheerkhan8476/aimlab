@@ -59,6 +59,16 @@ function SignInUser()
         }
     }
 
+    function julianCheating() {
+        setLoginData(
+            {
+                email: "julianakk44@gmail.com",
+                password: "Password44!"
+            }
+        )
+
+    }
+
     //Render the HTML form so the user can interact
     return(
         <>
@@ -89,6 +99,9 @@ function SignInUser()
                 </input>
 
                 <button type="submit">Login!</button>
+
+                {/*made this button to cheat so i dont have to type */}
+                <button type="submit" onClick={julianCheating}>JULIAN</button>
 
             </form>
             <br></br>
