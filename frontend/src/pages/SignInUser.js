@@ -40,10 +40,12 @@ function SignInUser()
             {
                 const data = await response.json();
                 const token = data.access_token;
+                const userId = data.user.id;
                 localStorage.setItem("accessToken", token);
                 localStorage.setItem("isAdmin", loginData.isAdmin);
                 localStorage.setItem("userEmail", loginData.email);
                 localStorage.setItem("userPassword", loginData.password);
+                localStorage.setItem("userId", userId);
                 console.log('Login Successful', data);
                 //compares if user is instructor or student
                 if(loginData.isAdmin = 'True')
@@ -67,6 +69,16 @@ function SignInUser()
             console.error('Error logining user', error);
         }
         
+    }
+
+    function julianCheating() {
+        setLoginData(
+            {
+                email: "julianakk44@gmail.com",
+                password: "Password44!"
+            }
+        )
+
     }
 
     //Render the HTML form so the user can interact
@@ -99,6 +111,9 @@ function SignInUser()
                 </input>
 
                 <button type="submit">Login!</button>
+
+                {/*made this button to cheat so i dont have to type */}
+                <button type="submit" onClick={julianCheating}>JULIAN</button>
 
             </form>
             <br></br>
