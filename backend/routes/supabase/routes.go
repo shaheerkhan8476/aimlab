@@ -174,7 +174,7 @@ func GetStudentById(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 	var student []model.User
 	err := Supabase.DB.From("users").Select("*").Eq("id", id).Execute(&student)
-	if err != nil {
+	if err != nil || len(student) == 0{
 		http.Error(w, "Student not found", http.StatusNotFound)
 	}
 	w.Header().Set("Content-Type", "application/json")

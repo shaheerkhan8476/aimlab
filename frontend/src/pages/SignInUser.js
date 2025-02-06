@@ -40,10 +40,13 @@ function SignInUser()
             {
                 const data = await response.json();
                 const token = data.access_token;
+                const userId = data.user.id;
                 localStorage.setItem("accessToken", token);
                 localStorage.setItem("userEmail", loginData.email);
                 localStorage.setItem("userPassword", loginData.password);
+                localStorage.setItem("userId", userId);
                 console.log('Login Successful', data);
+                
                 navigate("/StudentDashboard");
             }
             else
