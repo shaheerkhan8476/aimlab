@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
+import "./css/StudentDashboard.css";
 
 
 //Right now this either displays ugly patient data, or
@@ -89,11 +90,13 @@ function StudentDashboard(){
         <>
             <h1>Student Dashboard</h1>
             <button onClick={() => {
-                localStorage.removeItem("accessToken");
-                navigate(0);    //cheeky way to refresh
-            }}> Log Out </button>
+                    localStorage.removeItem("accessToken");
+                    navigate(0);    //cheeky way to refresh
+                }}
+            > 
+            Log Out </button>
 
-            <button onClick={() => setView("patients")}>Patients</button>
+            <button className="patients-button" onClick={() => setView("patients")}>Patients</button>
             <button onClick={() => { setView("prescriptions"); fetchPrescriptions();}}>Prescriptions</button>
             
             {!isAuthenticated ? ( //If not authenticated, present link to login page
