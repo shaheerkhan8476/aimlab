@@ -4,7 +4,7 @@ services:
   flask-llm:
     build: ./flask-llm
     ports:
-      - "5000:5000"
+      - "5001:5001"
     env_file:
       - ./flask-llm/.env
     volumes:
