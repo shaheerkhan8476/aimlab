@@ -1,0 +1,125 @@
+/* general */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f9;
+}
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* gray welcome banner */
+.top-banner {
+    background-color: #d3d3d3; /* made it a different gray than mockup for this cuz it loooks nicer */
+    color: #002855;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1em;
+    height: 10%;
+}
+
+.logout-button {
+    background-color: #002855;
+    color: white;
+    border: none;
+    padding: 0.5em 1em;
+    border-radius: 0.375em;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+
+
+.welcome-message {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+/* Sidebar and Main container */
+.main-container {
+    display: flex;
+    flex-grow: 1;
+    height: 90%;
+}
+
+/* Sidebar */
+.sidebar {
+    background-color: #002855;
+    color: white;
+    flex: 0 0 12%; 
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar h2 {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 1em;
+    font-size: 1.5rem; 
+}
+
+/*buttons on left*/
+.nav-link {
+    color: #002855;
+    text-decoration: none;
+    margin: 0.5em 0; 
+    padding: 0.5em 0.75em;
+    border-radius: 0.375em;
+    text-align: center; 
+    font-size: 1.1rem; 
+    transition: background-color 0.2s ease-in-out;
+    background-color: #FFFFFF; 
+}
+
+.nav-link.active {
+    background-color: #8B9EB7;
+}
+
+/* Main stuff */
+.content {
+    flex-grow: 1;
+    padding: 1em;
+    background-color: #8B9EB7;
+    overflow-y: auto; /* should scroll if too many entries */
+}
+
+.data-section h2 {
+    color: #003f91;
+}
+
+/* Info table */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+    background-color: white;
+    border-radius: 0.375em;
+    overflow: hidden;
+    box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.1);
+}
+
+.data-table th,
+.data-table td {
+    padding: 1em;
+    text-align: left;
+}
+
+.data-table th {
+    background-color: #FFFFFF;
+    color: #000000;
+}
+
+.data-table tr {
+    background-color: #002855;
+    color: #FFFFFF;
+}
+
+.data-table tr:hover {
+    background-color: #778cd2;
+}

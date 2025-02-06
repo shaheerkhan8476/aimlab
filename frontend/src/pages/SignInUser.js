@@ -26,7 +26,6 @@ function SignInUser()
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
-
         try {
             const response = await fetch('http://localhost:8080/login',{
                 method: 'POST',
@@ -40,11 +39,35 @@ function SignInUser()
             {
                 const data = await response.json();
                 const token = data.access_token;
+                const userId = data.user.id;
                 localStorage.setItem("accessToken", token);
+                localStorage.setItem("isAdmin", loginData.isAdmin);
                 localStorage.setItem("userEmail", loginData.email);
                 localStorage.setItem("userPassword", loginData.password);
+                localStorage.setItem("userId", userId);
                 console.log('Login Successful', data);
-                navigate("/StudentDashboard");
+
+                const userResponse = await fetch(`http://localhost:8080/students/${userId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                const userData = await userResponse.json();
+                
+                const isAdmin = userData.isAdmin;
+                localStorage.setItem("isAdmin", isAdmin);
+
+                if (isAdmin) {
+                    navigate("/InstructorDashboard");
+                }
+                else {
+                    navigate("/StudentDashboard");
+                }
+
+                
             }
             else
             {
@@ -57,7 +80,10 @@ function SignInUser()
             setError("Failed login!")
             console.error('Error logining user', error);
         }
+        
     }
+
+
 
     //Render the HTML form so the user can interact
     return(
