@@ -9,6 +9,7 @@ function CreateUser()
         email: '',
         password: '',
         isAdmin: null,
+        studentStanding : '',
     });
 
     //Listen for user adjustment of html and apply to form
@@ -104,8 +105,22 @@ function CreateUser()
 
                 </input>
                 <label htmlFor="Student">Student</label>
-        
+                <label htmlFor="studentStanding">Student Standing:</label>
+                <select
+                    id="studentStanding"
+                    name="studentStanding"
+                    value={formData.studentStanding}
+                    onChange={handleChange}
+                    required
+                >
+                    <option value="">Select standing</option>
+                    <option value="resident">Resident</option>
+                    <option value="clerkship">Clerkship</option>
+                    <option value="medStudent">Med Student</option>
+                </select>
 
+                <br /><br />               
+                
 
                 <button type="submit">Sign up!</button>
 
