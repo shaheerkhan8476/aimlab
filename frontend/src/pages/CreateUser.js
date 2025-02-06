@@ -94,6 +94,7 @@ function CreateUser()
                     required>
 
                 </input>
+                
                 <label htmlFor="Instructor">Instructor</label>
                 <input 
                     type="radio" 
@@ -105,6 +106,8 @@ function CreateUser()
 
                 </input>
                 <label htmlFor="Student">Student</label>
+                <br></br>
+                <br></br>
                 <label htmlFor="studentStanding">Student Standing:</label>
                 <select
                     id="studentStanding"
@@ -114,17 +117,17 @@ function CreateUser()
                     required
                 >
                     <option value="">Select standing</option>
-                    <option value="resident">Resident</option>
-                    <option value="clerkship">Clerkship</option>
-                    <option value="medStudent">Med Student</option>
+                    <option value="Resident">Resident</option>
+                    <option value="Clerkship">Clerkship</option>
+                    <option value="Medical Student">Medical Student</option>
                 </select>
 
                 <br /><br />               
                 
 
                 <button type="submit">Sign up!</button>
-
             </form>
+            <br></br>
             <NavLink to="/SignInUser">Click for Login Page</NavLink>
         </>
 
