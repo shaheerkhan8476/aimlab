@@ -8,7 +8,6 @@ function SignInUser()
     const [loginData, setLoginData] = useState({
         email: '',
         password: '',
-        isAdmin: null,
      });
 
      //For error stuff if login fail
@@ -47,14 +46,27 @@ function SignInUser()
                 localStorage.setItem("userPassword", loginData.password);
                 localStorage.setItem("userId", userId);
                 console.log('Login Successful', data);
-                //compares if user is instructor or student
-                if(loginData.isAdmin = 'True')
-                {
+
+                const userResponse = await fetch(`http://localhost:8080/students/${userId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                const userData = await userResponse.json();
+                
+                const isAdmin = userData.isAdmin;
+                localStorage.setItem("isAdmin", isAdmin);
+
+                if (isAdmin) {
                     navigate("/InstructorDashboard");
                 }
-                else{
-                    navigate("/StudentDashboard")
+                else {
+                    navigate("/StudentDashboard");
                 }
+
                 
             }
             else
