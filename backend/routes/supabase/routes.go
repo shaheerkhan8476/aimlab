@@ -180,3 +180,44 @@ func GetStudentById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(student[0])
 }
+
+func GenerateTasks(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Generating tasks")
+	// TODO: Get all students, loop through each one, add a dummy task for each student for now
+	var students []model.User
+	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
+	if err != nil || len(students) == 0 {
+		http.Error(w, "No Students Found", http.StatusNotFound)
+		return
+	}
+
+	// Gets all patients, randomizes which patient to assign to each student
+	var patients []model.Patient
+	err = Supabase.DB.From("patients").Select("*").Execute(&patients)
+	// fmt.Println(patients)
+	if err != nil || len(patients) == 0 {
+		http.Error(w, "No Patients Found", http.StatusNotFound)
+		return
+	}
+
+	// TODO: Assigns a random patient to each student
+	// For now, assigns the first patient to each student
+	for _, student := range students {
+		task := model.Task{
+			PatientId:       patients[0].Id,
+			UserId:          student.Id,
+			PatientQuestion: nil,
+			StudentResponse: nil,
+			LLMFeedback:     nil,
+			Completed:       false,
+		}
+		err = Supabase.DB.From("tasks").Insert(task).Execute(nil)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Failed to insert task", http.StatusInternalServerError)
+			return
+		}
+	}
+	w.Write([]byte("Tasks generated"))
+
+}

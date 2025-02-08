@@ -39,6 +39,7 @@ func main() {
 	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
 	m.HandleFunc("/students", supabase.GetStudents).Methods("GET")
 	m.HandleFunc("/students/{id}", supabase.GetStudentById).Methods("GET")
+	m.HandleFunc("/generateTasks", supabase.GenerateTasks).Methods("POST")
 	//allow API requests from react frontend
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},

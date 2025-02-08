@@ -3,7 +3,7 @@ package model
 import "github.com/google/uuid"
 
 type Patient struct {
-	ID                   uuid.UUID `json:"id"`
+	Id                   uuid.UUID `json:"id"`
 	Name                 string    `json:"name"`
 	DateOfBirth          string    `json:"date_of_birth"`
 	Age                  int       `json:"age"`
@@ -19,10 +19,10 @@ type Patient struct {
 }
 
 type Prescription struct {
-	ID            int    		`json:"id"`
-	Patient_id    uuid.UUID   	`json:"patient_id"`
-	Name          string 		`json:"name"`
-	Medication    string 		`json:"medication"`
-	Dose          string 		`json:"dose"`
-	Refill_status string 		`json:"refill_status"`
+	Id           int       `json:"id"`
+	PatientId    uuid.UUID `json:"patient_id"`
+	Name         string    `json:"name"`
+	Medication   string    `json:"medication"`
+	Dose         string    `json:"dose"`
+	RefillStatus string    `json:"refill_status"`
 }
