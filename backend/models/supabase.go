@@ -14,7 +14,6 @@ type Patient struct {
 	SurgicalHistory      string    `json:"surgical_history"`
 	Cholesterol          string    `json:"cholesterol"`
 	Allergies            string    `json:"allergies"`
-	Medications          string    `json:"medications"`
 	PatientMessage       string    `json:"patient_message"`
 }
 
