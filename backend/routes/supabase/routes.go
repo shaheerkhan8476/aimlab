@@ -43,10 +43,10 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		print(err)
 	}
 	newUser := model.User{
-		Id:      parsedID,
-		Name:    userRequest.Name,
-		Email:   userRequest.Email,
-		IsAdmin: userRequest.IsAdmin,
+		Id:              parsedID,
+		Name:            userRequest.Name,
+		Email:           userRequest.Email,
+		IsAdmin:         userRequest.IsAdmin,
 		StudentStanding: userRequest.StudentStanding,
 	}
 	err = Supabase.DB.From("users").Insert(newUser).Execute(nil)
@@ -175,9 +175,34 @@ func GetStudentById(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 	var student []model.User
 	err := Supabase.DB.From("users").Select("*").Eq("id", id).Execute(&student)
-	if err != nil || len(student) == 0{
+	if err != nil || len(student) == 0 {
 		http.Error(w, "Student not found", http.StatusNotFound)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(student[0])
+}
+
+func GetResults(w http.ResponseWriter, r *http.Request) {
+	var results []model.Result
+	err := Supabase.DB.From("results").Select("*").Execute(&results)
+	if err != nil {
+		http.Error(w, "Grabbing Prescriptions Error", http.StatusBadRequest)
+	}
+	if len(results) == 0 {
+		http.Error(w, "No Prescriptions in Database", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(results)
+}
+
+func GetResultByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var result []model.Result
+	err := Supabase.DB.From("results").Select("*").Eq("id", id).Execute(&result)
+	if err != nil {
+		http.Error(w, "Grabbing Prescription Error", http.StatusBadRequest)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result[0])
 }
