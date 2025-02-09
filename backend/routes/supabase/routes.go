@@ -132,7 +132,7 @@ func GetPatientByID(w http.ResponseWriter, r *http.Request) {
 
 func GetPrescriptions(w http.ResponseWriter, r *http.Request) {
 	var prescriptions []model.Prescription
-	err := Supabase.DB.From("prescriptions").Select("*").Execute(&prescriptions)
+	err := Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Execute(&prescriptions)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -184,7 +184,7 @@ func GetStudentById(w http.ResponseWriter, r *http.Request) {
 
 func GetResults(w http.ResponseWriter, r *http.Request) {
 	var results []model.Result
-	err := Supabase.DB.From("results").Select("*").Execute(&results)
+	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Execute(&results)
 	if err != nil {
 		http.Error(w, "Grabbing Prescriptions Error", http.StatusBadRequest)
 	}
