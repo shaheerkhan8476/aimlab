@@ -9,6 +9,7 @@ function InstructorDashboard(){
     const [error, setError] = useState(null);   //state for error message
     const [isAuthenticated, setIsAuthenticated] = useState(true);
     const [view, setView] = useState("students");
+    const [userName, setUserName] = useState("Name McNameson")
     
 
     const navigate = useNavigate();
@@ -51,36 +52,108 @@ function InstructorDashboard(){
             setIsAuthenticated(false);
         });
     }, [isAuthenticated]);
+    useEffect(() => {
+        const userId = localStorage.getItem("userId");
+        console.log(userId);
+        if (!userId) {
+            console.error("User ID is not in local storage");
+            setIsAuthenticated(false);
+            return
+        }
+        fetch(`http://localhost:8080/students/${userId}`,{
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
+                "Content-Type": "application/json",
+            },
+        })
+        
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("failed fetching user data");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log("fetched user data:", data);
+            setUserName(data.name)
+        })
+        .catch((error) => {
+            console.error(error);
+            setError("fetch user data failed");
+        });
+    }, []);
 
 
     return (
         <>
-            <h1>Instructor Dashboard</h1>
-            <button onClick={() => {
-                localStorage.removeItem("accessToken");
-                navigate(0);
-            }}> Log Out </button>
-
-            <button onClick={() => setView("students")}>Students</button>
+        <div className="dashboard-container">
+            {/* gray banner at top */}
+            <div className="top-banner">
+                <button
+                    className="logout-button"
+                    onClick={() => {
+                        localStorage.removeItem("accessToken");
+                        navigate("/SignInUser"); // kick to login screen
+                    }}
+                >
+                    Log Out
+                </button>
+                {/* hardcoded for now sry */}
+                <div className="welcome-message">Welcome, {userName}</div>
+            </div>
+            
     
             
-            {!isAuthenticated ? ( //If not authenticated, present link to login page
-                <div>
-                    <NavLink to="/SignInUser">
-                        If you see this, you're probably not logged in. Click here to log in.
-                    </NavLink>
-                </div>
-            ) : (           //If authenticated, show students
-                <div>
-                    {view === "students" && (  
-                        <div>
-                            <h2>Student Data</h2>
-                            <pre>{JSON.stringify(students, null, 2)}</pre>
+            {/* main */}    
+            <div className="content">
+                    {!isAuthenticated ? (
+                        <div className="not-authenticated">
+                            Uhhh... you're not supposed to be here. Come back when you're logged in, buddy boy
+                        </div>
+                    ) : (
+                        <div className="data-section">
+                            {view === "students" && (
+                                <div>
+                                    <h2>Student List</h2>
+                                    {students ? (
+                                        <table className="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>   
+                                                    <th>ID</th>
+                                                    <th>Student Standing</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {students.map((student, index) => (
+                                                    <tr key={index}>
+                                                        <td>{student.name}</td>
+                                                        <td>{student.id}</td>
+                                                        <td>{student.studentStanding}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    ) : (
+                                        <p>...loading patient messages...</p>
+                                    )}
+                                </div>
+                            )}
+
+                            {view === "results" && (
+                                <div>
+                                    <h2>Results</h2>
+                                    <p>Erm this doesnt have anything yet lol</p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
-            )}
+            </div>
+            
         </>
+        
     )
 
 
