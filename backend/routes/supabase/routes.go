@@ -28,7 +28,7 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	bodyBytes, _ := io.ReadAll(r.Body)
 	err := json.Unmarshal(bodyBytes, &userRequest)
 	if err != nil {
-		print(err)
+		http.Error(w, "Cannot Unmarshal user from request", http.StatusBadRequest)
 	}
 	ctx := context.Background()
 	user, err := Supabase.Auth.SignUp(ctx, supabase.UserCredentials{
@@ -36,11 +36,11 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		Password: userRequest.Password,
 	})
 	if err != nil {
-		print(err)
+		http.Error(w, "Sign Up User Error", http.StatusNotAcceptable)
 	}
 	parsedID, err := uuid.Parse(user.ID)
 	if err != nil {
-		print(err)
+		http.Error(w, "Cannot Parse UUID correctly", http.StatusBadRequest)
 	}
 	newUser := model.User{
 		Id:              parsedID,
