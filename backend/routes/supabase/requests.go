@@ -6,7 +6,7 @@ type UserCreateRequest struct {
 	Password        string `json:"password"`
 	Email           string `json:"email"`
 	IsAdmin         bool   `json:"isAdmin"`
-	StudentStanding string `json: "studentStanding"`
+	StudentStanding string `json:"studentStanding"`
 }
 
 // User Login Request Model
