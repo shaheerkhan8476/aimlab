@@ -119,6 +119,30 @@ function StudentDashboard(){
 
     };
 
+    const fetchResults = () => {
+        const token = localStorage.getItem("accessToken")
+
+        if (!token) {
+            setIsAuthenticated(false);
+            return;
+        }
+
+        fetch("http://localhost:8080/results", {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application.json",
+            },
+        })
+        .then(response => response.json())
+        .then(data => setPrescriptions(data))
+        .catch(error => {
+            console.error(error);
+            setError("failed fetching results");
+        });
+
+    };
+
     const fetchMessages = () => {
         const token = localStorage.getItem("accessToken");
 
@@ -140,7 +164,7 @@ function StudentDashboard(){
                 >
                     Log Out
                 </button>
-                {/* hardcoded for now sry */}
+                
                 <div className="welcome-message">Welcome, {userName}</div>
             </div>
 
@@ -157,7 +181,10 @@ function StudentDashboard(){
                     </button>
                     <button
                         className={`nav-link ${view === "results" ? "active" : ""}`}
-                        onClick={() => setView("results")}
+                        onClick={() => {
+                        setView("results")
+                        fetchResults();
+                        }}
                     >
                         Results
                     </button>
@@ -197,7 +224,7 @@ function StudentDashboard(){
                                                     <tr 
                                                         key={index}
                                                         className="clickable-patient"
-                                                        onClick={() => (navigate(`/PatientPage/${message.id}`))}
+                                                        onClick={() => navigate(`/PatientPage/${message.id}`)}
 
                                                     >
                                                         <td>{message.name}</td>

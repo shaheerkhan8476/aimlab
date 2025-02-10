@@ -1,0 +1,94 @@
+/* patient ccontainer 
+Necessary to stop similarly named elements from
+messing with other pages */
+.patient-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #8B9EB7;
+    min-height: 100vh;
+}
+
+/* Header Section */
+.patient-header {
+    background-color: #d3d3d3;
+    color: #002855;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 80%;
+    padding: 1em;
+    border-radius: 0.375em;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Back Button */
+.back-button {
+    background-color: #002855;
+    color: #ffffff;
+    border: none;
+    padding: 0.5em 1em;
+    border-radius: 0.375em;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.back-button:hover {
+    background-color: #003f91;
+}
+
+/* Patient Details Table */
+.patient-details {
+    width: 80%;
+    margin-top: 20px;
+}
+
+.patient-container .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border-radius: 0.375em;
+    overflow: hidden;
+    box-shadow: 0 0.5em 1em #00000000;
+}
+
+.patient-container .data-table td {
+    padding: 1em;
+    border-bottom: 1px solid #ddd;
+}
+
+.patient-container .data-table tr:nth-child(odd) {
+    background-color: #002855;
+    color: white;
+}
+
+.patient-container .data-table tr:nth-child(even) {
+    background-color: white;
+    color: #002855
+}
+
+.patient-container .data-table td:first-child(even) {
+    font-weight: bold;
+    color: #002855;
+    width: 30%;
+}
+
+/* Patient Message Styling */
+.patient-message {
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-style: italic;
+    color: #003f91;
+}
+
+/* Loading State */
+.loading {
+    font-size: 1.5rem;
+    color: #002855;
+    font-weight: bold;
+    margin-top: 20px;
+}
