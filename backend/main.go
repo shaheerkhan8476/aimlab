@@ -1,4 +1,5 @@
 package main
+
 //git sanity check for julian
 import (
 	"fmt"
@@ -27,9 +28,10 @@ func main() {
 
 	supabase.InitClient(url, key)
 
-	//http router
+	// API Gateway
 	m := mux.NewRouter()
-	//endpoints
+
+	// Endpoints
 	m.HandleFunc("/addUser", supabase.SignUpUser).Methods("POST")
 	m.HandleFunc("/login", supabase.SignInUser).Methods("POST")
 	m.HandleFunc("/patients", supabase.GetPatients).Methods("GET")
@@ -39,15 +41,18 @@ func main() {
 	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
 	m.HandleFunc("/students", supabase.GetStudents).Methods("GET")
 	m.HandleFunc("/students/{id}", supabase.GetStudentById).Methods("GET")
-	//allow API requests from react frontend
+	m.HandleFunc("/results", supabase.GetResults).Methods("GET")
+	m.HandleFunc("/results/{id}", supabase.GetResultByID).Methods("GET")
+	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
+
+	// Allow API requests from frontend
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}).Handler(m)
-	//server port
-	err = http.ListenAndServe(":8080", handler)
+	err = http.ListenAndServe(":8060", handler)
 	if err != nil {
 		fmt.Println(err)
 	}

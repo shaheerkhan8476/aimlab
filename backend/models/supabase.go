@@ -14,15 +14,27 @@ type Patient struct {
 	SurgicalHistory      string    `json:"surgical_history"`
 	Cholesterol          string    `json:"cholesterol"`
 	Allergies            string    `json:"allergies"`
-	Medications          string    `json:"medications"`
 	PatientMessage       string    `json:"patient_message"`
 }
 
+type EmbeddedPatient struct {
+	Name string `json:"name"`
+}
+
 type Prescription struct {
-	ID            int    		`json:"id"`
-	Patient_id    uuid.UUID   	`json:"patient_id"`
-	Name          string 		`json:"name"`
-	Medication    string 		`json:"medication"`
-	Dose          string 		`json:"dose"`
-	Refill_status string 		`json:"refill_status"`
+	ID            uuid.UUID       `json:"id"`
+	Patient_id    uuid.UUID       `json:"patient_id"`
+	Medication    string          `json:"medication"`
+	Dose          string          `json:"dose"`
+	Refill_status string          `json:"refill_status"`
+	Patient       EmbeddedPatient `json:"patient"`
+}
+
+type Result struct {
+	ID          uuid.UUID       `json:"id"`
+	Patient_id  uuid.UUID       `json:"patient_id"`
+	Test_name   string          `json:"test_name"`
+	Test_date   string          `json:"test_date"`
+	Test_result map[string]bool `json:"test_result"`
+	Patient     EmbeddedPatient `json:"patient"`
 }
