@@ -27,7 +27,7 @@ function SignInUser()
         e.preventDefault();
         setError("");
         try {
-            const response = await fetch('http://localhost:8080/login',{
+            const response = await fetch('http://localhost:8060/login',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ function SignInUser()
                 localStorage.setItem("userId", userId);
                 console.log('Login Successful', data);
 
-                const userResponse = await fetch(`http://localhost:8080/students/${userId}`, {
+                const userResponse = await fetch(`http://localhost:8060/students/${userId}`, {
                     method: "GET",
                     headers: {
                         "Authorization": `Bearer ${token}`,

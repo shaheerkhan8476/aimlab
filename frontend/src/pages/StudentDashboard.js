@@ -33,7 +33,7 @@ function StudentDashboard(){
             return;
         }
 
-        fetch("http://localhost:8080/patients",{
+        fetch("http://localhost:8060/patients",{
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -69,7 +69,7 @@ function StudentDashboard(){
             setIsAuthenticated(false);
             return
         }
-        fetch(`http://localhost:8080/students/${userId}`,{
+        fetch(`http://localhost:8060/students/${userId}`,{
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
@@ -103,7 +103,7 @@ function StudentDashboard(){
             return;
         }
 
-        fetch("http://localhost:8080/prescriptions", {
+        fetch("http://localhost:8060/prescriptions", {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,

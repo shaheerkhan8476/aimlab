@@ -25,7 +25,7 @@ function InstructorDashboard(){
             return;
         }
 
-        fetch("http://localhost:8080/students",{
+        fetch("http://localhost:8060/students",{
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -60,7 +60,7 @@ function InstructorDashboard(){
             setIsAuthenticated(false);
             return
         }
-        fetch(`http://localhost:8080/students/${userId}`,{
+        fetch(`http://localhost:8060/students/${userId}`,{
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
