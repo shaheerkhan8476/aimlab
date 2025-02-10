@@ -9,7 +9,7 @@ function PatientPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch(`http://localhost:8080/patients/${id}`, {
+        fetch(`http://localhost:8060/patients/${id}`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,

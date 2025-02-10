@@ -127,7 +127,7 @@ function StudentDashboard(){
             return;
         }
 
-        fetch("http://localhost:8080/results", {
+        fetch("http://localhost:8060/results", {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -256,7 +256,7 @@ function StudentDashboard(){
                                             <tbody>
                                                 {prescriptions.map((prescription, index) => (
                                                     <tr key={index}>
-                                                        <td>{prescription.name}</td>
+                                                        <td>{prescription.patient.name}</td>
                                                         <td>{prescription.medication}</td>
                                                         <td>{prescription.dose}</td>
                                                         <td>{prescription.refill_status}</td>
