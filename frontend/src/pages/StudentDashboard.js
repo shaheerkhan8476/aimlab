@@ -194,7 +194,12 @@ function StudentDashboard(){
                                             </thead>
                                             <tbody>
                                                 {messages.map((message, index) => (
-                                                    <tr key={index}>
+                                                    <tr 
+                                                        key={index}
+                                                        className="clickable-patient"
+                                                        onClick={() => (navigate(`/PatientPage/${message.id}`))}
+
+                                                    >
                                                         <td>{message.name}</td>
                                                         <td>{message.date_of_birth}</td>
                                                         <td>{message.patient_message}</td>
