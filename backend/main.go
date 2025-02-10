@@ -38,6 +38,7 @@ func main() {
 	m.HandleFunc("/patients/{id}", supabase.GetPatientByID).Methods("GET")
 	m.HandleFunc("/prescriptions", supabase.GetPrescriptions).Methods("GET")
 	m.HandleFunc("/prescriptions/{id}", supabase.GetPrescriptionByID).Methods("GET")
+	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
 	m.HandleFunc("/students", supabase.GetStudents).Methods("GET")
 	m.HandleFunc("/students/{id}", supabase.GetStudentById).Methods("GET")
 	m.HandleFunc("/results", supabase.GetResults).Methods("GET")
