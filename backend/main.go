@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
+	"gitlab.msu.edu/team-corewell-2025/routes/llm"
 	"gitlab.msu.edu/team-corewell-2025/routes/supabase"
 )
 
@@ -35,6 +36,7 @@ func main() {
 	m.HandleFunc("/patients/{id}", supabase.GetPatientByID).Methods("GET")
 	m.HandleFunc("/prescriptions", supabase.GetPrescriptions).Methods("GET")
 	m.HandleFunc("/prescriptions/{id}", supabase.GetPrescriptionByID).Methods("GET")
+	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
 	m.HandleFunc("/students", supabase.GetStudents).Methods("GET")
 	m.HandleFunc("/students/{id}", supabase.GetStudentById).Methods("GET")
 	//allow API requests from react frontend

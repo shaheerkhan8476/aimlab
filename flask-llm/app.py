@@ -5,8 +5,13 @@ from openai import OpenAI
 
 load_dotenv()
 
-api_key = "Get from discord important channel ! "
-client = OpenAI(api_key=api_key)
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+# if OpenAI API key is missing, then raise an error
+if not openai_api_key:
+    raise ValueError("Missing OpenAI API Key. Please set OPENAI_API_KEY in the .env file.")
+
+client = OpenAI(api_key=openai_api_key)
 
 app = Flask(__name__)
 #test comment
@@ -41,6 +46,34 @@ def generate_text():
         return jsonify({"completion": text_output})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/api/message-request", methods=["POST"])
+def message_request():
+    data = request.get_json() or {}
+    user_message = data.get("message", "")
+    if not user_message:
+        return jsonify({"error": "No message provided"}), 400
+    else:
+        print("Message:", user_message)
+
+    prompt = data.get("message", "")
+
+    if not prompt:
+        return jsonify({"error": "No prompt provided"}), 400
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=50,
+            temperature=0.7
+        )
+        text_output = response.choices[0].message.content.strip()
+        return jsonify({"completion": text_output})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    # return user_message
 
 @app.route("/api/hardcoded-case", methods=["GET"])
 def get_enhanced_case():
@@ -158,5 +191,5 @@ def feedback_on_response():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Run on port 5001 for local testing
-    app.run(port=5001, debug=True)
+    # Run on port 5000 for local testing
+    app.run(host="0.0.0.0", port=5001)
