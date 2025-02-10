@@ -151,7 +151,7 @@ func GetPrescriptionByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	var prescription []model.Prescription
-	err := Supabase.DB.From("prescriptions").Select("*").Eq("id", id).Execute(&prescription)
+	err := Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Eq("id", id).Execute(&prescription)
 	if err != nil {
 		http.Error(w, "Prescription not found", http.StatusNotFound)
 	}
@@ -199,7 +199,7 @@ func GetResultByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	var result []model.Result
-	err := Supabase.DB.From("results").Select("*").Eq("id", id).Execute(&result)
+	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Eq("id", id).Execute(&result)
 	if err != nil {
 		http.Error(w, "Grabbing Prescription Error", http.StatusBadRequest)
 	}
