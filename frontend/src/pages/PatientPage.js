@@ -83,10 +83,7 @@ function PatientPage() {
                             <td><strong>Allergies</strong></td>
                             <td>{patient.allergies}</td>
                         </tr>
-                        <tr>
-                            <td><strong>Medications</strong></td>
-                            <td>{patient.medications}</td>
-                        </tr>
+                        
                         <tr>
                             <td><strong>Patient Message</strong></td>
                             <td className="patient-message">{patient.patient_message}</td>
