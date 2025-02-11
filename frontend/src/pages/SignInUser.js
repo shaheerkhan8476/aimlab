@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import "./css/Login.css";
 
 function SignInUser()
 {
@@ -86,49 +87,47 @@ function SignInUser()
 
 
     //Render the HTML form so the user can interact
-    return(
-        <>
-            <form onSubmit={handleSubmit}>
-                <h1>Login:</h1>
-                
-                <label htmlFor="email">Email:</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    value={loginData.email}
-                    onChange={handleChange}
-                    placeholder="Enter email" 
-                    required>
-                </input>
-
-                <label htmlFor="password">Password:</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    value={loginData.password}
-                    onChange={handleChange}
-                    placeholder="Enter password" 
-                    required>
-
-                </input>
-
-                <button type="submit">Login!</button>
-
-            </form>
-            <br></br>
-            {error}
-            <br></br>
-            <br></br>
-            <NavLink to="/">Click for account creation page</NavLink>
-        </>
-
-
-    )
-
-
-
+    return (
+        <div className="login-container">
+            <div className="login-box">
+                <h2>Login</h2>
+                {error && <p className="error-message">{error}</p>}
+                <form onSubmit={handleSubmit}>
+                    <div className="input-group">
+                        <label>Email</label>
+                        <input
+                            type="email"
+                            name="email"
+                            value={loginData.email}
+                            onChange={handleChange}
+                            placeholder="Enter your email"
+                            required/>
+                    </div>
+                    <div className="input-group">
+                        <label>Password</label>
+                        <input
+                            type="password"
+                            name="password"
+                            value={loginData.password}
+                            onChange={handleChange}
+                            placeholder="Enter your password"
+                            required/>
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
+                <p>
+                    Don't have an account?  
+                    <span 
+                        className="signup-link" 
+                        onClick={() => {
+                            navigate("/CreateUser");
+                        }}
+                    >
+                        Sign up</span>
+                </p>
+            </div>
+        </div>
+    );
 }
 
 export default SignInUser;
