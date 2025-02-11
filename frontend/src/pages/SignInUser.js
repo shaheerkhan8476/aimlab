@@ -90,7 +90,7 @@ function SignInUser()
     return (
         <div className="login-container">
             <div className="login-box">
-                <h2>Login</h2>
+                <h2>Log In</h2>
                 {error && <p className="error-message">{error}</p>}
                 <form onSubmit={handleSubmit}>
                     <div className="input-group">
@@ -116,14 +116,15 @@ function SignInUser()
                     <button type="submit">Login</button>
                 </form>
                 <p>
-                    Don't have an account?  
-                    <span 
+                    Don't have an account?
+                    <span> </span>
+                    <span  
                         className="signup-link" 
                         onClick={() => {
                             navigate("/CreateUser");
                         }}
                     >
-                        Sign up</span>
+                         Sign up</span>
                 </p>
             </div>
         </div>
