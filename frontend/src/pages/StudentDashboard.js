@@ -135,7 +135,7 @@ function StudentDashboard(){
                     className="logout-button"
                     onClick={() => {
                         localStorage.removeItem("accessToken");
-                        navigate("/SignInUser"); // kick to login screen
+                        navigate("/"); // kick to login screen
                     }}
                 >
                     Log Out

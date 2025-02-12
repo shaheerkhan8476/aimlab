@@ -128,7 +128,7 @@ function CreateUser()
                 <button type="submit">Sign up!</button>
             </form>
             <br></br>
-            <NavLink to="/SignInUser">Click for Login Page</NavLink>
+            <NavLink to="/">Click for Login Page</NavLink>
         </>
 
     )
