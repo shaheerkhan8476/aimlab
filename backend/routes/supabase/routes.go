@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"math/rand/v2"
 	"net/http"
 
 	"fmt"
@@ -191,7 +192,7 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Gets all patients, randomizes which patient to assign to each student
+	// Gets all patients from the database
 	var patients []model.Patient
 	err = Supabase.DB.From("patients").Select("*").Execute(&patients)
 	// fmt.Println(patients)
@@ -200,11 +201,11 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Assigns a random patient to each student
-	// For now, assigns the first patient to each student
+	// Assigns random index from patients to each student
 	for _, student := range students {
+		random_index := rand.IntN(len(patients)) // shouldn't need to be seeded
 		task := model.Task{
-			PatientId:       patients[0].Id,
+			PatientId:       patients[random_index].Id,
 			UserId:          student.Id,
 			PatientQuestion: nil,
 			StudentResponse: nil,
@@ -220,4 +221,28 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write([]byte("Tasks generated"))
 
+}
+
+func GetTaskByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["task_id"]
+	var task []model.Task
+	err := Supabase.DB.From("tasks").Select("*").Eq("id", id).Execute(&task)
+	if err != nil {
+		http.Error(w, "Task not found", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(task[0])
+}
+
+func GetTasksByStudentID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["student_id"]
+	var tasks []model.Task
+	err := Supabase.DB.From("tasks").Select("*").Eq("user_id", id).Execute(&tasks)
+	if err != nil {
+		http.Error(w, "No tasks found", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(tasks)
 }
