@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import { NavLink } from 'react-router-dom';
 import "./css/StudentDashboard.css";
 
 
@@ -12,7 +11,7 @@ function StudentDashboard(){
     const [error, setError] = useState(null);   //state for error message
     const [isAuthenticated, setIsAuthenticated] = useState(true);
     const [view, setView] = useState("messages"); //patient messages by default. swtich to prescriptions if clicked
-    const [userName, setUserName] = useState("Name McNameson")
+    const [userName, setUserName] = useState("")
     
 
     const navigate = useNavigate();
@@ -143,12 +142,7 @@ function StudentDashboard(){
 
     };
 
-    const fetchMessages = () => {
-        const token = localStorage.getItem("accessToken");
-
-        fetch("http://localhost")
-    }
-
+  
 
 
     return (
@@ -164,8 +158,8 @@ function StudentDashboard(){
                 >
                     Log Out
                 </button>
+                {userName && <div className="welcome-message">Welcome, {userName}</div>}
                 
-                <div className="welcome-message">Welcome, {userName}</div>
             </div>
 
             {/* sidebar and main */}
@@ -191,8 +185,9 @@ function StudentDashboard(){
                     <button
                         className={`nav-link ${view === "prescriptions" ? "active" : ""}`}
                         onClick={() => {
-                            setView("prescriptions");
                             fetchPrescriptions();
+                            setView("prescriptions");
+                            
                         }}
                     >
                         Prescriptions/Refills

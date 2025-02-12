@@ -57,7 +57,6 @@ messing with other pages */
 
 .patient-container .data-table td {
     padding: 1em;
-    border-bottom: 1px solid #ddd;
 }
 
 .patient-container .data-table tr:nth-child(odd) {
@@ -80,7 +79,6 @@ messing with other pages */
 .patient-message {
     background-color: #c1e5f3;
     padding: 10px;
-    border-radius: 5px;
     font-style: italic;
     color: #003f91;
 }
@@ -91,4 +89,9 @@ messing with other pages */
     color: #002855;
     font-weight: bold;
     margin-top: 20px;
+}
+
+.loading-screen {
+    background-color: #778cd2;
+    color: #778cd2;
 }

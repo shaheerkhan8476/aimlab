@@ -35,7 +35,9 @@ function PatientPage() {
             the variable with the api response if you don't have this
             and it breaks */}
         return (
-            <p>Patient loading, please wait</p>
+            <div className="loading-screen">
+                
+            </div>
         )
     }
 
