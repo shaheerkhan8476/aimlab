@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-
+import { useNavigate } from 'react-router-dom';
+import "./css/Login.css";
 function CreateUser()
 {
     //Create blank form for data user enters
@@ -11,6 +12,7 @@ function CreateUser()
         isAdmin: null,
         studentStanding : '',
     });
+    const navigate = useNavigate();
 
     //Listen for user adjustment of html and apply to form
     const handleChange = (e) => {
@@ -36,6 +38,7 @@ function CreateUser()
             {
                 const data = await response.json();
                 console.log('User created:', data);
+                navigate("/");
             }
             else
             {
@@ -48,91 +51,53 @@ function CreateUser()
         }
     }
     //Render the HTML form so the user can interact
-    return(
-        <>    
-            <form onSubmit={handleSubmit}>
-                <h1>Create User:</h1>
-                <label htmlFor="name">Name:</label>
-                <input 
-                    type="text" 
-                    id="name" 
-                    name="name" 
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter name" 
-                    required>
-                </input>
-
-                <label htmlFor="email">Email:</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Enter email" 
-                    required>
-                </input>
-
-                <label htmlFor="password">Password:</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Enter password" 
-                    required>
-
-                </input>
-                <input 
-                    type="radio"
-                    name="isAdmin" 
-                    value= "true"
-                    checked={formData.isAdmin === true}
-                    onChange={handleChange}
-                    required>
-
-                </input>
-                
-                <label htmlFor="Instructor">Instructor</label>
-                <input 
-                    type="radio" 
-                    name="isAdmin"
-                    value = "false"
-                    checked={formData.isAdmin === false}
-                    onChange={handleChange}
-                    required>
-
-                </input>
-                <label htmlFor="Student">Student</label>
-                <br></br>
-                <br></br>
-                <label htmlFor="studentStanding">Student Standing:</label>
-                <select
-                    id="studentStanding"
-                    name="studentStanding"
-                    value={formData.studentStanding}
-                    onChange={handleChange}
-                    required
-                >
-                    <option value="">Select standing</option>
-                    <option value="Resident">Resident</option>
-                    <option value="Clerkship">Clerkship</option>
-                    <option value="Medical Student">Medical Student</option>
-                </select>
-
-                <br /><br />               
-                
-
-                <button type="submit">Sign up!</button>
-            </form>
-            <br></br>
-            <NavLink to="/">Click for Login Page</NavLink>
-        </>
-
-    )
-
+    return (
+        <div className="login-container">
+            <div className="login-box">
+                <h2>Sign Up</h2>
+                <form onSubmit={handleSubmit}>
+                    <div className="input-group">
+                        <label>Name</label>
+                        <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Enter your name" required />
+                    </div>
+                    <div className="input-group">
+                        <label>Email</label>
+                        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter your email" required />
+                    </div>
+                    <div className="input-group">
+                        <label>Password</label>
+                        <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Enter your password" required />
+                    </div>
+                    <div className="input-group">
+                        <label>Role</label>
+                        <div className="radio-group">
+                            <input type="radio" id="instructor" name="isAdmin" value="true" checked={formData.isAdmin === true} onChange={handleChange} required />
+                            <label htmlFor="instructor">Instructor</label>
+                            <input type="radio" id="student" name="isAdmin" value="false" checked={formData.isAdmin === false} onChange={handleChange} required />
+                            <label htmlFor="student">Student</label>
+                        </div>
+                    </div>
+                    {!formData.isAdmin && (
+                        <div className="input-group student-standing-group">
+                            <label className="student-standing-label">Student Standing</label>
+                            <select className="styled-dropdown drop" name="studentStanding" value={formData.studentStanding} onChange={handleChange} required>
+                                <option value="">Select standing</option>
+                                <option value="Resident">Resident</option>
+                                <option value="Clerkship">Clerkship</option>
+                                <option value="Medical Student">Medical Student</option>
+                            </select>
+                        </div>
+                    )}
+                    <button type="submit">Sign Up</button>
+                </form>
+                <p>
+                    Already have an account?
+                    <span> </span>
+                    <NavLink to="/">Log In</NavLink>
+                </p>
+            </div>
+        </div>
+    );
 }
 
 export default CreateUser;
