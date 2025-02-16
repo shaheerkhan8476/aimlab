@@ -84,7 +84,7 @@
 }
 /* fille white if checked */
 .radio-group input[type="radio"]:checked + label::before {
-  background-color: white;
+  background-color: #0056b3;
   border: 2px solid white;
   box-shadow: 0 0 4px white;
 }
