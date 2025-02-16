@@ -14,6 +14,7 @@ const (
 	PrescriptionTaskType    TaskType = "prescription"
 )
 
+// Base Task struct
 type Task struct {
 	// Id              int64     `json:"id"`  // This seems to cause issues with unique constraints because default = 0
 	// CreatedAt time.Time `json:"created_at"`// Don't want to set default time through backend
@@ -23,10 +24,12 @@ type Task struct {
 	Completed bool      `json:"completed"`
 }
 
+// Shared method for marking a task as completed
 func (t *Task) CompleteTask() {
 	t.Completed = true
 }
 
+// Define the different types of tasks
 type PatientTask struct {
 	Task
 	PatientQuestion *string `json:"patient_question,omitempty"`

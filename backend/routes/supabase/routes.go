@@ -204,7 +204,7 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 	// Assigns random index from patients to each student
 	for _, student := range students {
 		random_index := rand.IntN(len(patients)) // shouldn't need to be seeded
-		task := model.PatientTask{
+		patient_task := model.PatientTask{
 			Task: model.Task{
 				PatientId: patients[random_index].Id,
 				UserId:    student.Id,
@@ -216,12 +216,61 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 			LLMFeedback:     nil,
 		}
 		// TODO: Genenerate patient question using LLM, insert into task
-		err = Supabase.DB.From("tasks").Insert(task).Execute(nil)
+		err = Supabase.DB.From("tasks").Insert(patient_task).Execute(nil)
 		if err != nil {
 			fmt.Println(err)
 			http.Error(w, "Failed to insert task", http.StatusInternalServerError)
 			return
 		}
+
+		// Generate a lab result task
+		result_uuid, err := uuid.Parse("1c5b9e46-469b-4e39-b9a2-b415c59cbe04")
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Failed to parse UUID", http.StatusInternalServerError)
+			return
+		}
+		result_task := model.ResultTask{
+			Task: model.Task{
+				PatientId: patients[random_index].Id,
+				UserId:    student.Id,
+				TaskType:  model.LabResultTaskType,
+				Completed: false,
+			},
+			ResultId:        result_uuid,
+			StudentResponse: nil,
+			LLMFeedback:     nil,
+		}
+		err = Supabase.DB.From("tasks").Insert(result_task).Execute(nil)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Failed to insert task", http.StatusInternalServerError)
+			return
+		}
+
+		// Generate a prescription task
+		prescription_uuid, err := uuid.Parse("01725d72-1d2b-473f-a2ef-6b8b8ebc1102")
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Failed to parse UUID", http.StatusInternalServerError)
+			return
+		}
+		prescription_task := model.PrescriptionTask{
+			Task: model.Task{
+				PatientId: patients[random_index].Id,
+				UserId:    student.Id,
+				TaskType:  model.PrescriptionTaskType,
+				Completed: false,
+			},
+			PrescriptionId: prescription_uuid,
+		}
+		err = Supabase.DB.From("tasks").Insert(prescription_task).Execute(nil)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Failed to insert task", http.StatusInternalServerError)
+			return
+		}
+
 	}
 	w.Write([]byte("Tasks generated"))
 
