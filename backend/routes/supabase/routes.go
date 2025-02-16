@@ -204,14 +204,18 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 	// Assigns random index from patients to each student
 	for _, student := range students {
 		random_index := rand.IntN(len(patients)) // shouldn't need to be seeded
-		task := model.Task{
-			PatientId:       patients[random_index].Id,
-			UserId:          student.Id,
+		task := model.PatientTask{
+			Task: model.Task{
+				PatientId: patients[random_index].Id,
+				UserId:    student.Id,
+				TaskType:  model.PatientQuestionTaskType,
+				Completed: false,
+			},
 			PatientQuestion: nil,
 			StudentResponse: nil,
 			LLMFeedback:     nil,
-			Completed:       false,
 		}
+		// TODO: Genenerate patient question using LLM, insert into task
 		err = Supabase.DB.From("tasks").Insert(task).Execute(nil)
 		if err != nil {
 			fmt.Println(err)
@@ -245,4 +249,21 @@ func GetTasksByStudentID(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tasks)
+}
+
+// CompleteTask marks a task as completed
+func CompleteTask(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["task_id"]
+	var task []model.Task
+	err := Supabase.DB.From("tasks").Select("*").Eq("id", id).Execute(&task)
+	if err != nil {
+		http.Error(w, "Task not found", http.StatusNotFound)
+	}
+	task[0].CompleteTask()
+	err = Supabase.DB.From("tasks").Update(task[0]).Eq("id", id).Execute(nil)
+	if err != nil {
+		http.Error(w, "Failed to update task", http.StatusInternalServerError)
+	}
+	w.Write([]byte("Task completed"))
 }
