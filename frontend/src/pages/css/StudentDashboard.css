@@ -23,7 +23,7 @@ body {
     height: 10%;
 }
 
-.logout-button {
+.logout-but {
     background-color: #002855;
     color: white;
     border: none;
@@ -31,6 +31,7 @@ body {
     border-radius: 0.375em;
     cursor: pointer;
     transition: background-color 0.2s ease-in-out;
+    max-width: fit-content;
 }
 
 
