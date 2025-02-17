@@ -231,3 +231,34 @@ func GetResultsByPatientID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(results)
 
 }
+func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
+	var request FlaggedPatientRequest
+	bodyBytes, _ := io.ReadAll(r.Body)
+	err := json.Unmarshal(bodyBytes, &request)
+	if err != nil {
+		http.Error(w, "Error Unmarshling Request", http.StatusInternalServerError)
+		return
+	}
+	err = Supabase.DB.From("flagged").Insert(request).Execute(nil)
+	if err != nil {
+		http.Error(w, "Error Inserting Patient to Flag", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func RemoveFlaggedPatient(w http.ResponseWriter, r *http.Request) {
+	var request FlaggedPatientRequest
+	bodyBytes, _ := io.ReadAll(r.Body)
+	err := json.Unmarshal(bodyBytes, &request)
+	if err != nil {
+		http.Error(w, "Error Unmarshling Request", http.StatusInternalServerError)
+		return
+	}
+	err = Supabase.DB.From("flagged").Delete().Eq("id", request.Id.String()).Execute(nil)
+	if err != nil {
+		http.Error(w, "Could not Find Patient in Flagged", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}

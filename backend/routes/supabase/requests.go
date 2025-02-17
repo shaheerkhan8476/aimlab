@@ -1,5 +1,7 @@
 package supabase
 
+import "github.com/google/uuid"
+
 // User Create Request Model
 type UserCreateRequest struct {
 	Name            string `json:"name"`
@@ -13,4 +15,9 @@ type UserCreateRequest struct {
 type UserLoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type FlaggedPatientRequest struct {
+	Id        uuid.UUID `json:"id"`
+	PatientID string    `json:"patient_id"`
 }
