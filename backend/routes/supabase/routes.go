@@ -233,14 +233,20 @@ func GetResultsByPatientID(w http.ResponseWriter, r *http.Request) {
 }
 func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 	var request FlaggedPatientRequest
-	bodyBytes, _ := io.ReadAll(r.Body)
-	err := json.Unmarshal(bodyBytes, &request)
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		return
+	}
+	err = json.Unmarshal(bodyBytes, &request)
 	if err != nil {
 		http.Error(w, "Error Unmarshling Request", http.StatusInternalServerError)
 		return
 	}
+	request.Id = uuid.New()
 	err = Supabase.DB.From("flagged").Insert(request).Execute(nil)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Error Inserting Patient to Flag", http.StatusInternalServerError)
 		return
 	}
@@ -249,16 +255,45 @@ func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 
 func RemoveFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 	var request FlaggedPatientRequest
-	bodyBytes, _ := io.ReadAll(r.Body)
-	err := json.Unmarshal(bodyBytes, &request)
+
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Error Unmarshling Request", http.StatusInternalServerError)
+		http.Error(w, "Failed to read request body", http.StatusBadRequest)
 		return
 	}
-	err = Supabase.DB.From("flagged").Delete().Eq("id", request.Id.String()).Execute(nil)
+
+	err = json.Unmarshal(bodyBytes, &request)
 	if err != nil {
-		http.Error(w, "Could not Find Patient in Flagged", http.StatusInternalServerError)
+		fmt.Println(err)
+		http.Error(w, "Invalid JSON in request body", http.StatusBadRequest)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+
+	patientID := request.PatientID.String()
+	err = Supabase.DB.From("flagged").Delete().Eq("patient_id", patientID).Execute(nil)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Could not delete from flagged", http.StatusInternalServerError)
+		return
+	}
+	err = Supabase.DB.From("prescriptions").Delete().Eq("patient_id", patientID).Execute(nil)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Could not delete from prescriptions", http.StatusInternalServerError)
+		return
+	}
+	err = Supabase.DB.From("results").Delete().Eq("patient_id", patientID).Execute(nil)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Could not delete from results", http.StatusInternalServerError)
+		return
+	}
+	err = Supabase.DB.From("patients").Delete().Eq("id", patientID).Execute(nil)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Could not delete from patients", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

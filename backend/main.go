@@ -46,6 +46,8 @@ func main() {
 	m.HandleFunc("/results", supabase.GetResults).Methods("GET")
 	m.HandleFunc("/results/{id}", supabase.GetResultByID).Methods("GET")
 	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
+	m.HandleFunc("/addFlag", supabase.AddFlaggedPatient).Methods("POST")
+	m.HandleFunc("/removePatient", supabase.RemoveFlaggedPatient).Methods("POST")
 
 	// Allow API requests from frontend
 	handler := cors.New(cors.Options{

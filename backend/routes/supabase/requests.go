@@ -19,5 +19,5 @@ type UserLoginRequest struct {
 
 type FlaggedPatientRequest struct {
 	Id        uuid.UUID `json:"id"`
-	PatientID string    `json:"patient_id"`
+	PatientID uuid.UUID `json:"patient_id"`
 }
