@@ -80,13 +80,12 @@ function PatientPage() {
             return;
         }
 
-        fetch(`http://localhost:8060/messageRequest`, {
-            method: "POST",
+        fetch(`http://localhost:8060/patients/${id}/llm-response`, {
+            method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ message: userMessage })
 
         })
         .then(response => response.json())
