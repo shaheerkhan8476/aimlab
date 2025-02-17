@@ -29,7 +29,7 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	bodyBytes, _ := io.ReadAll(r.Body)
 	err := json.Unmarshal(bodyBytes, &userRequest)
 	if err != nil {
-		print(err)
+		http.Error(w, "Cannot Unmarshal user from request", http.StatusBadRequest)
 	}
 	ctx := context.Background()
 	user, err := Supabase.Auth.SignUp(ctx, supabase.UserCredentials{
@@ -37,17 +37,18 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		Password: userRequest.Password,
 	})
 	if err != nil {
-		print(err)
+		http.Error(w, "Sign Up User Error", http.StatusNotAcceptable)
 	}
 	parsedID, err := uuid.Parse(user.ID)
 	if err != nil {
-		print(err)
+		http.Error(w, "Cannot Parse UUID correctly", http.StatusBadRequest)
 	}
 	newUser := model.User{
-		Id:      parsedID,
-		Name:    userRequest.Name,
-		Email:   userRequest.Email,
-		IsAdmin: userRequest.IsAdmin,
+		Id:              parsedID,
+		Name:            userRequest.Name,
+		Email:           userRequest.Email,
+		IsAdmin:         userRequest.IsAdmin,
+		StudentStanding: userRequest.StudentStanding,
 	}
 	err = Supabase.DB.From("users").Insert(newUser).Execute(nil)
 	if err != nil {
@@ -132,7 +133,7 @@ func GetPatientByID(w http.ResponseWriter, r *http.Request) {
 
 func GetPrescriptions(w http.ResponseWriter, r *http.Request) {
 	var prescriptions []model.Prescription
-	err := Supabase.DB.From("prescriptions").Select("*").Execute(&prescriptions)
+	err := Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Execute(&prescriptions)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -151,12 +152,25 @@ func GetPrescriptionByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	var prescription []model.Prescription
-	err := Supabase.DB.From("prescriptions").Select("*").Eq("id", id).Execute(&prescription)
+	err := Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Eq("id", id).Execute(&prescription)
 	if err != nil {
 		http.Error(w, "Prescription not found", http.StatusNotFound)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(prescription[0])
+
+}
+
+func GetPrescriptionsByPatientID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var prescription []model.Prescription
+	err := Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Eq("patient_id", id).Execute(&prescription)
+	if err != nil {
+		http.Error(w, "Prescriptions not found", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(prescription)
 
 }
 
@@ -175,11 +189,48 @@ func GetStudentById(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 	var student []model.User
 	err := Supabase.DB.From("users").Select("*").Eq("id", id).Execute(&student)
-	if err != nil {
+	if err != nil || len(student) == 0 {
 		http.Error(w, "Student not found", http.StatusNotFound)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(student[0])
+}
+
+func GetResults(w http.ResponseWriter, r *http.Request) {
+	var results []model.Result
+	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Execute(&results)
+	if err != nil {
+		http.Error(w, "Grabbing Prescriptions Error", http.StatusBadRequest)
+	}
+	if len(results) == 0 {
+		http.Error(w, "No Prescriptions in Database", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(results)
+}
+
+func GetResultByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var result []model.Result
+	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Eq("id", id).Execute(&result)
+	if err != nil {
+		http.Error(w, "Grabbing Prescription Error", http.StatusBadRequest)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result[0])
+}
+func GetResultsByPatientID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var results []model.Result
+	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Eq("patient_id", id).Execute(&results)
+	if err != nil {
+		http.Error(w, "Results not found", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(results)
+
 }
 
 /*

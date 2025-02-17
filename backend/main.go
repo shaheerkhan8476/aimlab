@@ -1,5 +1,6 @@
 package main
 
+//git sanity check for julian
 import (
 	"fmt"
 	"net/http"
@@ -27,31 +28,37 @@ func main() {
 
 	supabase.InitClient(url, key)
 
-	//http router
+	// API Gateway
 	m := mux.NewRouter()
-	//endpoints
+
+	// Endpoints
 	m.HandleFunc("/addUser", supabase.SignUpUser).Methods("POST")
 	m.HandleFunc("/login", supabase.SignInUser).Methods("POST")
 	m.HandleFunc("/patients", supabase.GetPatients).Methods("GET")
 	m.HandleFunc("/patients/{id}", supabase.GetPatientByID).Methods("GET")
+	m.HandleFunc("/patients/{id}/prescriptions", supabase.GetPrescriptionsByPatientID).Methods("GET")
+	m.HandleFunc("/patients/{id}/results", supabase.GetResultsByPatientID).Methods("GET")
 	m.HandleFunc("/prescriptions", supabase.GetPrescriptions).Methods("GET")
 	m.HandleFunc("/prescriptions/{id}", supabase.GetPrescriptionByID).Methods("GET")
 	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
 	m.HandleFunc("/students", supabase.GetStudents).Methods("GET")
 	m.HandleFunc("/students/{id}", supabase.GetStudentById).Methods("GET")
+	m.HandleFunc("/results", supabase.GetResults).Methods("GET")
+	m.HandleFunc("/results/{id}", supabase.GetResultByID).Methods("GET")
+	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
+
 	m.HandleFunc("/generateTasks", supabase.GenerateTasks).Methods("POST")
 	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST")
-	//allow API requests from react frontend
+	// Allow API requests from frontend
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}).Handler(m)
-	//server port
-	err = http.ListenAndServe(":8080", handler)
+	err = http.ListenAndServe(":8060", handler)
 	if err != nil {
 		fmt.Println(err)
 	}

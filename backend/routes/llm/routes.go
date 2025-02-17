@@ -24,7 +24,6 @@ func RequestMessage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to marshal message", http.StatusInternalServerError)
 		return
 	}
-	//specific to Brad's URL we're going to need to Dockerize this
 	flaskURL := "http://127.0.0.1:5001/api/message-request"
 	responseHTML, err := http.Post(flaskURL, "application/json", bytes.NewBuffer(msgData))
 	if err != nil {
@@ -39,4 +38,8 @@ func RequestMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println("Response:", string(response))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+
 }

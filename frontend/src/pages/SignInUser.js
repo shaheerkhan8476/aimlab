@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import "./css/Login.css";
 
 function SignInUser()
 {
@@ -26,9 +27,8 @@ function SignInUser()
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
-
         try {
-            const response = await fetch('http://localhost:8080/login',{
+            const response = await fetch('http://localhost:8060/login',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -40,11 +40,35 @@ function SignInUser()
             {
                 const data = await response.json();
                 const token = data.access_token;
+                const userId = data.user.id;
                 localStorage.setItem("accessToken", token);
+                localStorage.setItem("isAdmin", loginData.isAdmin);
                 localStorage.setItem("userEmail", loginData.email);
                 localStorage.setItem("userPassword", loginData.password);
+                localStorage.setItem("userId", userId);
                 console.log('Login Successful', data);
-                navigate("/StudentDashboard");
+
+                const userResponse = await fetch(`http://localhost:8060/students/${userId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                const userData = await userResponse.json();
+                
+                const isAdmin = userData.isAdmin;
+                localStorage.setItem("isAdmin", isAdmin);
+
+                if (isAdmin) {
+                    navigate("/InstructorDashboard");
+                }
+                else {
+                    navigate("/StudentDashboard");
+                }
+
+                
             }
             else
             {
@@ -57,52 +81,54 @@ function SignInUser()
             setError("Failed login!")
             console.error('Error logining user', error);
         }
+        
     }
 
+
+
     //Render the HTML form so the user can interact
-    return(
-        <>
-            <form onSubmit={handleSubmit}>
-                <h1>Login:</h1>
-                
-                <label htmlFor="email">Email:</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    value={loginData.email}
-                    onChange={handleChange}
-                    placeholder="Enter email" 
-                    required>
-                </input>
-
-                <label htmlFor="password">Password:</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    value={loginData.password}
-                    onChange={handleChange}
-                    placeholder="Enter password" 
-                    required>
-
-                </input>
-
-                <button type="submit">Login!</button>
-
-            </form>
-            <br></br>
-            {error}
-            <br></br>
-            <br></br>
-            <NavLink to="/">Click for account creation page</NavLink>
-        </>
-
-
-    )
-
-
-
+    return (
+        <div className="login-container">
+            <div className="login-box">
+                <h2>Log In</h2>
+                {error && <p className="error-message">{error}</p>}
+                <form onSubmit={handleSubmit}>
+                    <div className="input-group">
+                        <label>Email</label>
+                        <input
+                            type="email"
+                            name="email"
+                            value={loginData.email}
+                            onChange={handleChange}
+                            placeholder="Enter your email"
+                            required/>
+                    </div>
+                    <div className="input-group">
+                        <label>Password</label>
+                        <input
+                            type="password"
+                            name="password"
+                            value={loginData.password}
+                            onChange={handleChange}
+                            placeholder="Enter your password"
+                            required/>
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
+                <p>
+                    Don't have an account?
+                    <span> </span>
+                    <span  
+                        className="signup-link" 
+                        onClick={() => {
+                            navigate("/CreateUser");
+                        }}
+                    >
+                         Sign up</span>
+                </p>
+            </div>
+        </div>
+    );
 }
 
 export default SignInUser;
