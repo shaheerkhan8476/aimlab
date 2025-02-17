@@ -182,11 +182,51 @@ func GetStudentById(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(student[0])
 }
 
+/*
+*
+  - GenerateUniqueIndices generates a list of unique random numbers
+  - Helper function to generate a list of random unique numbers for indexing into patients list
+  - @param count int		Number of unique numbers to generate. If this number exceeds the max range,
+    the function will stop tracking unique values and continue generating
+  - @param max int		Generates numbers from range[0, max), excluding max
+  - @return []int		List of unique random numbers
+*/
+func GenerateUniqueIndices(count, max int) []int {
+	uniqueNumbers := make(map[int]bool) // Set to track generated numbers
+	result := make([]int, 0, count)     // List to store unique numbers
+
+	for len(result) < count {
+		if len(uniqueNumbers) >= max {
+			// If we need to generate more numbers than the range, reset tracking and continue appending
+			// Mostly to avoid errors, shouldn't happen in practice because there's so many patients
+			uniqueNumbers = make(map[int]bool)
+		}
+
+		num := rand.IntN(max) // Generate a number
+		if !uniqueNumbers[num] {
+			uniqueNumbers[num] = true // Mark as seen
+			result = append(result, num)
+		}
+	}
+
+	return result
+}
+
 func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Generating tasks")
+	// Get the number of tasks to generate from request body
+	var taskCreateRequest TaskCreateRequest
+	bodyBytes, _ := io.ReadAll(r.Body)
+	err := json.Unmarshal(bodyBytes, &taskCreateRequest)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error parsing task request body", http.StatusNotFound)
+		return
+	}
+
 	// TODO: Get all students, loop through each one, add a dummy task for each student for now
 	var students []model.User
-	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
+	err = Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
 	if err != nil || len(students) == 0 {
 		http.Error(w, "No Students Found", http.StatusNotFound)
 		return
@@ -201,75 +241,89 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Assigns random index from patients to each student
+	// Assigns random index for patient per task, per student
+	taskCount := taskCreateRequest.PatientTaskCount + taskCreateRequest.LabResultTaskCount + taskCreateRequest.PrescriptionTaskCount
 	for _, student := range students {
-		random_index := rand.IntN(len(patients)) // shouldn't need to be seeded
-		patient_task := model.PatientTask{
-			Task: model.Task{
-				PatientId: patients[random_index].Id,
-				UserId:    student.Id,
-				TaskType:  model.PatientQuestionTaskType,
-				Completed: false,
-			},
-			PatientQuestion: nil,
-			StudentResponse: nil,
-			LLMFeedback:     nil,
-		}
-		// TODO: Genenerate patient question using LLM, insert into task
-		err = Supabase.DB.From("tasks").Insert(patient_task).Execute(nil)
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Failed to insert task", http.StatusInternalServerError)
-			return
-		}
+		// Goal here is to make each task use a UNIQUE patient, if there aren't enough patients then it will repeat
+		random_indices := GenerateUniqueIndices(taskCount, len(patients)) // The actual list of random ints
+		random_index := 0                                                 // Keeps track of the current index in the random_indices list
 
-		// Generate a lab result task
-		result_uuid, err := uuid.Parse("1c5b9e46-469b-4e39-b9a2-b415c59cbe04")
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Failed to parse UUID", http.StatusInternalServerError)
-			return
+		for i := 0; i < taskCreateRequest.PatientTaskCount; i++ {
+			// Generate a patient question task
+			patient_task := model.PatientTask{
+				Task: model.Task{
+					PatientId: patients[random_indices[random_index+i]].Id, // Little convoluted but it keeps track of the index from other loops
+					UserId:    student.Id,
+					TaskType:  model.PatientQuestionTaskType,
+					Completed: false,
+				},
+				PatientQuestion: nil,
+				StudentResponse: nil,
+				LLMFeedback:     nil,
+			}
+			// TODO: Genenerate patient question using LLM, insert into task
+			err = Supabase.DB.From("tasks").Insert(patient_task).Execute(nil)
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, "Failed to insert patient question task", http.StatusInternalServerError)
+				return
+			}
 		}
-		result_task := model.ResultTask{
-			Task: model.Task{
-				PatientId: patients[random_index].Id,
-				UserId:    student.Id,
-				TaskType:  model.LabResultTaskType,
-				Completed: false,
-			},
-			ResultId:        result_uuid,
-			StudentResponse: nil,
-			LLMFeedback:     nil,
-		}
-		err = Supabase.DB.From("tasks").Insert(result_task).Execute(nil)
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Failed to insert task", http.StatusInternalServerError)
-			return
-		}
+		random_index += taskCreateRequest.PatientTaskCount
 
-		// Generate a prescription task
-		prescription_uuid, err := uuid.Parse("01725d72-1d2b-473f-a2ef-6b8b8ebc1102")
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Failed to parse UUID", http.StatusInternalServerError)
-			return
+		for i := 0; i < taskCreateRequest.LabResultTaskCount; i++ {
+			// Generate a lab result task
+			result_uuid, err := uuid.Parse("1c5b9e46-469b-4e39-b9a2-b415c59cbe04") // hardcoded for now
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, "Failed to parse UUID", http.StatusInternalServerError)
+				return
+			}
+			result_task := model.ResultTask{
+				Task: model.Task{
+					PatientId: patients[random_indices[random_index+i]].Id, // Little convoluted but it keeps track of the index from other loops
+					UserId:    student.Id,
+					TaskType:  model.LabResultTaskType,
+					Completed: false,
+				},
+				ResultId:        result_uuid,
+				StudentResponse: nil,
+				LLMFeedback:     nil,
+			}
+			err = Supabase.DB.From("tasks").Insert(result_task).Execute(nil)
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, "Failed to insert lab result task", http.StatusInternalServerError)
+				return
+			}
 		}
-		prescription_task := model.PrescriptionTask{
-			Task: model.Task{
-				PatientId: patients[random_index].Id,
-				UserId:    student.Id,
-				TaskType:  model.PrescriptionTaskType,
-				Completed: false,
-			},
-			PrescriptionId: prescription_uuid,
+		random_index += taskCreateRequest.LabResultTaskCount
+
+		for i := 0; i < taskCreateRequest.PrescriptionTaskCount; i++ {
+			// Generate a prescription task
+			prescription_uuid, err := uuid.Parse("01725d72-1d2b-473f-a2ef-6b8b8ebc1102") // hardcoded for now
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, "Failed to parse UUID", http.StatusInternalServerError)
+				return
+			}
+			prescription_task := model.PrescriptionTask{
+				Task: model.Task{
+					PatientId: patients[random_indices[random_index+i]].Id, // Little convoluted but it keeps track of the index from other loops
+					UserId:    student.Id,
+					TaskType:  model.PrescriptionTaskType,
+					Completed: false,
+				},
+				PrescriptionId: prescription_uuid,
+			}
+			err = Supabase.DB.From("tasks").Insert(prescription_task).Execute(nil)
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, "Failed to insert prescription task", http.StatusInternalServerError)
+				return
+			}
 		}
-		err = Supabase.DB.From("tasks").Insert(prescription_task).Execute(nil)
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Failed to insert task", http.StatusInternalServerError)
-			return
-		}
+		random_index += taskCreateRequest.PrescriptionTaskCount // Not needed, but just in case we add more types
 
 	}
 	w.Write([]byte("Tasks generated"))

@@ -7,8 +7,16 @@ type UserCreateRequest struct {
 	Email    string `json:"email"`
 	IsAdmin  bool   `json:"isAdmin"`
 }
+
 // User Login Request Model
 type UserLoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+// Task Create Request Model
+type TaskCreateRequest struct {
+	PatientTaskCount      int `json:"patient_task_count"`
+	LabResultTaskCount    int `json:"lab_result_task_count"`
+	PrescriptionTaskCount int `json:"prescription_task_count"`
 }
