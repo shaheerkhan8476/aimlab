@@ -8,6 +8,7 @@ import "./css/StudentDashboard.css";
 function StudentDashboard(){
     const [messages, setMessages] = useState(null); //state for patient data
     const [prescriptions, setPrescriptions] = useState(null);
+    const [results, setResults] = useState(null);
     const [error, setError] = useState(null);   //state for error message
     const [isAuthenticated, setIsAuthenticated] = useState(true);
     const [view, setView] = useState("messages"); //patient messages by default. swtich to prescriptions if clicked
@@ -134,7 +135,7 @@ function StudentDashboard(){
             },
         })
         .then(response => response.json())
-        .then(data => setPrescriptions(data))
+        .then(data => setResults(data))
         .catch(error => {
             console.error(error);
             setError("failed fetching results");
@@ -250,7 +251,10 @@ function StudentDashboard(){
                                             </thead>
                                             <tbody>
                                                 {prescriptions.map((prescription, index) => (
-                                                    <tr key={index}>
+                                                    <tr key={index}
+                                                        className="clickable-patient"
+                                                        onClick={() => navigate(`/PatientPage/${prescription.patient_id}`)}
+                                                    >
                                                         <td>{prescription.patient.name}</td>
                                                         <td>{prescription.medication}</td>
                                                         <td>{prescription.dose}</td>
@@ -267,9 +271,35 @@ function StudentDashboard(){
 
                             {view === "results" && (
                                 <div>
-                                    <h2>Results</h2>
-                                    <p>Erm this doesnt have anything yet lol</p>
-                                </div>
+                                <h2>Results</h2>
+                                {results ? (
+                                    <table className="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Patient Name</th>
+                                                <th>Test Name</th>
+                                                <th>Test Date</th>
+                                                
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {results.map((result, index) => (
+                                                <tr key={index}
+                                                    className="clickable-patient"
+                                                    onClick={() => navigate(`/PatientPage/${result.patient_id}`)}
+                                                >
+                                                    <td>{result.patient.name}</td>
+                                                    <td>{result.test_name}</td>
+                                                    <td>{result.test_date}</td>
+                                                    
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                ) : (
+                                    <p>...loading results...</p>
+                                )}
+                            </div>
                             )}
                         </div>
                     )}
