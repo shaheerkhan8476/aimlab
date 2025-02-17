@@ -223,13 +223,23 @@ func GetResultsByPatientID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	var results []model.Result
-	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Eq("patient_id", id).Execute(&results)
+	err := Supabase.DB.From("results").Select("*").Eq("patient_id", id).Execute(&results)
 	if err != nil {
 		http.Error(w, "Results not found", http.StatusNotFound)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(results)
 
+}
+func GetFlaggedPatients(w http.ResponseWriter, r *http.Request) {
+	var flaggedPatients []FlaggedPatientRequest
+	err := Supabase.DB.From("flagged").Select("*,patient:patients(name)").Execute(&flaggedPatients)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error grabbing Flagged Patients", http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(flaggedPatients)
 }
 func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 	var request FlaggedPatientRequest

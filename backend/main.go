@@ -46,6 +46,7 @@ func main() {
 	m.HandleFunc("/results", supabase.GetResults).Methods("GET")
 	m.HandleFunc("/results/{id}", supabase.GetResultByID).Methods("GET")
 	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
+	m.HandleFunc("/flaggedPatients", supabase.GetFlaggedPatients).Methods("GET")
 	m.HandleFunc("/addFlag", supabase.AddFlaggedPatient).Methods("POST")
 	m.HandleFunc("/removePatient", supabase.RemoveFlaggedPatient).Methods("POST")
 
