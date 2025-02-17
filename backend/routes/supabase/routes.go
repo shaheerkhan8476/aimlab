@@ -294,10 +294,10 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 
 	// Assigns random index for patient per task, per student
 	taskCount := taskCreateRequest.PatientTaskCount + taskCreateRequest.LabResultTaskCount + taskCreateRequest.PrescriptionTaskCount
+	random_indices := GenerateUniqueIndices(taskCount*len(students), len(patients)) // The actual list of random ints
+	random_index := 0                                                               // Keeps track of the current index in the random_indices list
 	for _, student := range students {
 		// Goal here is to make each task use a UNIQUE patient, if there aren't enough patients then it will repeat
-		random_indices := GenerateUniqueIndices(taskCount, len(patients)) // The actual list of random ints
-		random_index := 0                                                 // Keeps track of the current index in the random_indices list
 
 		for i := 0; i < taskCreateRequest.PatientTaskCount; i++ {
 			// Generate a patient question task
