@@ -12,6 +12,7 @@ function PatientPage() {
     const [aiResponse, setAIResponse] = useState(null); //Ai response. will eventually be sample response to patient
     const [userMessage, setUserMessage] = useState(""); //userMessage, updates with change to textarea below
     const [aiResponseUnlocked, setAIResponseUnlocked] = useState(false); //Controls ai response tab locking
+    const [disableInput, setDisableInput] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -92,6 +93,7 @@ function PatientPage() {
         .then(data => {
             setAIResponse(data.completion);
             setAIResponseUnlocked(true);
+            setDisableInput(true);
         })
         .catch(error => console.error("Failed to get ai response", error));
     };
@@ -242,6 +244,8 @@ function PatientPage() {
             )}
         </div>
 
+        {!disableInput && (
+        <div>
         <div className="ai-input-area">
             <textarea
                 type="text"
@@ -253,6 +257,8 @@ function PatientPage() {
             
         </div>
         <button onClick={handleSubmit} className="submit-response">Submit</button>
+        </div>
+        )}
 
     </div>
     );
