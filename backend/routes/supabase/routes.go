@@ -160,6 +160,19 @@ func GetPrescriptionByID(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func GetPrescriptionsByPatientID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var prescription []model.Prescription
+	err := Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Eq("patient_id", id).Execute(&prescription)
+	if err != nil {
+		http.Error(w, "Prescriptions not found", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(prescription)
+
+}
+
 func GetStudents(w http.ResponseWriter, r *http.Request) {
 	var students []model.User
 	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
@@ -205,4 +218,16 @@ func GetResultByID(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result[0])
+}
+func GetResultsByPatientID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var results []model.Result
+	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Eq("patient_id", id).Execute(&results)
+	if err != nil {
+		http.Error(w, "Results not found", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(results)
+
 }

@@ -150,7 +150,7 @@ function StudentDashboard(){
             {/* gray banner at top */}
             <div className="top-banner">
                 <button
-                    className="logout-button"
+                    className="logout-but"
                     onClick={() => {
                         localStorage.removeItem("accessToken");
                         navigate("/"); // kick to login screen
