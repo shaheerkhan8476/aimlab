@@ -265,20 +265,17 @@ func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 
 func RemoveFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 	var request FlaggedPatientRequest
-
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
 		return
 	}
-
 	err = json.Unmarshal(bodyBytes, &request)
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "Invalid JSON in request body", http.StatusBadRequest)
 		return
 	}
-
 	patientID := request.PatientID.String()
 	err = Supabase.DB.From("flagged").Delete().Eq("patient_id", patientID).Execute(nil)
 	if err != nil {
@@ -304,6 +301,28 @@ func RemoveFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not delete from patients", http.StatusInternalServerError)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
+}
 
-	w.WriteHeader(http.StatusNoContent)
+func KeepPatient(w http.ResponseWriter, r *http.Request) {
+	var request FlaggedPatientRequest
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+		return
+	}
+	err = json.Unmarshal(bodyBytes, &request)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Invalid JSON in request body", http.StatusBadRequest)
+		return
+	}
+	patientID := request.PatientID.String()
+	err = Supabase.DB.From("flagged").Delete().Eq("patient_id", patientID).Execute(nil)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Could not delete from flagged", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
