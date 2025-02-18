@@ -127,7 +127,13 @@ function InstructorDashboard(){
                                             </thead>
                                             <tbody>
                                                 {students.map((student, index) => (
-                                                    <tr key={index}>
+                                                    <tr 
+                                                        key={index}
+                                                        className="clickable-patient"
+                                                        onClick={() => navigate(`/StudentDetails/${student.id}`)}
+
+
+                                                    >
                                                         <td>{student.name}</td>
                                                         <td>{student.id}</td>
                                                         <td>{student.studentStanding}</td>
@@ -141,12 +147,6 @@ function InstructorDashboard(){
                                 </div>
                             )}
 
-                            {view === "results" && (
-                                <div>
-                                    <h2>Results</h2>
-                                    <p>Erm this doesnt have anything yet lol</p>
-                                </div>
-                            )}
                         </div>
                     )}
                 </div>
