@@ -45,7 +45,8 @@ func main() {
 	m.HandleFunc("/students/{id}", supabase.GetStudentById).Methods("GET")
 	m.HandleFunc("/results", supabase.GetResults).Methods("GET")
 	m.HandleFunc("/results/{id}", supabase.GetResultByID).Methods("GET")
-	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
+	// LLM endpoint from the old version – add it if needed
+	m.HandleFunc("/patients/{id}/llm-response", supabase.GetLLMResponseForPatient).Methods("GET")
 	m.HandleFunc("/flaggedPatients", supabase.GetFlaggedPatients).Methods("GET")
 	m.HandleFunc("/addFlag", supabase.AddFlaggedPatient).Methods("POST")
 	m.HandleFunc("/removePatient", supabase.RemoveFlaggedPatient).Methods("POST")

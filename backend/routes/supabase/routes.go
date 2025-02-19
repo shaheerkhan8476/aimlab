@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"bytes"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -13,6 +14,9 @@ import (
 	supabase "github.com/nedpals/supabase-go"
 	model "gitlab.msu.edu/team-corewell-2025/models"
 )
+
+// LLM service URL
+const llmURL = "http://127.0.0.1:5001/api/message-request"
 
 var Supabase *supabase.Client
 
@@ -51,11 +55,13 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err = Supabase.DB.From("users").Insert(newUser).Execute(nil)
 	if err != nil {
-		print(err)
+		http.Error(w, "User has already been created", http.StatusConflict)
+		return
 	}
 	b, err := json.Marshal(user)
 	if err != nil {
-		print("Error", err)
+		fmt.Println("Marshal Error:", err)
+		return
 	}
 	w.Write(b)
 }
@@ -230,6 +236,82 @@ func GetResultsByPatientID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(results)
 
+}
+
+// GetLLMResponseForPatient generates an LLM-based response using full patient data,
+// including related prescriptions and results.
+func GetLLMResponseForPatient(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	// Retrieve the patient record.
+	var patients []model.Patient
+	err := Supabase.DB.From("patients").Select("*").Eq("id", id).Execute(&patients)
+	if err != nil || len(patients) == 0 {
+		http.Error(w, "Patient not found", http.StatusNotFound)
+		return
+	}
+	patient := patients[0]
+
+	// Retrieve prescriptions for this patient.
+	var prescriptions []model.Prescription
+	err = Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Eq("patient_id", id).Execute(&prescriptions)
+	if err != nil {
+		// If an error occurs, you might choose to continue with an empty list.
+		prescriptions = []model.Prescription{}
+	}
+
+	// Retrieve test results for this patient.
+	var results []model.Result
+	err = Supabase.DB.From("results").Select("*,patient:patients(name)").Eq("patient_id", id).Execute(&results)
+	if err != nil {
+		results = []model.Result{}
+	}
+
+	// Combine the patient, prescriptions, and results into one object.
+	combinedData := map[string]interface{}{
+		"patient":       patient,
+		"prescriptions": prescriptions,
+		"results":       results,
+	}
+
+	// Marshal the entire combined object into a pretty JSON string.
+	combinedJSON, err := json.MarshalIndent(combinedData, "", "  ")
+	if err != nil {
+		http.Error(w, "Error encoding combined patient data", http.StatusInternalServerError)
+		return
+	}
+
+	// Build a prompt that includes all of the data.
+	prompt := fmt.Sprintf("Patient Data:\n%s\nHow should a medical student respond to this case?", string(combinedJSON))
+
+	// Create the LLM request payload.
+	llmRequest := map[string]string{
+		"message": prompt,
+	}
+
+	reqBody, err := json.Marshal(llmRequest)
+	if err != nil {
+		http.Error(w, "Error encoding LLM request", http.StatusInternalServerError)
+		return
+	}
+
+	// Send the request to the LLM microservice.
+	response, err := http.Post(llmURL, "application/json", bytes.NewBuffer(reqBody))
+	if err != nil {
+		http.Error(w, "Error communicating with LLM", http.StatusInternalServerError)
+		return
+	}
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		http.Error(w, "Error reading LLM response", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
 }
 func GetFlaggedPatients(w http.ResponseWriter, r *http.Request) {
 	var flaggedPatients []FlaggedPatientRequest
