@@ -55,11 +55,13 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err = Supabase.DB.From("users").Insert(newUser).Execute(nil)
 	if err != nil {
-		print(err)
+		http.Error(w, "User has already been created", http.StatusConflict)
+		return
 	}
 	b, err := json.Marshal(user)
 	if err != nil {
-		print("Error", err)
+		fmt.Println("Marshal Error:", err)
+		return
 	}
 	w.Write(b)
 }
