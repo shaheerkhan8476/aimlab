@@ -65,7 +65,7 @@ function PatientPage() {
             and it breaks */}
         return (
             <div className="loading-screen">
-                
+                ...loading patient data...
             </div>
         )
     }
