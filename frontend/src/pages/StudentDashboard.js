@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import "./css/StudentDashboard.css";
+import QuickReply from "../images/quick-reply.png"
 
 
 //styling patient message and prescription page
@@ -226,8 +227,10 @@ function StudentDashboard(){
                                                         <td>{message.name}</td>
                                                         <td>{message.date_of_birth}</td>
                                                         <td>{message.patient_message}</td>
+                                                        <img src={QuickReply} alt="Quick Reply" className="quick-reply"></img>
                                                     </tr>
                                                 ))}
+                                                
                                             </tbody>
                                         </table>
                                     ) : (

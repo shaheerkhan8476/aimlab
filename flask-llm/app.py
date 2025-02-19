@@ -68,7 +68,7 @@ def message_request():
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=300,
+            max_tokens=500,
             temperature=0.7
         )
         text_output = response.choices[0].message.content.strip()
