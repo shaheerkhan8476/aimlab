@@ -124,3 +124,7 @@ body {
 .data-table tr:hover {
     background-color: #778cd2;
 }
+
+.quick-reply {
+    width: 2rem;
+}
