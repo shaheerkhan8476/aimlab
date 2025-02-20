@@ -17,7 +17,8 @@ type UserLoginRequest struct {
 
 // Task Create Request Model
 type TaskCreateRequest struct {
-	PatientTaskCount      int `json:"patient_task_count"`
-	LabResultTaskCount    int `json:"lab_result_task_count"`
-	PrescriptionTaskCount int `json:"prescription_task_count"`
+	PatientTaskCount      int  `json:"patient_task_count"`
+	LabResultTaskCount    int  `json:"lab_result_task_count"`
+	PrescriptionTaskCount int  `json:"prescription_task_count"`
+	GenerateQuestion      bool `json:"generate_question"`
 }

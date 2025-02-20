@@ -9,6 +9,7 @@ import (
 
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -357,7 +358,6 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Get all students, loop through each one, add a dummy task for each student for now
 	var students []model.User
 	err = Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
 	if err != nil || len(students) == 0 {
@@ -379,15 +379,88 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 	// Goal here is to make each task use a UNIQUE patient, if there aren't enough patients then it will repeat
 	random_indices := GenerateUniqueIndices(taskCount*len(students), len(patients)) // The actual list of random ints
 	random_index := 0                                                               // Keeps track of the current index in the random_indices list
+	generate_question := taskCreateRequest.GenerateQuestion                         // Whether or not to generate new patient questions on the spot
 	for _, student := range students {
 
 		for i := 0; i < taskCreateRequest.PatientTaskCount; i++ {
 			// Generate a patient question task
-			// TODO: Genenerate patient question using LLM, insert into task
-			question := "Example patient question goes here"
+			patient_uuid := patients[random_indices[random_index+i]].Id
+			var question string
+			if generate_question {
+				// Retrieve the patient record.
+				// Retrieve prescriptions for this patient.
+				var prescriptions []model.Prescription
+				err = Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Eq("patient_id", patient_uuid.String()).Execute(&prescriptions)
+				if err != nil {
+					// If an error occurs, you might choose to continue with an empty list.
+					prescriptions = []model.Prescription{}
+				}
+
+				// Retrieve test results for this patient.
+				var results []model.Result
+				err = Supabase.DB.From("results").Select("*,patient:patients(name)").Eq("patient_id", patient_uuid.String()).Execute(&results)
+				if err != nil {
+					results = []model.Result{}
+				}
+
+				// Combine the patient, prescriptions, and results into one object.
+				combinedData := map[string]interface{}{
+					"patient":       patients[random_indices[random_index+i]],
+					"prescriptions": prescriptions,
+					"results":       results,
+				}
+
+				// Marshal the entire combined object into a pretty JSON string.
+				combinedJSON, err := json.MarshalIndent(combinedData, "", "  ")
+				if err != nil {
+					http.Error(w, "Error encoding combined patient data", http.StatusInternalServerError)
+					return
+				}
+
+				// Build a prompt that includes all of the data.
+				prompt := fmt.Sprintf("Patient Data:\n%s\n Ignore the \"patient_message\" data. Assume that this patient is part of a basket management system for family medicine. Pretend that you are the patient, who is asking their doctor about recent symptoms they are having. Respond with only the message and nothing else. Do not include the quotation marks with the message.", string(combinedJSON))
+
+				// Create the LLM request payload.
+				llmRequest := map[string]string{
+					"message": prompt,
+				}
+
+				reqBody, err := json.Marshal(llmRequest)
+				if err != nil {
+					http.Error(w, "Error encoding LLM request", http.StatusInternalServerError)
+					return
+				}
+
+				// Send the request to the LLM microservice.
+				response, err := http.Post(llmURL, "application/json", bytes.NewBuffer(reqBody))
+				if err != nil {
+					http.Error(w, "Error communicating with LLM", http.StatusInternalServerError)
+					return
+				}
+				defer response.Body.Close()
+
+				body, err := io.ReadAll(response.Body)
+				if err != nil {
+					http.Error(w, "Error reading LLM response", http.StatusInternalServerError)
+					return
+				}
+
+				question_body := map[string]string{}
+				err = json.Unmarshal(body, &question_body)
+				if err != nil {
+					http.Error(w, "Error parsing LLM response", http.StatusInternalServerError)
+					return
+				}
+
+				question = strings.Trim(question_body["completion"], "\"")
+			} else {
+				// don't generate question, just use current patient message in supabase
+				question = patients[random_indices[random_index+i]].PatientMessage
+			}
+
 			patient_task := model.PatientTask{
 				Task: model.Task{
-					PatientId: patients[random_indices[random_index+i]].Id, // Little convoluted but it keeps track of the index from other loops
+					PatientId: patient_uuid, // Little convoluted but it keeps track of the index from other loops
 					UserId:    student.Id,
 					TaskType:  model.PatientQuestionTaskType,
 					Completed: false,
@@ -408,17 +481,24 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 		for i := 0; i < taskCreateRequest.LabResultTaskCount; i++ {
 			// Generate a lab result task
 			var lab_results []model.Result
-			err = Supabase.DB.From("results").Select("*").Eq("patient_id", patients[random_indices[random_index+i]].Id.String()).Execute(&lab_results)
+			patient_uuid := patients[random_indices[random_index+i]].Id
+			// patient_uuid := "30ed13d4-8d4a-44e5-8821-f05ee761c2b0" // hardcoded test uuid
+			err = Supabase.DB.From("results").Select("*").Eq("patient_id", patient_uuid.String()).Execute(&lab_results)
 			if err != nil {
 				fmt.Println(err)
 				http.Error(w, "Failed to get lab results for the selected patient", http.StatusInternalServerError)
 				return
 			}
+			if len(lab_results) == 0 {
+				// Avoids errors, shouldn't happen in practice because each patient has at least one lab result
+				fmt.Println("No lab results found for patient, skipping this task")
+				continue
+			}
 			result_uuid := lab_results[rand.IntN(len(lab_results))].ID // Picks a random lab result from the patient
-
+			// result_uuid, err := uuid.Parse("3df2a391-dd2b-4f60-9b1b-00c6a4897396") // hardcoded test uuid
 			result_task := model.ResultTask{
 				Task: model.Task{
-					PatientId: patients[random_indices[random_index+i]].Id, // Little convoluted but it keeps track of the index from other loops
+					PatientId: patient_uuid, // Little convoluted but it keeps track of the index from other loops
 					UserId:    student.Id,
 					TaskType:  model.LabResultTaskType,
 					Completed: false,
@@ -444,6 +524,11 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(err)
 				http.Error(w, "Failed to get prescriptions for the selected patient", http.StatusInternalServerError)
 				return
+			}
+			if len(prescriptions) == 0 {
+				// Avoids errors, shouldn't happen in practice because each patient has at least one prescription
+				fmt.Println("No prescriptions found for patient, skipping this task")
+				continue
 			}
 			prescription_uuid := prescriptions[rand.IntN(len(prescriptions))].ID // Picks a random prescription from the patient
 
