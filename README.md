@@ -23,7 +23,7 @@ Make request to LLM microservice:
 
 1. Run go backend
 2. Run docker image
-3. Open postman, make a POST request to [http://localhost:8080/messageRequest](http://localhost:8060/messageRequest)
+3. Open postman, make a POST request to [http://localhost:8060/messageRequest](http://localhost:8060/messageRequest)
 4. Add the following to the body of the request:
 
 ```json
