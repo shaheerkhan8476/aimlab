@@ -312,6 +312,10 @@ func GetLLMResponseForPatient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Store response in Supabase for later retrieval.
+	// Problem: How do we get associated task for this call?
+	// Might have to redirect route from main to the associated task (instead of generic patient page), which calls this function and then stores the response
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(body)
 }
@@ -368,7 +372,6 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 	// Gets all patients from the database
 	var patients []model.Patient
 	err = Supabase.DB.From("patients").Select("*").Execute(&patients)
-	// fmt.Println(patients)
 	if err != nil || len(patients) == 0 {
 		http.Error(w, "No Patients Found", http.StatusNotFound)
 		return
@@ -519,7 +522,8 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 		for i := 0; i < taskCreateRequest.PrescriptionTaskCount; i++ {
 			// Generate a prescription task
 			var prescriptions []model.Prescription
-			err = Supabase.DB.From("prescriptions").Select("*").Eq("patient_id", patients[random_indices[random_index+i]].Id.String()).Execute(&prescriptions)
+			patient_uuid := patients[random_indices[random_index+i]].Id
+			err = Supabase.DB.From("prescriptions").Select("*").Eq("patient_id", patient_uuid.String()).Execute(&prescriptions)
 			if err != nil {
 				fmt.Println(err)
 				http.Error(w, "Failed to get prescriptions for the selected patient", http.StatusInternalServerError)
@@ -534,7 +538,7 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 
 			prescription_task := model.PrescriptionTask{
 				Task: model.Task{
-					PatientId: patients[random_indices[random_index+i]].Id, // Little convoluted but it keeps track of the index from other loops
+					PatientId: patient_uuid, // Little convoluted but it keeps track of the index from other loops
 					UserId:    student.Id,
 					TaskType:  model.PrescriptionTaskType,
 					Completed: false,
@@ -579,7 +583,7 @@ func GetTasksByStudentID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tasks)
 }
 
-// CompleteTask marks a task as completed
+// CompleteTask only marks a task as completed
 func CompleteTask(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["task_id"]
