@@ -663,11 +663,12 @@ func GetTaskByWeek(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Start date for counting by week
-	// TODO: Change this to the actual start date (or save it within the system somewhere?)
-	startDate, err := time.Parse(time.RFC3339Nano, "2025-02-01T12:35:54.615005Z")
-	if err != nil {
-		http.Error(w, "Error parsing start date", http.StatusInternalServerError)
-		return
+	// Gets the earliest task created date
+	startDate := time.Now()
+	for _, task := range tasks {
+		if task.CreatedAt.Before(startDate) {
+			startDate = *task.CreatedAt
+		}
 	}
 
 	// Map to store tasks by week
