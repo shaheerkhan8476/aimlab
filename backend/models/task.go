@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -16,15 +18,16 @@ const (
 
 // Base Task struct
 type Task struct {
-	// Id              int64     `json:"id"`  // This seems to cause issues with unique constraints because default = 0
-	// CreatedAt time.Time `json:"created_at"`// Don't want to set default time through backend
-	PatientId uuid.UUID `json:"patient_id"`
-	UserId    uuid.UUID `json:"user_id"`
-	TaskType  TaskType  `json:"task_type"`
-	Completed bool      `json:"completed"`
+	Id        *uuid.UUID `json:"id,omitempty"`         // Pointer to allow NULL instead of default zero UUID
+	CreatedAt *time.Time `json:"created_at,omitempty"` // Pointer to avoid default time
+	PatientId uuid.UUID  `json:"patient_id"`
+	UserId    uuid.UUID  `json:"user_id"`
+	TaskType  TaskType   `json:"task_type"`
+	Completed bool       `json:"completed"`
 }
 
 // Shared method for marking a task as completed
+// NOT USED ANYMORE, completing a task updates the DB directly instead of altering a struct
 func (t *Task) CompleteTask() {
 	t.Completed = true
 }

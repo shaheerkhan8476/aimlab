@@ -50,6 +50,7 @@ func main() {
 
 	m.HandleFunc("/generateTasks", supabase.GenerateTasks).Methods("POST")
 	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTaskByWeek).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST")
 	// Allow API requests from frontend

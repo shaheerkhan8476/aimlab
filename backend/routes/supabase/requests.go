@@ -22,3 +22,9 @@ type TaskCreateRequest struct {
 	PrescriptionTaskCount int  `json:"prescription_task_count"`
 	GenerateQuestion      bool `json:"generate_question"`
 }
+
+// Task Get Request Model
+type TaskGetRequest struct {
+	GetIncompleteTasks *bool `json:"get_incomplete_tasks,omitempty"`
+	GetCompleteTasks   *bool `json:"get_complete_tasks,omitempty"`
+}

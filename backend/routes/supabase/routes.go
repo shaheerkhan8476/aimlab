@@ -6,6 +6,7 @@ import (
 	"io"
 	"math/rand/v2"
 	"net/http"
+	"time"
 
 	"bytes"
 	"fmt"
@@ -571,14 +572,50 @@ func GetTaskByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(task[0])
 }
 
+// This function gets all the tasks for a student
+// The URL contains the student ID
+// The request body tells the function which type of tasks to get (completed or incomplete)
 func GetTasksByStudentID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["student_id"]
-	var tasks []model.Task
-	err := Supabase.DB.From("tasks").Select("*").Eq("user_id", id).Execute(&tasks)
+
+	// Get the request body
+	// Example request body:
+	// {
+	// 	"get_incomplete_tasks": true,
+	// 	"get_complete_tasks": false
+	// }
+	var taskGetRequest TaskGetRequest
+	bodyBytes, _ := io.ReadAll(r.Body)
+	err := json.Unmarshal(bodyBytes, &taskGetRequest)
 	if err != nil {
-		http.Error(w, "No tasks found", http.StatusNotFound)
+		http.Error(w, "Cannot Unmarshal task request from request", http.StatusBadRequest)
+		return
 	}
+
+	var tasks []model.Task // Holds the tasks to be returned
+	if *taskGetRequest.GetCompleteTasks {
+		var queryOutput []model.Task
+		err = Supabase.DB.From("tasks").Select("*").Eq("user_id", id).Eq("completed", "TRUE").Execute(&queryOutput)
+		if err != nil {
+			http.Error(w, "No completed tasks found", http.StatusNotFound)
+		}
+		tasks = append(tasks, queryOutput...) // Adds query output to list of tasks
+	}
+	if *taskGetRequest.GetIncompleteTasks {
+		var queryOutput []model.Task
+		err = Supabase.DB.From("tasks").Select("*").Eq("user_id", id).Eq("completed", "FALSE").Execute(&queryOutput)
+		if err != nil {
+			http.Error(w, "No incomplete tasks found", http.StatusNotFound)
+		}
+		tasks = append(tasks, queryOutput...) // Adds query output to list of tasks
+	}
+
+	if len(tasks) == 0 {
+		http.Error(w, "No tasks found", http.StatusNotFound)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tasks)
 }
@@ -587,15 +624,80 @@ func GetTasksByStudentID(w http.ResponseWriter, r *http.Request) {
 func CompleteTask(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["task_id"]
+
+	// Finds the task
 	var task []model.Task
 	err := Supabase.DB.From("tasks").Select("*").Eq("id", id).Execute(&task)
-	if err != nil {
+	if err != nil || len(task) == 0 {
 		http.Error(w, "Task not found", http.StatusNotFound)
+		return
 	}
-	task[0].CompleteTask()
-	err = Supabase.DB.From("tasks").Update(task[0]).Eq("id", id).Execute(nil)
+
+	// Update only the completed field
+	updateData := map[string]interface{}{
+		"completed": true,
+	}
+
+	// Update DB
+	err = Supabase.DB.From("tasks").Update(updateData).Eq("id", id).Execute(nil)
 	if err != nil {
 		http.Error(w, "Failed to update task", http.StatusInternalServerError)
+		return
 	}
 	w.Write([]byte("Task completed"))
+}
+
+// GetTaskByWeek gets all the tasks for a student and sorts them by week
+// The URL contains the student ID
+func GetTaskByWeek(w http.ResponseWriter, r *http.Request) {
+	// Get the student ID and week number from the URL
+	vars := mux.Vars(r)
+	id := vars["student_id"]
+
+	// Get all the tasks for the student
+	var tasks []model.Task
+	err := Supabase.DB.From("tasks").Select("*").Eq("user_id", id).Execute(&tasks)
+	if err != nil {
+		http.Error(w, "No tasks found", http.StatusNotFound)
+		return
+	}
+
+	// Start date for counting by week
+	// TODO: Change this to the actual start date (or save it within the system somewhere?)
+	startDate, err := time.Parse(time.RFC3339Nano, "2025-02-01T12:35:54.615005Z")
+	if err != nil {
+		http.Error(w, "Error parsing start date", http.StatusInternalServerError)
+		return
+	}
+
+	// Map to store tasks by week
+	// key = week number (int), value = list of tasks for that week
+	weekTasks := make(map[int][]model.Task)
+
+	// Loop through each task to categorize it by week
+	for _, task := range tasks {
+		// Calculate the number of weeks since the start date
+		weekNumber := int(task.CreatedAt.Sub(startDate).Hours() / (24 * 7)) // Week difference
+
+		// Add the task to the corresponding week
+		weekTasks[weekNumber] = append(weekTasks[weekNumber], task)
+	}
+
+	// The output response
+	response := make([]map[string]interface{}, 0)
+
+	// Convert weekTasks map to slice of week objects
+	for week, tasksInWeek := range weekTasks {
+		weekData := map[string]interface{}{
+			"week":  week,
+			"tasks": tasksInWeek,
+		}
+		response = append(response, weekData)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }
