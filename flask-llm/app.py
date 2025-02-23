@@ -39,7 +39,7 @@ def generate_text():
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=50,
+            max_tokens=300,
             temperature=0.7
         )
         text_output = response.choices[0].message.content.strip()
@@ -50,22 +50,25 @@ def generate_text():
 @app.route("/api/message-request", methods=["POST"])
 def message_request():
     data = request.get_json() or {}
-    user_message = data.get("message", "")
-    if not user_message:
+    # Use a clear variable name:
+    patient_message = data.get("message", "")
+    if not patient_message:
         return jsonify({"error": "No message provided"}), 400
     else:
-        print("Message:", user_message)
+        print("Message:", patient_message)
 
-    prompt = data.get("message", "")
-
-    if not prompt:
-        return jsonify({"error": "No prompt provided"}), 400
+    # Build a detailed prompt as in the old version:
+    prompt = f"""
+    You are a medical student replying to an EHR message from a patient.
+    The patient wrote: "{patient_message}"
+    Your response should be professional, concise, and patient-friendly.
+    """
 
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=50,
+            max_tokens=500,
             temperature=0.7
         )
         text_output = response.choices[0].message.content.strip()
@@ -73,7 +76,6 @@ def message_request():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-    # return user_message
 
 @app.route("/api/hardcoded-case", methods=["GET"])
 def get_enhanced_case():
@@ -182,7 +184,7 @@ def feedback_on_response():
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=150,
+            max_tokens=300,
             temperature=0.7
         )
         feedback_text = response.choices[0].message.content.strip()
