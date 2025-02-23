@@ -343,6 +343,7 @@ func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Patient Flagged"))
 }
 
 func RemoveFlaggedPatient(w http.ResponseWriter, r *http.Request) {
@@ -365,18 +366,6 @@ func RemoveFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not delete from flagged", http.StatusInternalServerError)
 		return
 	}
-	err = Supabase.DB.From("prescriptions").Delete().Eq("patient_id", patientID).Execute(nil)
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Could not delete from prescriptions", http.StatusInternalServerError)
-		return
-	}
-	err = Supabase.DB.From("results").Delete().Eq("patient_id", patientID).Execute(nil)
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Could not delete from results", http.StatusInternalServerError)
-		return
-	}
 	err = Supabase.DB.From("patients").Delete().Eq("id", patientID).Execute(nil)
 	if err != nil {
 		fmt.Println(err)
@@ -384,6 +373,7 @@ func RemoveFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Patient Removed"))
 }
 
 func KeepPatient(w http.ResponseWriter, r *http.Request) {
@@ -407,4 +397,5 @@ func KeepPatient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Patient Kept"))
 }
