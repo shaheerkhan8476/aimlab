@@ -360,12 +360,6 @@ func RemoveFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	patientID := request.PatientID.String()
-	err = Supabase.DB.From("flagged").Delete().Eq("patient_id", patientID).Execute(nil)
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Could not delete from flagged", http.StatusInternalServerError)
-		return
-	}
 	err = Supabase.DB.From("patients").Delete().Eq("id", patientID).Execute(nil)
 	if err != nil {
 		fmt.Println(err)
