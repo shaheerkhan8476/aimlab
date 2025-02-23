@@ -17,6 +17,20 @@ type UserLoginRequest struct {
 	Password string `json:"password"`
 }
 
+// Task Create Request Model
+type TaskCreateRequest struct {
+	PatientTaskCount      int  `json:"patient_task_count"`
+	LabResultTaskCount    int  `json:"lab_result_task_count"`
+	PrescriptionTaskCount int  `json:"prescription_task_count"`
+	GenerateQuestion      bool `json:"generate_question"`
+}
+
+// Task Get Request Model
+type TaskGetRequest struct {
+	GetIncompleteTasks *bool `json:"get_incomplete_tasks,omitempty"`
+	GetCompleteTasks   *bool `json:"get_complete_tasks,omitempty"`
+}
+
 type FlaggedPatientRequest struct {
 	Id        uuid.UUID `json:"id"`
 	PatientID uuid.UUID `json:"patient_id"`

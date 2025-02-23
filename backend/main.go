@@ -52,6 +52,11 @@ func main() {
 	m.HandleFunc("/removePatient", supabase.RemoveFlaggedPatient).Methods("POST")
 	m.HandleFunc("/keepPatient", supabase.KeepPatient).Methods("POST")
 
+	m.HandleFunc("/generateTasks", supabase.GenerateTasks).Methods("POST")
+	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTaskByWeek).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST")
 	// Allow API requests from frontend
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
