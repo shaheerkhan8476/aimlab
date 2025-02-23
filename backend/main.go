@@ -48,6 +48,11 @@ func main() {
 	// LLM endpoint from the old version – add it if needed
 	m.HandleFunc("/patients/{id}/llm-response", supabase.GetLLMResponseForPatient).Methods("GET")
 
+	m.HandleFunc("/generateTasks", supabase.GenerateTasks).Methods("POST")
+	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTaskByWeek).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST")
 	// Allow API requests from frontend
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
