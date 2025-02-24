@@ -159,3 +159,8 @@ messing with other pages */
 .submit-response:hover {
     background-color: #002f6c;
 }
+
+
+.flag-patient {
+    width: 20%;
+}
