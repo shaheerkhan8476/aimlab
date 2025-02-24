@@ -354,6 +354,13 @@ func GenerateUniqueIndices(count, max int) []int {
 func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Generating tasks")
 	// Get the number of tasks to generate from request body
+	// Example json body:
+	// {
+	//     "patient_task_count": 3,
+	//     "lab_result_task_count": 0,
+	//     "prescription_task_count": 0,
+	//     "generate_question": false
+	// }
 	var taskCreateRequest TaskCreateRequest
 	bodyBytes, _ := io.ReadAll(r.Body)
 	err := json.Unmarshal(bodyBytes, &taskCreateRequest)

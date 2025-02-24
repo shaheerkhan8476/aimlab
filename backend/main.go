@@ -40,7 +40,7 @@ func main() {
 	m.HandleFunc("/patients/{id}/results", supabase.GetResultsByPatientID).Methods("GET")
 	m.HandleFunc("/prescriptions", supabase.GetPrescriptions).Methods("GET")
 	m.HandleFunc("/prescriptions/{id}", supabase.GetPrescriptionByID).Methods("GET")
-	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
+	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST") // don't think this is used anymore?
 	m.HandleFunc("/students", supabase.GetStudents).Methods("GET")
 	m.HandleFunc("/students/{id}", supabase.GetStudentById).Methods("GET")
 	m.HandleFunc("/results", supabase.GetResults).Methods("GET")
@@ -52,11 +52,13 @@ func main() {
 	m.HandleFunc("/removePatient", supabase.RemoveFlaggedPatient).Methods("POST")
 	m.HandleFunc("/keepPatient", supabase.KeepPatient).Methods("POST")
 
-	m.HandleFunc("/generateTasks", supabase.GenerateTasks).Methods("POST")
-	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("GET")
-	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTaskByWeek).Methods("GET")
-	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
-	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST")
+	// Endpoints for tasks (generating, getting, completing, etc.)
+	m.HandleFunc("/generateTasks", supabase.GenerateTasks).Methods("POST")                            // generates variable amount of tasks for a student
+	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("GET")                  // displays tasks for a student, filtered by completion in request
+	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTaskByWeek).Methods("GET")                   // used to display a student's tasks, sorted by week
+	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")                // gets a singular task for a student
+	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST") // completes that singular task
+
 	// Allow API requests from frontend
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
