@@ -160,7 +160,23 @@ messing with other pages */
     background-color: #002f6c;
 }
 
+.flag-patient{
+    width: 1.5rem;
+    height: 1.5rem;
+    justify-content: center;
+}
 
-.flag-patient {
-    width: 20%;
+.flag-patient-btn{
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem;
+    cursor: pointer;
+}
+.flag-container {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
 }

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from 'react-router-dom';
 import "./css/PatientPage.css";
+import ReportFlag from "../images/report-flag.png"
+
 
 
 function PatientPage() {
@@ -257,18 +259,21 @@ function PatientPage() {
                     )}
                 </div>
             )}
+            {/* <img src={QuickReply} alt="Quick Reply" className="quick-reply"></img> */}
 
             {activeTab === "ai-response" && (
                 <div className="ai-response">
                     <h2>AI Response</h2>
                     <p><strong>Your Response:</strong> {userMessage}</p>
                     <p><strong>AI Response:</strong> {aiResponse}</p>
+                    <div className="flag-container">
                     {!flagState ? (
-                        <button onClick={flagPatient} className="flag-patient">Flag Patient</button>
+                        <button className="flag-patient-btn"><img src={ReportFlag} alt="report case" className="flag-patient" onClick={flagPatient}/></button>
                     
                     ) : (
                         <p><strong>Patient flagged, instructor notified!</strong></p>
                     )}
+                    </div>
                 </div>
             )}
         </div>
