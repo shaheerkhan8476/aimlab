@@ -38,3 +38,10 @@ type Result struct {
 	Test_result map[string]bool `json:"test_result"`
 	Patient     EmbeddedPatient `json:"patient"`
 }
+
+type FlaggedPatient struct {
+	ID        uuid.UUID       `json:"id"`
+	PatientID uuid.UUID       `json:"patient_id"`
+	Flaggers  []uuid.UUID     `json:"flaggers"`
+	Patient   EmbeddedPatient `json:"patient"`
+}
