@@ -736,8 +736,9 @@ func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var existing []model.FlaggedPatient
-	err = Supabase.DB.From("flagged").
+	var existing []InsertFlaggedPatient
+	err = Supabase.DB.
+		From("flagged").
 		Select("*").
 		Eq("patient_id", req.PatientID.String()).
 		Execute(&existing)
@@ -748,23 +749,29 @@ func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(existing) == 0 {
-		flagged := model.FlaggedPatient{
+		newFlag := InsertFlaggedPatient{
 			ID:        uuid.New(),
 			PatientID: req.PatientID,
 			Flaggers:  []uuid.UUID{req.UserID},
 		}
-		err = Supabase.DB.From("flagged").Insert(flagged).Execute(nil)
+
+		err = Supabase.DB.
+			From("flagged").
+			Insert(newFlag).
+			Execute(nil)
 		if err != nil {
 			fmt.Println(err)
 			http.Error(w, "Error inserting new flagged row", http.StatusInternalServerError)
 			return
 		}
+
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Patient flagged successfully (new row)"))
 		return
 	}
 
 	flaggedRow := existing[0]
+
 	alreadyFlagged := false
 	for _, uid := range flaggedRow.Flaggers {
 		if uid == req.UserID {
@@ -783,7 +790,9 @@ func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 	updateData := map[string]interface{}{
 		"flaggers": flaggedRow.Flaggers,
 	}
-	err = Supabase.DB.From("flagged").
+
+	err = Supabase.DB.
+		From("flagged").
 		Update(updateData).
 		Eq("id", flaggedRow.ID.String()).
 		Execute(nil)

@@ -40,8 +40,10 @@ type Result struct {
 }
 
 type FlaggedPatient struct {
-	ID        uuid.UUID       `json:"id"`
-	PatientID uuid.UUID       `json:"patient_id"`
-	Flaggers  []uuid.UUID     `json:"flaggers"`
-	Patient   EmbeddedPatient `json:"patient"`
+	ID        uuid.UUID   `json:"id"`
+	PatientID uuid.UUID   `json:"patient_id"`
+	Flaggers  []uuid.UUID `json:"flaggers"`
+	Patient   struct {
+		Name string `json:"name"`
+	} `json:"patient"`
 }
