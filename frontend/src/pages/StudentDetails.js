@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import "./css/StudentDetails.css"; // Your provided styles
 
 function StudentDetails() {
-    const { id } = useParams(); // Gets ID from URL
+    const { id } = useParams(); //Gets Id From Url
     const [student, setStudent] = useState(null);
     const [tasks, setTasks] = useState([]);
     const [patient, setPatients] = useState({}); // Store patient names
@@ -20,8 +20,10 @@ function StudentDetails() {
             },
         })
         .then(response => {
-            if (!response.ok) throw new Error("Student not found");
-            return response.json();
+            if (!response.ok){
+                throw new Error("student not found");
+            }
+            return response.json()
         })
         .then(data => setStudent(data))
         .catch(error => {
@@ -42,7 +44,7 @@ function StudentDetails() {
         
             setTasks(data || []);
 
-            // Fget paitent for id
+            //Get Paitent For Id
             const patient_Id = [...new Set(data.flatMap(whold => whold.tasks.map(task => task.patient_id)))];
             
             const patientData = {};
@@ -74,8 +76,14 @@ function StudentDetails() {
         });
     }, [id]);
 
-    if (!student) {
-        return <p>Patient loading, please wait</p>;
+    if (!student)
+    {
+        {/* this is very necessary, it tries to pull null values from
+            the variable with the api response if you don't have this
+            and it breaks */}
+        return (
+            <p>Patient loading, please wait</p>
+        )
     }
 
     return (
