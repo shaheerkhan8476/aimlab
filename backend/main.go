@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/robfig/cron/v3"
 	"github.com/rs/cors"
 	"gitlab.msu.edu/team-corewell-2025/routes/llm"
 	"gitlab.msu.edu/team-corewell-2025/routes/supabase"
@@ -30,6 +32,18 @@ func main() {
 
 	// API Gateway
 	m := mux.NewRouter()
+
+	//Job Scheduler
+	c := cron.New(cron.WithSeconds())
+	_, err = c.AddFunc("@daily", func() {
+		fmt.Println("Cron job triggered at:", time.Now())
+	})
+	if err != nil {
+		fmt.Println("Error scheduling cron job:", err)
+		return
+	}
+	c.Start()
+	fmt.Println("Cron job scheduler started...")
 
 	// Endpoints
 	m.HandleFunc("/addUser", supabase.SignUpUser).Methods("POST")
