@@ -13,6 +13,7 @@ function PatientPage() {
     const [userMessage, setUserMessage] = useState(""); //userMessage, updates with change to textarea below
     const [aiResponseUnlocked, setAIResponseUnlocked] = useState(false); //Controls ai response tab locking
     const [disableInput, setDisableInput] = useState(false);
+    const [flagState, setFlagState] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -96,6 +97,28 @@ function PatientPage() {
             setDisableInput(true);
         })
         .catch(error => console.error("Failed to get ai response", error));
+    };
+
+    const flagPatient = () => {
+        const token = localStorage.getItem("accessToken");
+        const userId = localStorage.getItem("userId")
+        fetch(`http://localhost:8060/addFlag`,{
+            method: 'POST',
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify( {
+                "id": `${userId}`,
+                "patient_id": `${id}`,
+            }),
+
+        })
+        .then(data => {
+            setFlagState(true);
+        })
+        .catch(error => console.error("Failed to flag patient", error));
+
     };
 
     return (
@@ -240,6 +263,12 @@ function PatientPage() {
                     <h2>AI Response</h2>
                     <p><strong>Your Response:</strong> {userMessage}</p>
                     <p><strong>AI Response:</strong> {aiResponse}</p>
+                    {!flagState ? (
+                        <button onClick={flagPatient} className="flag-patient">Flag Patient</button>
+                    
+                    ) : (
+                        <p><strong>Patient flagged, instructor notified!</strong></p>
+                    )}
                 </div>
             )}
         </div>

@@ -227,7 +227,7 @@ function StudentDashboard(){
                                                         <td>{message.name}</td>
                                                         <td>{message.date_of_birth}</td>
                                                         <td>{message.patient_message}</td>
-                                                        <img src={QuickReply} alt="Quick Reply" className="quick-reply"></img>
+                                                        {/* <img src={QuickReply} alt="Quick Reply" className="quick-reply"></img> */}
                                                     </tr>
                                                 ))}
                                                 
