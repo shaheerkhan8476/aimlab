@@ -1,5 +1,7 @@
 package supabase
 
+import "github.com/google/uuid"
+
 // User Create Request Model
 type UserCreateRequest struct {
 	Name            string `json:"name"`
@@ -27,4 +29,9 @@ type TaskCreateRequest struct {
 type TaskGetRequest struct {
 	GetIncompleteTasks *bool `json:"get_incomplete_tasks,omitempty"`
 	GetCompleteTasks   *bool `json:"get_complete_tasks,omitempty"`
+}
+
+type FlaggedPatientRequest struct {
+	Id        uuid.UUID `json:"id"`
+	PatientID uuid.UUID `json:"patient_id"`
 }
