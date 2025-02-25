@@ -87,6 +87,7 @@ function StudentDashboard(){
         .then((data) => {
             console.log("fetched user data:", data);
             setUserName(data.name)
+            localStorage.setItem("userName", data.name)
         })
         .catch((error) => {
             console.error(error);
