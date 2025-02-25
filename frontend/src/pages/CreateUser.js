@@ -9,9 +9,10 @@ function CreateUser()
         name: '',
         email: '',
         password: '',
-        isAdmin: null,
+        isAdmin: false,
         studentStanding : '',
     });
+    
     const navigate = useNavigate();
 
     //Listen for user adjustment of html and apply to form

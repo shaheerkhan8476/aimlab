@@ -91,7 +91,7 @@ function StudentDetails() {
             {/* Header */}
             <div className="student-header">
                 <button onClick={() => navigate("/InstructorDashboard")} className="back-button">
-                    Back to Dashboard
+                ⬅ Back to Dashboard
                 </button>
                 <div className="student-name">{student.name}</div>
             </div>
@@ -107,7 +107,7 @@ function StudentDetails() {
                                 {week.tasks.map((task, tindex) => (
                                     <li key={tindex} className="task-item">
                                         <span className="task-id">Task: {patient[task.patient_id]}</span>
-                                        <span className={`task-status ${task.completed ? "completed" : "incomplete"}`}>
+                                        <span className={`task-status-${task.completed ? "completed" : "incomplete"}`}>
                                             {task.completed ? " Completed" : " Incomplete"}
                                         </span>
                                     </li>

@@ -25,7 +25,7 @@ messing with other pages */
 }
 
 /* Back Button */
-.back-button {
+.patient-container .back-button {
     background-color: #002855;
     color: #ffffff;
     border: none;
@@ -65,7 +65,7 @@ messing with other pages */
 }
 
 .patient-container .data-table tr:nth-child(even) {
-    background-color: white;
+    background-color: #dfeef8;
     color: #002855
 }
 

@@ -188,6 +188,22 @@ function PatientPage() {
                                 <td>{patient.allergies}</td>
                             </tr>
                             <tr>
+                                <td><strong>Medical History</strong></td>
+                                <td>{patient.medical_history}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Family Medical History</strong></td>
+                                <td>{patient.family_medical_history}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Surgical History</strong></td>
+                                <td>{patient.surgical_history}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cholesterol</strong></td>
+                                <td>{patient.cholesterol}</td>
+                            </tr>
+                            <tr>
                                 <td><strong>Patient Message</strong></td>
                                 <td className="patient-message">{patient.patient_message}</td>
                             </tr>

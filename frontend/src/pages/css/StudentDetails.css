@@ -1,12 +1,9 @@
-/* general */
-body {
+
+.student-container {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f4f7f9;
-}
-
-.student-container {
     width: 80%;
     margin: auto;
     padding: 20px;
@@ -25,10 +22,11 @@ body {
     margin-bottom: 20px;
 }
 /* back to dash button */
-.back-button {
+.student-container .back-button {
     background-color: white;
     color: #002855;
     border: none;
+    width: 14rem;
     padding: 10px 15px;
     border-radius: 5px;
     cursor: pointer;
@@ -70,7 +68,7 @@ body {
     border-radius: 5px;
 }
 /* Display areas */
-li {
+.tasks-section li {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -80,15 +78,25 @@ li {
     border-radius: 5px;
 }
 /* other color */
-li:nth-child(odd) {
+.tasks-section li:nth-child(odd) {
     background: #d3d3d3;
 }
 /* font */
-li span {
+.tasks-section li span {
     font-weight: bold;
 }
 /* push to dies */
-ul {
+.tasks-section ul {
     list-style: none;
     padding: 0;
+}
+
+.task-status-completed{
+    color: green;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.task-status-incomplete{
+    color: rgb(145, 34, 34);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
