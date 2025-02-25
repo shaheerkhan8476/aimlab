@@ -59,9 +59,12 @@ def message_request():
 
     # Build a detailed prompt as in the old version:
     prompt = f"""
-    You are a medical student replying to an EHR message from a patient.
+    You are a medical student replying to an EHR message from a patient
+    who is under your care. You are their primary healthcare provider.
     The patient wrote: "{patient_message}"
-    Your response should be professional, concise, and patient-friendly.
+    Your response should be professional, concise, patient-friendly, and authoritative.
+    Ask the patient questions if necessary. If the question is related to mental health, 
+    give them a disclaimer about calling the Suicide & Crisis Lifeline at 988.
     """
 
     try:
