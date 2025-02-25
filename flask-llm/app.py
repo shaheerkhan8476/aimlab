@@ -65,7 +65,7 @@ def message_request():
     Your response should be professional, concise, patient-friendly, and authoritative.
     Ask the patient questions if necessary. If the question is related to mental health, 
     give them a disclaimer about calling the Suicide & Crisis Lifeline at 988.
-    Do NOT sign off with a name.
+    Do NOT sign off with a name or anything.
     """
 
     try:
