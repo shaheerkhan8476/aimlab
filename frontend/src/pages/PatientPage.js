@@ -53,7 +53,7 @@ function PatientPage() {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
             },
-
+            
     })
     .then(response => response.json())
     .then(data => setPrescriptions(data))
@@ -94,7 +94,7 @@ function PatientPage() {
         })
         .then(response => response.json())
         .then(data => {
-            setAIResponse(data.completion);
+            setAIResponse(data.completion + ` Best Regards, ${localStorage.getItem("userName")}.`);
             setAIResponseUnlocked(true);
             setDisableInput(true);
         })

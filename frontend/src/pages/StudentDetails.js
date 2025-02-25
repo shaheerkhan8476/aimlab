@@ -108,7 +108,7 @@ function StudentDetails() {
                                     <li key={tindex} className="task-item">
                                         <span className="task-id">Task: {patient[task.patient_id]}</span>
                                         <span className={`task-status-${task.completed ? "completed" : "incomplete"}`}>
-                                            {task.completed ? " Completed" : " Incomplete"}
+                                            {task.completed ? " Complete" : " Incomplete"}
                                         </span>
                                     </li>
                                 ))}
