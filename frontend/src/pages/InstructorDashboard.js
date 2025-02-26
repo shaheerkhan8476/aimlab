@@ -121,7 +121,7 @@ function InstructorDashboard(){
                                             <thead>
                                                 <tr>
                                                     <th>Name</th>   
-                                                    <th>ID</th>
+                                                    <th>Email</th>
                                                     <th>Student Standing</th>
                                                 </tr>
                                             </thead>
@@ -135,7 +135,7 @@ function InstructorDashboard(){
 
                                                     >
                                                         <td>{student.name}</td>
-                                                        <td>{student.id}</td>
+                                                        <td>{student.email}</td>
                                                         <td>{student.studentStanding}</td>
                                                     </tr>
                                                 ))}
