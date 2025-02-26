@@ -429,7 +429,7 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Build a prompt that includes all of the data.
-				prompt := fmt.Sprintf("Patient Data:\n%s\n Ignore the \"patient_message\" data. Assume that this patient is part of a basket management system for family medicine. Pretend that you are the patient, who is asking their doctor about recent symptoms they are having. Respond with only the message and nothing else. Do not include the quotation marks with the message.", string(combinedJSON))
+				prompt := fmt.Sprintf("Patient Data:\n%s\n Using this data, generate a new potential question that the patient may ask their doctor. The question should be about recent symptoms the patient has been experiencing. Respond with only the message and nothing else. Do not include the quotation marks with the message.", string(combinedJSON))
 
 				// Create the LLM request payload.
 				llmRequest := map[string]string{
