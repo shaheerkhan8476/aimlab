@@ -59,9 +59,19 @@ def message_request():
 
     # Build a detailed prompt as in the old version:
     prompt = f"""
-    You are a medical student replying to an EHR message from a patient.
+    You are a medical student replying to an EHR message from a patient
+    who is under your care. You are their primary healthcare provider.
+    
     The patient wrote: "{patient_message}"
-    Your response should be professional, concise, and patient-friendly.
+
+    Your response should be professional, patient-friendly, and authoritative.
+    Ask the patient questions if necessary. If and only if the question is related to mental health, 
+    give them a disclaimer about calling the Suicide & Crisis Lifeline at 988.
+
+    **Do NOT include any sign-off, closing phrase, farewell, or any kind of concluding words like
+    "Take care," "Best," "Sincerely," "Thanks," or anything similar. Do NOT include a placeholder for a name.**
+    
+    Simply end the message after the last relevant sentence. Nothing more.
     """
 
     try:

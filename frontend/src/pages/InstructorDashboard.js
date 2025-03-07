@@ -121,15 +121,21 @@ function InstructorDashboard(){
                                             <thead>
                                                 <tr>
                                                     <th>Name</th>   
-                                                    <th>ID</th>
+                                                    <th>Email</th>
                                                     <th>Student Standing</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {students.map((student, index) => (
-                                                    <tr key={index}>
+                                                    <tr 
+                                                        key={index}
+                                                        className="clickable-patient"
+                                                        onClick={() => navigate(`/StudentDetails/${student.id}`)}
+
+
+                                                    >
                                                         <td>{student.name}</td>
-                                                        <td>{student.id}</td>
+                                                        <td>{student.email}</td>
                                                         <td>{student.studentStanding}</td>
                                                     </tr>
                                                 ))}
@@ -141,12 +147,6 @@ function InstructorDashboard(){
                                 </div>
                             )}
 
-                            {view === "results" && (
-                                <div>
-                                    <h2>Results</h2>
-                                    <p>Erm this doesnt have anything yet lol</p>
-                                </div>
-                            )}
                         </div>
                     )}
                 </div>

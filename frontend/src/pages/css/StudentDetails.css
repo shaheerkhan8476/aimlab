@@ -1,0 +1,102 @@
+
+.student-container {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f9;
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+}
+/* Header */
+.student-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #002855;
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+/* back to dash button */
+.student-container .back-button {
+    background-color: white;
+    color: #002855;
+    border: none;
+    width: 14rem;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.back-button:hover {
+    background-color: #d3d3d3;
+}
+/* display student name */
+.student-name {
+    font-size: 25px;
+    font-weight: bold;
+}
+
+/* task section */
+.tasks-section {
+    background: #e0e6ed;
+    padding: 20px;
+    border-radius: 8px;
+}
+/* All Tasks */
+.tasks-section h2 {
+    color: #003f91;
+    text-align: center;
+}
+/* Display week */
+.tasks-section h3 {
+    color: #002855;
+    margin-bottom: 10px;
+}
+
+/* List the tasks */
+.tasks-section div {
+    background: white;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+/* Display areas */
+.tasks-section li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #8B9EB7;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+}
+/* other color */
+.tasks-section li:nth-child(odd) {
+    background: #d3d3d3;
+}
+/* font */
+.tasks-section li span {
+    font-weight: bold;
+}
+/* push to dies */
+.tasks-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.task-status-completed{
+    color: green;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.task-status-incomplete{
+    color: rgb(145, 34, 34);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
