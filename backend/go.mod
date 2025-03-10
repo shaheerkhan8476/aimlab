@@ -13,4 +13,5 @@ require (
 require (
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 )
