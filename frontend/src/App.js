@@ -5,6 +5,7 @@ import SignInUser from './pages/SignInUser';
 import StudentDashboard from './pages/StudentDashboard';
 import InstructorDashboard from './pages/InstructorDashboard';
 import PatientPage from './pages/PatientPage';
+import FlaggedPaitents from './pages/FlaggedPaitents';
 import StudentDetails from './pages/StudentDetails';
 
 //Main App entry point
@@ -18,6 +19,8 @@ function App() {
         <Route path="/InstructorDashboard" element={<InstructorDashboard />} />
         <Route path="/PatientPage/:id" element={<PatientPage />} />
         <Route path="/StudentDetails/:id" element={<StudentDetails />} />
+        <Route path="/StudentDetails/:id" element={<StudentDetails />} />
+        <Route path="/FlaggedPaitents" element={<FlaggedPaitents />} />
       </Routes>
     </>
   );

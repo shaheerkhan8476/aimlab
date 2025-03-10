@@ -99,6 +99,12 @@ function InstructorDashboard(){
                 >
                     Log Out
                 </button>
+                <button
+                    className="logout-but"
+                    onClick={() => navigate(`/FlaggedPaitents`)}
+                >
+                    Flagged Paitents
+                </button>
                 {/* hardcoded for now sry */}
                 <div className="welcome-message">Welcome, {userName}</div>
             </div>
