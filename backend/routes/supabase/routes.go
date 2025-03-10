@@ -658,30 +658,26 @@ func CompleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Only reads request body if the task is a patient question or lab result task
-	// This is because these tasks require additional information to be filled in
-	// Prescription tasks don't need to store information (I think)
+	// All tasks have a student response and LLM feedback
 	var taskCompleteRequest TaskCompleteRequest
-	if task[0].TaskType == model.PatientQuestionTaskType || task[0].TaskType == model.LabResultTaskType {
-		// Get the request body
-		// Example request body:
-		// {
-		// 	"student_response": "The student's response to the task",
-		// 	"llm_feedback": "The LLM's response to the task"
-		// }
-		bodyBytes, _ := io.ReadAll(r.Body)
-		err := json.Unmarshal(bodyBytes, &taskCompleteRequest)
-		if err != nil {
-			http.Error(w, "Cannot Unmarshal task completion request from request", http.StatusBadRequest)
-			return
-		}
+	// Get the request body
+	// Example request body:
+	// {
+	// 	"student_response": "The student's response to the task",
+	// 	"llm_feedback": "The LLM's response to the task"
+	// }
+	bodyBytes, _ := io.ReadAll(r.Body)
+	err = json.Unmarshal(bodyBytes, &taskCompleteRequest)
+	if err != nil {
+		http.Error(w, "Cannot Unmarshal task completion request from request", http.StatusBadRequest)
+		return
 	}
 
 	// Update the fields for the task
 	updateData := map[string]interface{}{
 		"completed":        true,
-		"student_response": NilIfEmptyString(taskCompleteRequest.StudentResponse),
-		"llm_feedback":     NilIfEmptyString(taskCompleteRequest.LLMFeedback),
+		"student_response": taskCompleteRequest.StudentResponse,
+		"llm_feedback":     taskCompleteRequest.LLMFeedback,
 	}
 
 	// Update DB
