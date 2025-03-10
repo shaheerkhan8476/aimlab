@@ -687,9 +687,15 @@ func GetTaskByWeek(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Map to store tasks by week
-	// key = week number (int), value = list of tasks for that week
-	weekTasks := make(map[int][]model.Task)
+	// Struct to store info for each week
+	type weekPackage struct {
+		week           int          // Week number
+		tasks          []model.Task // List of tasks for that week
+		completionRate float64      // Percentage of completed tasks
+	}
+
+	// List of weeks
+	weekList := make([]weekPackage, 0)
 
 	// Loop through each task to categorize it by week
 	for _, task := range tasks {
@@ -697,17 +703,42 @@ func GetTaskByWeek(w http.ResponseWriter, r *http.Request) {
 		weekNumber := int(task.CreatedAt.Sub(startDate).Hours() / (24 * 7)) // Week difference
 
 		// Add the task to the corresponding week
-		weekTasks[weekNumber] = append(weekTasks[weekNumber], task)
+		weekExists := false
+		for i := range weekList {
+			if weekList[i].week == weekNumber { // Update existing list of tasks for that week
+				weekList[i].tasks = append(weekList[i].tasks, task)
+				weekExists = true
+				break
+			}
+		}
+		if !weekExists {
+			// If the week is not found, add the week to the list
+			weekList = append(weekList, weekPackage{week: weekNumber, tasks: []model.Task{task}})
+		}
+
+	}
+
+	// Calculate the completion rate for each week
+	fmt.Println("Grading tasks...")
+	for i, week := range weekList {
+		completedTasks := 0
+		for _, task := range week.tasks {
+			if task.Completed {
+				completedTasks++
+			}
+		}
+		weekList[i].completionRate = float64(completedTasks) / float64(len(week.tasks)) * 100
 	}
 
 	// The output response
 	response := make([]map[string]interface{}, 0)
 
-	// Convert weekTasks map to slice of week objects
-	for week, tasksInWeek := range weekTasks {
+	// Convert weekList to slice of week objects for converting to JSON
+	for _, weekPackage := range weekList {
 		weekData := map[string]interface{}{
-			"week":  week,
-			"tasks": tasksInWeek,
+			"week":           weekPackage.week,
+			"tasks":          weekPackage.tasks,
+			"completionRate": weekPackage.completionRate,
 		}
 		response = append(response, weekData)
 	}
@@ -718,6 +749,7 @@ func GetTaskByWeek(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 	}
 }
+
 func GetFlaggedPatients(w http.ResponseWriter, r *http.Request) {
 	var flaggedPatients []FlaggedPatientRequest
 	err := Supabase.DB.From("flagged").Select("*,patient:patients(name)").Execute(&flaggedPatients)
