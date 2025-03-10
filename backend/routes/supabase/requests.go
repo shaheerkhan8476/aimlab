@@ -32,6 +32,11 @@ type TaskGetRequest struct {
 }
 
 type FlaggedPatientRequest struct {
-	Id        uuid.UUID `json:"id"`
-	PatientID uuid.UUID `json:"patient_id"`
+    PatientID uuid.UUID `json:"patient_id"`
+    UserID    uuid.UUID `json:"user_id"`
+}
+type InsertFlaggedPatient struct {
+    ID        uuid.UUID   `json:"id"`
+    PatientID uuid.UUID   `json:"patient_id"`
+    Flaggers  []uuid.UUID `json:"flaggers"`
 }
