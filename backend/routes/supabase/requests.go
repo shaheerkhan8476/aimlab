@@ -31,6 +31,11 @@ type TaskGetRequest struct {
 	GetCompleteTasks   *bool `json:"get_complete_tasks,omitempty"`
 }
 
+type TaskCompleteRequest struct {
+	StudentResponse string `json:"student_response"`
+	LLMFeedback     string `json:"llm_feedback"`
+}
+
 type FlaggedPatientRequest struct {
 	Id        uuid.UUID `json:"id"`
 	PatientID uuid.UUID `json:"patient_id"`

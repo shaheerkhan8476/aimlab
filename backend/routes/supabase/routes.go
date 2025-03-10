@@ -636,7 +636,16 @@ func GetTasksByStudentID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tasks)
 }
 
-// CompleteTask only marks a task as completed
+// Helper function to insert NULL into supabase when string is empty instead of empty string
+func NilIfEmptyString(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+// CompleteTask marks a task as completed and fills in information for the task from the request body
+// The URL contains the task ID
 func CompleteTask(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["task_id"]
@@ -649,9 +658,30 @@ func CompleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update only the completed field
+	// Only reads request body if the task is a patient question or lab result task
+	// This is because these tasks require additional information to be filled in
+	// Prescription tasks don't need to store information (I think)
+	var taskCompleteRequest TaskCompleteRequest
+	if task[0].TaskType == model.PatientQuestionTaskType || task[0].TaskType == model.LabResultTaskType {
+		// Get the request body
+		// Example request body:
+		// {
+		// 	"student_response": "The student's response to the task",
+		// 	"llm_feedback": "The LLM's response to the task"
+		// }
+		bodyBytes, _ := io.ReadAll(r.Body)
+		err := json.Unmarshal(bodyBytes, &taskCompleteRequest)
+		if err != nil {
+			http.Error(w, "Cannot Unmarshal task completion request from request", http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Update the fields for the task
 	updateData := map[string]interface{}{
-		"completed": true,
+		"completed":        true,
+		"student_response": NilIfEmptyString(taskCompleteRequest.StudentResponse),
+		"llm_feedback":     NilIfEmptyString(taskCompleteRequest.LLMFeedback),
 	}
 
 	// Update DB
@@ -719,7 +749,7 @@ func GetTaskByWeek(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Calculate the completion rate for each week
-	fmt.Println("Grading tasks...")
+	// TODO: Add consideration for rollover tasks from previous weeks
 	for i, week := range weekList {
 		completedTasks := 0
 		for _, task := range week.tasks {
