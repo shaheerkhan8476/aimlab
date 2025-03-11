@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import "./css/Login.css";
-function CreateUser()
+function CreateInstructor()
 {
     //Create blank form for data user enters
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
-        isAdmin: false,
-        studentStanding : '',
+        isAdmin: true,
+        studentStanding : null
     });
     
     const navigate = useNavigate();
@@ -69,17 +69,6 @@ function CreateUser()
                         <label>Password</label>
                         <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Enter your password" required />
                     </div>
-                    {!formData.isAdmin && (
-                        <div className="input-group student-standing-group">
-                            <label className="student-standing-label">Student Standing</label>
-                            <select className="styled-dropdown drop" name="studentStanding" value={formData.studentStanding} onChange={handleChange} required>
-                                <option value="">Select standing</option>
-                                <option value="Resident">Resident</option>
-                                <option value="Clerkship">Clerkship</option>
-                                <option value="Medical Student">Medical Student</option>
-                            </select>
-                        </div>
-                    )}
                     <button type="submit">Sign Up</button>
                 </form>
                 <p>
@@ -92,4 +81,4 @@ function CreateUser()
     );
 }
 
-export default CreateUser;
+export default CreateInstructor;
