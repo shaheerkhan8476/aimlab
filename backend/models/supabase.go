@@ -33,12 +33,11 @@ type EmbeddedPatient struct {
 }
 
 type Prescription struct {
-	ID            uuid.UUID       `json:"id"`
-	Patient_id    uuid.UUID       `json:"patient_id"`
-	Medication    string          `json:"medication"`
-	Dose          string          `json:"dose"`
-	Refill_status string          `json:"refill_status"`
-	Patient       EmbeddedPatient `json:"patient"`
+	ID         uuid.UUID       `json:"id"`
+	Patient_id uuid.UUID       `json:"patient_id"`
+	Medication string          `json:"medication"`
+	Dose       string          `json:"dose"`
+	Patient    EmbeddedPatient `json:"patient"`
 }
 
 type Result struct {
@@ -46,7 +45,7 @@ type Result struct {
 	Patient_id  uuid.UUID       `json:"patient_id"`
 	Test_name   string          `json:"test_name"`
 	Test_date   string          `json:"test_date"`
-	Test_result map[string]bool `json:"test_result"`
+	Test_result map[string]any  `json:"test_result"`
 	Patient     EmbeddedPatient `json:"patient"`
 }
 

@@ -210,6 +210,7 @@ func GetResults(w http.ResponseWriter, r *http.Request) {
 	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Execute(&results)
 	if err != nil {
 		http.Error(w, "Grabbing Prescriptions Error", http.StatusBadRequest)
+		fmt.Println(err)
 	}
 	if len(results) == 0 {
 		http.Error(w, "No Prescriptions in Database", http.StatusNotFound)
