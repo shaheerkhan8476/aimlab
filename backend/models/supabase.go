@@ -3,18 +3,29 @@ package model
 import "github.com/google/uuid"
 
 type Patient struct {
-	Id                   uuid.UUID `json:"id"`
-	Name                 string    `json:"name"`
-	DateOfBirth          string    `json:"date_of_birth"`
-	Age                  int       `json:"age"`
-	Gender               string    `json:"gender"`
-	MedicalCondition     string    `json:"medical_condition"`
-	MedicalHistory       string    `json:"medical_history"`
-	FamilyMedicalHistory string    `json:"family_medical_history"`
-	SurgicalHistory      string    `json:"surgical_history"`
-	Cholesterol          string    `json:"cholesterol"`
-	Allergies            string    `json:"allergies"`
-	PatientMessage       string    `json:"patient_message"`
+	Id                   uuid.UUID         `json:"id"`
+	Name                 string            `json:"name"`
+	DateOfBirth          string            `json:"date_of_birth"`
+	Age                  int               `json:"age"`
+	Gender               string            `json:"gender"`
+	MedicalCondition     string            `json:"medical_condition"`
+	MedicalHistory       string            `json:"medical_history"`
+	FamilyMedicalHistory string            `json:"family_medical_history"`
+	SurgicalHistory      string            `json:"surgical_history"`
+	Cholesterol          string            `json:"cholesterol"`
+	Allergies            string            `json:"allergies"`
+	PatientMessage       string            `json:"patient_message"`
+	PDMP                 []PDMPEntry       `json:"pdmp"`
+	Immunization         map[string]string `json:"immunization"`
+}
+
+type PDMPEntry struct {
+	DateFilled  string `json:"date_filled"`
+	DateWritten string `json:"date_written"`
+	Drug        string `json:"drug"`
+	Qty         int    `json:"qty"`
+	Days        int    `json:"days"`
+	Refill      int    `json:"refill"`
 }
 
 type EmbeddedPatient struct {

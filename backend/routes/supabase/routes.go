@@ -101,7 +101,8 @@ func GetPatients(w http.ResponseWriter, r *http.Request) {
 	err := Supabase.DB.From("patients").Select("*").Execute(&patients)
 
 	if err != nil {
-		http.Error(w, "Patient not found", http.StatusNotFound)
+		http.Error(w, "Patients not found", http.StatusNotFound)
+		fmt.Println(err)
 		return
 	}
 	patientsJSON, err := json.MarshalIndent(patients, "", "  ")
