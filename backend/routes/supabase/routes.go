@@ -93,6 +93,24 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+func ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var ForgotPasswordRequest ForgotPasswordRequest
+	bodyBytes, _ := io.ReadAll(r.Body)
+	err := json.Unmarshal(bodyBytes, &ForgotPasswordRequest)
+	if err != nil {
+		http.Error(w, "Cannot read request body", http.StatusBadRequest)
+		return
+	}
+	ctx := context.Background()
+	err = Supabase.Auth.ResetPasswordForEmail(ctx, ForgotPasswordRequest.Email, "http://localhost:3000/reset-password")
+	if err != nil {
+		http.Error(w, "Failed to send reset password", http.StatusInternalServerError)
+		fmt.Println(err)
+        return
+	}
+	w.WriteHeader(http.StatusOK)
+    w.Write([]byte("Reset password link sent (if email is valid)"))
+}
 // Function to grab all patients from patients table
 // I removed any body parsing because it's a GET -Julian
 func GetPatients(w http.ResponseWriter, r *http.Request) {

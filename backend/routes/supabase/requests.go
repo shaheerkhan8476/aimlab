@@ -40,3 +40,7 @@ type InsertFlaggedPatient struct {
     PatientID uuid.UUID   `json:"patient_id"`
     Flaggers  []uuid.UUID `json:"flaggers"`
 }
+
+type ForgotPasswordRequest struct {
+	Email    string `json:"email"`
+}
