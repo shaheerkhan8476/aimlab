@@ -35,6 +35,7 @@ function StudentDashboard(){
             console.log("ya goofed");
             return;
         }
+        setIsAuthenticated(true);
         console.log("Fetching:", `http://localhost:8060/${userId}/tasks`);
 
         //Fetch all tasks for student
@@ -140,7 +141,6 @@ function StudentDashboard(){
         .catch(error => {       //Error? setIsAuthenticated to false to trip the mechanism for the login link
             console.error(error);
             setError("Failed patient data fetch");
-            setIsAuthenticated(false);
         });
     }, [isAuthenticated]);
 
@@ -263,7 +263,7 @@ function StudentDashboard(){
                                             </tbody>
                                         </table>
                                     ) : (
-                                        <p>...loading patient messages...</p>
+                                        <p>No messages tasks!</p>
                                     )}
                                 </div>
                             )}
@@ -294,7 +294,7 @@ function StudentDashboard(){
                                             </tbody>
                                         </table>
                                     ) : (
-                                        <p>...loading prescriptions...</p>
+                                        <p>No prescriptions tasks!</p>
                                     )}
                                 </div>
                             )}
@@ -327,7 +327,7 @@ function StudentDashboard(){
                                         </tbody>
                                     </table>
                                 ) : (
-                                    <p>...loading results...</p>
+                                    <p>No results tasks!</p>
                                 )}
                             </div>
                             )}
