@@ -18,12 +18,13 @@ const (
 
 // Base Task struct
 type Task struct {
-	Id        *uuid.UUID `json:"id,omitempty"`         // Pointer to allow NULL instead of default zero UUID
-	CreatedAt *time.Time `json:"created_at,omitempty"` // Pointer to avoid default time
-	PatientId uuid.UUID  `json:"patient_id"`
-	UserId    uuid.UUID  `json:"user_id"`
-	TaskType  TaskType   `json:"task_type"`
-	Completed bool       `json:"completed"`
+	Id          *uuid.UUID `json:"id,omitempty"`         // Pointer to allow NULL instead of default zero UUID
+	CreatedAt   *time.Time `json:"created_at,omitempty"` // Pointer to avoid default time
+	PatientId   uuid.UUID  `json:"patient_id"`
+	UserId      uuid.UUID  `json:"user_id"`
+	TaskType    TaskType   `json:"task_type"`
+	Completed   bool       `json:"completed"`
+	CompletedAt *time.Time `json:"completed_at,omitempty"`
 }
 
 // Shared method for marking a task as completed

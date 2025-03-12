@@ -407,6 +407,7 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 	// Goal here is to make each task use a UNIQUE patient, if there aren't enough patients then it will repeat
 	random_indices := GenerateUniqueIndices(taskCount*len(students), len(patients)) // The actual list of random ints
 	random_index := 0                                                               // Keeps track of the current index in the random_indices list
+	createdAt := time.Now()                                                         // Timestamp for task creation
 	for _, student := range students {
 
 		for i := 0; i < numQuestions; i++ {
@@ -491,6 +492,7 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 					UserId:    student.Id,
 					TaskType:  model.PatientQuestionTaskType,
 					Completed: false,
+					CreatedAt: &createdAt,
 				},
 				PatientQuestion: &question, // task is generated with patient question
 				StudentResponse: nil,       // won't be filled in until student responds
@@ -527,6 +529,7 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 					UserId:    student.Id,
 					TaskType:  model.LabResultTaskType,
 					Completed: false,
+					CreatedAt: &createdAt,
 				},
 				ResultId:        result_uuid,
 				StudentResponse: nil,
@@ -562,6 +565,7 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 					UserId:    student.Id,
 					TaskType:  model.PrescriptionTaskType,
 					Completed: false,
+					CreatedAt: &createdAt,
 				},
 				PrescriptionId: prescription_uuid,
 			}
@@ -678,6 +682,7 @@ func CompleteTask(w http.ResponseWriter, r *http.Request) {
 		"completed":        true,
 		"student_response": taskCompleteRequest.StudentResponse,
 		"llm_feedback":     taskCompleteRequest.LLMFeedback,
+		"completed_at":     time.Now(),
 	}
 
 	// Update DB
@@ -689,9 +694,10 @@ func CompleteTask(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Task completed"))
 }
 
-// GetTaskByWeek gets all the tasks for a student and sorts them by week
+// GetTasksByWeekAndDay gets all the tasks for a student and sorts them by week and day
 // The URL contains the student ID
-func GetTaskByWeek(w http.ResponseWriter, r *http.Request) {
+// Also includes the student's completion rate for each week
+func GetTasksByWeekAndDay(w http.ResponseWriter, r *http.Request) {
 	// Get the student ID and week number from the URL
 	vars := mux.Vars(r)
 	id := vars["student_id"]
@@ -704,48 +710,81 @@ func GetTaskByWeek(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Start date for counting by week
-	// Gets the earliest task created date
-	startDate := time.Now()
+	// Gets the bounds (earliest and latest week) for counting by week
+	startDate := time.Now() // Latest date (in theory)
+	endDate := time.Time{}  // Earliest possible date
 	for _, task := range tasks {
 		if task.CreatedAt.Before(startDate) {
 			startDate = *task.CreatedAt
 		}
+		if task.CreatedAt.After(endDate) {
+			endDate = *task.CreatedAt
+		}
+	}
+
+	// Struct to store info per day (tasks, completion rate)
+	type dayPackage struct {
+		day            int          // Day number
+		tasks          []model.Task // List of tasks for the day
+		completionRate float64      // Percentage of completed tasks
 	}
 
 	// Struct to store info for each week
 	type weekPackage struct {
 		week           int          // Week number
-		tasks          []model.Task // List of tasks for that week
+		days           []dayPackage // List of days in the week
 		completionRate float64      // Percentage of completed tasks
 	}
 
 	// List of weeks
 	weekList := make([]weekPackage, 0)
+	numWeeks := int(endDate.Sub(startDate).Hours() / (24 * 7)) // Number of weeks between the two dates
+	numWeeks++                                                 // Add one to include the last week
+	// fmt.Println(numWeeks)
+
+	// Initialize the list of weeks with empty days
+	for i := 0; i < numWeeks; i++ {
+		// Add a week to the start date
+		weekList = append(weekList, weekPackage{week: i, days: []dayPackage{}, completionRate: 0})
+		for j := 0; j < 7; j++ {
+			weekList[i].days = append(weekList[i].days, dayPackage{day: j, tasks: []model.Task{}, completionRate: 0})
+		}
+	}
 
 	// Loop through each task to categorize it by week
 	for _, task := range tasks {
 		// Calculate the number of weeks since the start date
 		weekNumber := int(task.CreatedAt.Sub(startDate).Hours() / (24 * 7)) // Week difference
+		dayNumber := int(task.CreatedAt.Sub(startDate).Hours() / 24)        // Day of the week (0-6)
 
-		// Add the task to the corresponding week
-		weekExists := false
+		// // Add the task to the corresponding week
+		// for i := range weekList {
+		// 	// Update existing list of tasks for that week
+		// 	if weekList[i].week == weekNumber {
+		// 		weekList[i].days[dayNumber] = append(weekList[i].days[dayNumber].tasks, task)
+		// 	}
+		// 	// If the week is in the future AND task not completed, add the task to the future week (rollover)
+		// 	if weekList[i].week > weekNumber && !task.Completed {
+		// 		weekList[i].tasks = append(weekList[i].tasks, task)
+		// 	}
+		// }
+
 		for i := range weekList {
-			if weekList[i].week == weekNumber { // Update existing list of tasks for that week
-				weekList[i].tasks = append(weekList[i].tasks, task)
-				weekExists = true
-				break
+			for j := range weekList[i].days {
+				if weekList[i].week == weekNumber && j == dayNumber {
+					weekList[i].days[j].tasks = append(weekList[i].days[j].tasks, task)
+				}
+				// Overdue tasks rolled over into next day
+				if weekList[i].week > weekNumber && weekList[i].days[j].day > dayNumber && !task.Completed {
+
+				}
 			}
-		}
-		if !weekExists {
-			// If the week is not found, add the week to the list
-			weekList = append(weekList, weekPackage{week: weekNumber, tasks: []model.Task{task}})
 		}
 
 	}
 
 	// Calculate the completion rate for each week
-	// TODO: Add consideration for rollover tasks from previous weeks
+	// TODO: Maybe move this into frontend and do the calculations there?
 	for i, week := range weekList {
 		completedTasks := 0
 		for _, task := range week.tasks {
