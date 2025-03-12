@@ -152,7 +152,8 @@ func GetPatients(w http.ResponseWriter, r *http.Request) {
 	err := Supabase.DB.From("patients").Select("*").Execute(&patients)
 
 	if err != nil {
-		http.Error(w, "Patient not found", http.StatusNotFound)
+		http.Error(w, "Patients not found", http.StatusNotFound)
+		fmt.Println(err)
 		return
 	}
 	patientsJSON, err := json.MarshalIndent(patients, "", "  ")
@@ -260,6 +261,7 @@ func GetResults(w http.ResponseWriter, r *http.Request) {
 	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Execute(&results)
 	if err != nil {
 		http.Error(w, "Grabbing Prescriptions Error", http.StatusBadRequest)
+		fmt.Println(err)
 	}
 	if len(results) == 0 {
 		http.Error(w, "No Prescriptions in Database", http.StatusNotFound)
