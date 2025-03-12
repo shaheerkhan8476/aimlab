@@ -93,6 +93,57 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+func ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var ForgotPasswordRequest ForgotPasswordRequest
+	bodyBytes, _ := io.ReadAll(r.Body)
+	err := json.Unmarshal(bodyBytes, &ForgotPasswordRequest)
+	if err != nil {
+		http.Error(w, "Cannot read request body", http.StatusBadRequest)
+		return
+	}
+	ctx := context.Background()
+	err = Supabase.Auth.ResetPasswordForEmail(ctx, ForgotPasswordRequest.Email, "http://localhost:3000/reset-password")
+	if err != nil {
+		http.Error(w, "Failed to send reset password", http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Reset password link sent (if email is valid)"))
+}
+
+func ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req ResetPasswordRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Cannot parse reset password request", http.StatusBadRequest)
+		return
+	}
+	ctx := context.Background()
+	err = ResetUserPassword(ctx, Supabase, req.AccessToken, req.NewPassword)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Password updated successfully"))
+}
+func ResetUserPassword(ctx context.Context, supabaseClient *supabase.Client, accessToken string, newPassword string) error {
+	user, err := supabaseClient.Auth.User(ctx, accessToken)
+	if err != nil {
+		return err
+	}
+
+	if user == nil || user.ID == "" {
+		fmt.Println("User Not Found")
+	}
+	_, err = supabaseClient.Auth.UpdateUser(ctx, accessToken, map[string]interface{}{
+		"password": newPassword,
+	})
+	return err
+}
+
 // Function to grab all patients from patients table
 // I removed any body parsing because it's a GET -Julian
 func GetPatients(w http.ResponseWriter, r *http.Request) {

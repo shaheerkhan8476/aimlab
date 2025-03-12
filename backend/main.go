@@ -50,6 +50,8 @@ func main() {
 	// Auth
 	m.HandleFunc("/addUser", supabase.SignUpUser).Methods("POST")
 	m.HandleFunc("/login", supabase.SignInUser).Methods("POST")
+	m.HandleFunc("/forgotPassword", supabase.ForgotPassword).Methods("POST")
+	m.HandleFunc("/resetPassword", supabase.ResetPassword).Methods("POST")
 
 	// Patients
 	patientsRouter := m.PathPrefix("/patients").Subrouter()
