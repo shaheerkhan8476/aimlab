@@ -93,6 +93,57 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+func ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var ForgotPasswordRequest ForgotPasswordRequest
+	bodyBytes, _ := io.ReadAll(r.Body)
+	err := json.Unmarshal(bodyBytes, &ForgotPasswordRequest)
+	if err != nil {
+		http.Error(w, "Cannot read request body", http.StatusBadRequest)
+		return
+	}
+	ctx := context.Background()
+	err = Supabase.Auth.ResetPasswordForEmail(ctx, ForgotPasswordRequest.Email, "http://localhost:3000/reset-password")
+	if err != nil {
+		http.Error(w, "Failed to send reset password", http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Reset password link sent (if email is valid)"))
+}
+
+func ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req ResetPasswordRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Cannot parse reset password request", http.StatusBadRequest)
+		return
+	}
+	ctx := context.Background()
+	err = ResetUserPassword(ctx, Supabase, req.AccessToken, req.NewPassword)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Password updated successfully"))
+}
+func ResetUserPassword(ctx context.Context, supabaseClient *supabase.Client, accessToken string, newPassword string) error {
+	user, err := supabaseClient.Auth.User(ctx, accessToken)
+	if err != nil {
+		return err
+	}
+
+	if user == nil || user.ID == "" {
+		fmt.Println("User Not Found")
+	}
+	_, err = supabaseClient.Auth.UpdateUser(ctx, accessToken, map[string]interface{}{
+		"password": newPassword,
+	})
+	return err
+}
+
 // Function to grab all patients from patients table
 // I removed any body parsing because it's a GET -Julian
 func GetPatients(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +152,8 @@ func GetPatients(w http.ResponseWriter, r *http.Request) {
 	err := Supabase.DB.From("patients").Select("*").Execute(&patients)
 
 	if err != nil {
-		http.Error(w, "Patient not found", http.StatusNotFound)
+		http.Error(w, "Patients not found", http.StatusNotFound)
+		fmt.Println(err)
 		return
 	}
 	patientsJSON, err := json.MarshalIndent(patients, "", "  ")
@@ -209,6 +261,7 @@ func GetResults(w http.ResponseWriter, r *http.Request) {
 	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Execute(&results)
 	if err != nil {
 		http.Error(w, "Grabbing Prescriptions Error", http.StatusBadRequest)
+		fmt.Println(err)
 	}
 	if len(results) == 0 {
 		http.Error(w, "No Prescriptions in Database", http.StatusNotFound)
@@ -824,36 +877,100 @@ func GetTasksByWeekAndDay(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetFlaggedPatients(w http.ResponseWriter, r *http.Request) {
-	var flaggedPatients []FlaggedPatientRequest
-	err := Supabase.DB.From("flagged").Select("*,patient:patients(name)").Execute(&flaggedPatients)
+	var flaggedPatients []model.FlaggedPatient
+	err := Supabase.DB.From("flagged").Select("*,patient:patients!flagged_patient_id_fkey(*)").Execute(&flaggedPatients)
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "Error grabbing Flagged Patients", http.StatusInternalServerError)
+		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(flaggedPatients)
+	if err := json.NewEncoder(w).Encode(flaggedPatients); err != nil {
+		http.Error(w, "Error encoding flagged patients", http.StatusInternalServerError)
+	}
 }
 func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
-	var request FlaggedPatientRequest
+	var req FlaggedPatientRequest
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Error reading request body", http.StatusBadRequest)
 		return
 	}
-	err = json.Unmarshal(bodyBytes, &request)
-	if err != nil {
-		http.Error(w, "Error Unmarshling Request", http.StatusInternalServerError)
+	if err := json.Unmarshal(bodyBytes, &req); err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error unmarshaling request", http.StatusBadRequest)
 		return
 	}
-	request.Id = uuid.New()
-	err = Supabase.DB.From("flagged").Insert(request).Execute(nil)
+
+	var existing []InsertFlaggedPatient
+	err = Supabase.DB.
+		From("flagged").
+		Select("*").
+		Eq("patient_id", req.PatientID.String()).
+		Execute(&existing)
 	if err != nil {
 		fmt.Println(err)
-		http.Error(w, "Error Inserting Patient to Flag", http.StatusInternalServerError)
+		http.Error(w, "Error checking flagged table", http.StatusInternalServerError)
 		return
 	}
+
+	if len(existing) == 0 {
+		newFlag := InsertFlaggedPatient{
+			ID:        uuid.New(),
+			PatientID: req.PatientID,
+			Flaggers:  []uuid.UUID{req.UserID},
+		}
+
+		err = Supabase.DB.
+			From("flagged").
+			Insert(newFlag).
+			Execute(nil)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Error inserting new flagged row", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Patient flagged successfully (new row)"))
+		return
+	}
+
+	flaggedRow := existing[0]
+
+	alreadyFlagged := false
+	for _, uid := range flaggedRow.Flaggers {
+		if uid == req.UserID {
+			alreadyFlagged = true
+			break
+		}
+	}
+	if alreadyFlagged {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("User has already flagged this patient"))
+		return
+	}
+
+	flaggedRow.Flaggers = append(flaggedRow.Flaggers, req.UserID)
+
+	updateData := map[string]interface{}{
+		"flaggers": flaggedRow.Flaggers,
+	}
+
+	err = Supabase.DB.
+		From("flagged").
+		Update(updateData).
+		Eq("id", flaggedRow.ID.String()).
+		Execute(nil)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error updating flagged row", http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Patient Flagged"))
+	w.Write([]byte("Patient flagged successfully (updated existing row)"))
 }
 
 func RemoveFlaggedPatient(w http.ResponseWriter, r *http.Request) {
