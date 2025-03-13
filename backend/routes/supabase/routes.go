@@ -705,7 +705,7 @@ func GetTasksByWeekAndDay(w http.ResponseWriter, r *http.Request) {
 	// Get all the tasks for the student
 	var tasks []model.Task
 	err := Supabase.DB.From("tasks").Select("*").Eq("user_id", id).Execute(&tasks)
-	if err != nil {
+	if err != nil || len(tasks) == 0 {
 		http.Error(w, "No tasks found", http.StatusNotFound)
 		return
 	}
@@ -723,31 +723,42 @@ func GetTasksByWeekAndDay(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Struct to store info per day (tasks, completion rate)
-	type dayPackage struct {
-		day            int          // Day number
-		tasks          []model.Task // List of tasks for the day
-		completionRate float64      // Percentage of completed tasks
+	type DayPackage struct {
+		Day            int          // Day number
+		Tasks          []model.Task // List of tasks for the day
+		CompletionRate float64      // Percentage of completed tasks
 	}
 
 	// Struct to store info for each week
-	type weekPackage struct {
-		week           int          // Week number
-		days           []dayPackage // List of days in the week
-		completionRate float64      // Percentage of completed tasks
+	type WeekPackage struct {
+		Week           int          // Week number
+		Days           []DayPackage // List of Days in the week
+		CompletionRate float64      // Percentage of completed tasks
 	}
 
 	// List of weeks
-	weekList := make([]weekPackage, 0)
+	weekList := make([]WeekPackage, 0)
 	numWeeks := int(endDate.Sub(startDate).Hours() / (24 * 7)) // Number of weeks between the two dates
 	numWeeks++                                                 // Add one to include the last week
+	numDays := int(endDate.Sub(startDate).Hours() / 24)        // Number of days between the two dates
 	// fmt.Println(numWeeks)
 
 	// Initialize the list of weeks with empty days
 	for i := 0; i < numWeeks; i++ {
-		// Add a week to the start date
-		weekList = append(weekList, weekPackage{week: i, days: []dayPackage{}, completionRate: 0})
-		for j := 0; j < 7; j++ {
-			weekList[i].days = append(weekList[i].days, dayPackage{day: j, tasks: []model.Task{}, completionRate: 0})
+		// Add each week
+		weekList = append(weekList, WeekPackage{Week: i, Days: []DayPackage{}, CompletionRate: 0})
+
+		// Add each day
+		if i < numWeeks-1 {
+			// Full week
+			for j := 0; j < 7; j++ {
+				weekList[i].Days = append(weekList[i].Days, DayPackage{Day: j, Tasks: []model.Task{}, CompletionRate: 0})
+			}
+		} else {
+			// Last week may not have all days, cutoff early if so
+			for j := 0; j <= numDays%7; j++ {
+				weekList[i].Days = append(weekList[i].Days, DayPackage{Day: j, Tasks: []model.Task{}, CompletionRate: 0})
+			}
 		}
 	}
 
@@ -755,63 +766,60 @@ func GetTasksByWeekAndDay(w http.ResponseWriter, r *http.Request) {
 	for _, task := range tasks {
 		// Calculate the number of weeks since the start date
 		weekNumber := int(task.CreatedAt.Sub(startDate).Hours() / (24 * 7)) // Week difference
-		dayNumber := int(task.CreatedAt.Sub(startDate).Hours() / 24)        // Day of the week (0-6)
-
-		// // Add the task to the corresponding week
-		// for i := range weekList {
-		// 	// Update existing list of tasks for that week
-		// 	if weekList[i].week == weekNumber {
-		// 		weekList[i].days[dayNumber] = append(weekList[i].days[dayNumber].tasks, task)
-		// 	}
-		// 	// If the week is in the future AND task not completed, add the task to the future week (rollover)
-		// 	if weekList[i].week > weekNumber && !task.Completed {
-		// 		weekList[i].tasks = append(weekList[i].tasks, task)
-		// 	}
-		// }
+		dayNumber := int(task.CreatedAt.Sub(startDate).Hours()/24) % 7      // Day of the week (0-6)
 
 		for i := range weekList {
-			for j := range weekList[i].days {
-				if weekList[i].week == weekNumber && j == dayNumber {
-					weekList[i].days[j].tasks = append(weekList[i].days[j].tasks, task)
+			for j := range weekList[i].Days {
+				if weekList[i].Week == weekNumber && j == dayNumber {
+					weekList[i].Days[j].Tasks = append(weekList[i].Days[j].Tasks, task)
 				}
-				// Overdue tasks rolled over into next day
-				if weekList[i].week > weekNumber && weekList[i].days[j].day > dayNumber && !task.Completed {
-
-				}
+				// TODO: Implement rollover for overdue tasks some other way, we probaby don't want it populating each day with copies of same task over and over
+				// // Overdue tasks rolled over into next day
+				// if weekList[i].Week > weekNumber && weekList[i].Days[j].Day != dayNumber && !task.Completed {
+				// 	fmt.Println("Overdue task", dayNumber, j)
+				// 	weekList[i].Days[j].Tasks = append(weekList[i].Days[j].Tasks, task)
+				// }
 			}
 		}
 
 	}
 
-	// Calculate the completion rate for each week
-	// TODO: Maybe move this into frontend and do the calculations there?
-	for i, week := range weekList {
-		completedTasks := 0
-		for _, task := range week.tasks {
-			if task.Completed {
-				completedTasks++
+	// Calculate the completion rate for each week + day
+	if len(weekList) > 0 {
+		for i, week := range weekList {
+			completedTasksWeekly := 0
+			totalTasksWeekly := 0
+			for j, day := range week.Days {
+				if len(day.Tasks) > 0 {
+					completedTasksDaily := 0
+					for _, task := range day.Tasks {
+						totalTasksWeekly++
+						if task.Completed {
+							completedTasksDaily++
+							completedTasksWeekly++
+						}
+					}
+					weekList[i].Days[j].CompletionRate = float64(completedTasksDaily) / float64(len(day.Tasks)) * 100
+				} else {
+					// Avoids errors in case the day does not have any tasks (should not be possible)
+					weekList[i].Days[j].CompletionRate = 0
+				}
+
 			}
+			weekList[i].CompletionRate = float64(completedTasksWeekly) / float64(totalTasksWeekly) * 100
 		}
-		weekList[i].completionRate = float64(completedTasks) / float64(len(week.tasks)) * 100
-	}
-
-	// The output response
-	response := make([]map[string]interface{}, 0)
-
-	// Convert weekList to slice of week objects for converting to JSON
-	for _, weekPackage := range weekList {
-		weekData := map[string]interface{}{
-			"week":           weekPackage.week,
-			"tasks":          weekPackage.tasks,
-			"completionRate": weekPackage.completionRate,
-		}
-		response = append(response, weekData)
+	} else {
+		// No tasks (meaning no weeks), so no completion rate
+		// Shouldn't get to this point because we already checked for tasks
+		http.Error(w, "No tasks found", http.StatusNotFound)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(response)
+	// err = json.NewEncoder(w).Encode(response)
+	err = json.NewEncoder(w).Encode(weekList)
 	if err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		fmt.Println(err)
+		http.Error(w, "Failed to encode response when getting tasks grouped chronologically", http.StatusInternalServerError)
 	}
 }
 
