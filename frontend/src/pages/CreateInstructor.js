@@ -12,7 +12,7 @@ function CreateInstructor()
         isAdmin: true,
         studentStanding : null
     });
-    
+    const [message, setMessage] = useState(""); 
     const navigate = useNavigate();
 
     //Listen for user adjustment of html and apply to form
@@ -39,7 +39,9 @@ function CreateInstructor()
             {
                 const data = await response.json();
                 console.log('User created:', data);
-                navigate("/");
+                setMessage("Check your email for confirmation."); 
+                setTimeout(() => navigate("/"), 3000); 
+                
             }
             else
             {
@@ -55,7 +57,7 @@ function CreateInstructor()
     return (
         <div className="login-container">
             <div className="login-box">
-                <h2>Sign Up</h2>
+                <h2>Instructor Sign Up</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="input-group">
                         <label>Name</label>
@@ -71,6 +73,7 @@ function CreateInstructor()
                     </div>
                     <button type="submit">Sign Up</button>
                 </form>
+                {message && <p className="confirmation-message">{message}</p>} {/* Display confirmation message */}
                 <p>
                     Already have an account?
                     <span> </span>

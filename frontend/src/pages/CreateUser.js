@@ -12,7 +12,7 @@ function CreateUser()
         isAdmin: false,
         studentStanding : '',
     });
-    
+    const [message, setMessage] = useState(""); 
     const navigate = useNavigate();
 
     //Listen for user adjustment of html and apply to form
@@ -39,7 +39,8 @@ function CreateUser()
             {
                 const data = await response.json();
                 console.log('User created:', data);
-                navigate("/");
+                setMessage("Check your email for confirmation."); 
+                setTimeout(() => navigate("/"), 3000); 
             }
             else
             {
@@ -82,6 +83,7 @@ function CreateUser()
                     )}
                     <button type="submit">Sign Up</button>
                 </form>
+                {message && <p className="confirmation-message">{message}</p>} 
                 <p>
                     Already have an account?
                     <span> </span>
