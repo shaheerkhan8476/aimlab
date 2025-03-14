@@ -18,13 +18,15 @@ const (
 
 // Base Task struct
 type Task struct {
-	Id          *uuid.UUID `json:"id,omitempty"`         // Pointer to allow NULL instead of default zero UUID
-	CreatedAt   *time.Time `json:"created_at,omitempty"` // Pointer to avoid default time
-	PatientId   uuid.UUID  `json:"patient_id"`
-	UserId      uuid.UUID  `json:"user_id"`
-	TaskType    TaskType   `json:"task_type"`
-	Completed   bool       `json:"completed"`
-	CompletedAt *time.Time `json:"completed_at,omitempty"`
+	Id              *uuid.UUID `json:"id,omitempty"`         // Pointer to allow NULL instead of default zero UUID
+	CreatedAt       *time.Time `json:"created_at,omitempty"` // Pointer to avoid default time
+	PatientId       uuid.UUID  `json:"patient_id"`
+	UserId          uuid.UUID  `json:"user_id"`
+	TaskType        TaskType   `json:"task_type"`
+	Completed       bool       `json:"completed"`
+	CompletedAt     *time.Time `json:"completed_at,omitempty"`
+	StudentResponse *string    `json:"student_response,omitempty"`
+	LLMFeedback     *string    `json:"llm_feedback,omitempty"`
 }
 
 // Shared method for marking a task as completed
@@ -37,15 +39,11 @@ func (t *Task) CompleteTask() {
 type PatientTask struct {
 	Task
 	PatientQuestion *string `json:"patient_question,omitempty"`
-	StudentResponse *string `json:"student_response,omitempty"`
-	LLMFeedback     *string `json:"llm_feedback,omitempty"`
 }
 
 type ResultTask struct {
 	Task
-	ResultId        uuid.UUID `json:"result_id,omitempty"`
-	StudentResponse *string   `json:"student_response,omitempty"`
-	LLMFeedback     *string   `json:"llm_feedback,omitempty"`
+	ResultId uuid.UUID `json:"result_id,omitempty"`
 }
 
 type PrescriptionTask struct {

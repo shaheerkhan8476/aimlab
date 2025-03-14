@@ -541,15 +541,15 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 
 			patient_task := model.PatientTask{
 				Task: model.Task{
-					PatientId: patient_uuid, // Little convoluted but it keeps track of the index from other loops
-					UserId:    student.Id,
-					TaskType:  model.PatientQuestionTaskType,
-					Completed: false,
-					CreatedAt: &createdAt,
+					PatientId:       patient_uuid, // Little convoluted but it keeps track of the index from other loops
+					UserId:          student.Id,
+					TaskType:        model.PatientQuestionTaskType,
+					Completed:       false,
+					CreatedAt:       &createdAt,
+					StudentResponse: nil, // won't be filled in until student responds
+					LLMFeedback:     nil, // won't be filled in until LLM provides feedback
 				},
 				PatientQuestion: &question, // task is generated with patient question
-				StudentResponse: nil,       // won't be filled in until student responds
-				LLMFeedback:     nil,       // won't be filled in until LLM provides feedback
 			}
 			err = Supabase.DB.From("tasks").Insert(patient_task).Execute(nil)
 			if err != nil {
@@ -578,15 +578,15 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 			// result_uuid, err := uuid.Parse("3df2a391-dd2b-4f60-9b1b-00c6a4897396") // hardcoded test uuid
 			result_task := model.ResultTask{
 				Task: model.Task{
-					PatientId: patient_uuid, // Little convoluted but it keeps track of the index from other loops
-					UserId:    student.Id,
-					TaskType:  model.LabResultTaskType,
-					Completed: false,
-					CreatedAt: &createdAt,
+					PatientId:       patient_uuid, // Little convoluted but it keeps track of the index from other loops
+					UserId:          student.Id,
+					TaskType:        model.LabResultTaskType,
+					Completed:       false,
+					CreatedAt:       &createdAt,
+					StudentResponse: nil,
+					LLMFeedback:     nil,
 				},
-				ResultId:        result_uuid,
-				StudentResponse: nil,
-				LLMFeedback:     nil,
+				ResultId: result_uuid,
 			}
 			err = Supabase.DB.From("tasks").Insert(result_task).Execute(nil)
 			if err != nil {
@@ -614,11 +614,13 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 
 			prescription_task := model.PrescriptionTask{
 				Task: model.Task{
-					PatientId: patient_uuid, // Little convoluted but it keeps track of the index from other loops
-					UserId:    student.Id,
-					TaskType:  model.PrescriptionTaskType,
-					Completed: false,
-					CreatedAt: &createdAt,
+					PatientId:       patient_uuid, // Little convoluted but it keeps track of the index from other loops
+					UserId:          student.Id,
+					TaskType:        model.PrescriptionTaskType,
+					Completed:       false,
+					CreatedAt:       &createdAt,
+					StudentResponse: nil, // won't be filled in until student responds
+					LLMFeedback:     nil, // won't be filled in until LLM provides feedback
 				},
 				PrescriptionId: prescription_uuid,
 			}
@@ -633,16 +635,68 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 	return nil // no errors
 }
 
+// Helper function for getting the entire task (including specific task type parts)
+// Takes a list of tasks (output from Supabase query), returns the list of full tasks
+// Note: Full tasks only used in detailed task view (GetTaskByID, GetTasksByStudentID), not in overall task list view (GetTasksByWeekAndDay)
+func GetFullTasks(tasks []model.Task) ([]interface{}, error) {
+	fullTasks := make([]interface{}, 0)
+	for _, task := range tasks {
+		switch task.TaskType {
+		case "patient_question":
+			var patientTask []model.PatientTask
+			err := Supabase.DB.From("tasks").Select("*").Eq("id", task.Id.String()).Execute(&patientTask)
+			if err == nil {
+				fullTasks = append(fullTasks, patientTask[0])
+			} else {
+				fmt.Println(err)
+				return nil, err
+			}
+		case "lab_result":
+			var labResult []model.ResultTask
+			err := Supabase.DB.From("tasks").Select("*").Eq("id", task.Id.String()).Execute(&labResult)
+			if err == nil {
+				fullTasks = append(fullTasks, labResult[0])
+			} else {
+				fmt.Println(err)
+				return nil, err
+			}
+		case "prescription":
+			var prescription []model.PrescriptionTask
+			err := Supabase.DB.From("tasks").Select("*").Eq("id", task.Id.String()).Execute(&prescription)
+			if err == nil {
+				fullTasks = append(fullTasks, prescription[0])
+			} else {
+				fmt.Println(err)
+				return nil, err
+			}
+		}
+	}
+	return fullTasks, nil
+
+}
+
 func GetTaskByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["task_id"]
 	var task []model.Task
 	err := Supabase.DB.From("tasks").Select("*").Eq("id", id).Execute(&task)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Task not found", http.StatusNotFound)
+		return
 	}
+
+	var fullTask []interface{}
+
+	fullTask, err = GetFullTasks(task)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Full Task not found", http.StatusNotFound)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(task[0])
+	json.NewEncoder(w).Encode(fullTask[0])
 }
 
 // This function gets all the tasks for a student
@@ -689,8 +743,15 @@ func GetTasksByStudentID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get the full tasks
+	fullTasks, err := GetFullTasks(tasks)
+	if err != nil {
+		http.Error(w, "Failed to get full tasks", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(tasks)
+	json.NewEncoder(w).Encode(fullTasks)
 }
 
 // Helper function to insert NULL into supabase when string is empty instead of empty string
@@ -826,7 +887,7 @@ func GetTasksByWeekAndDay(w http.ResponseWriter, r *http.Request) {
 				if weekList[i].Week == weekNumber && j == dayNumber {
 					weekList[i].Days[j].Tasks = append(weekList[i].Days[j].Tasks, task)
 				}
-				// TODO: Implement rollover for overdue tasks some other way, we probaby don't want it populating each day with copies of same task over and over
+				// TODO: Implement rollover for overdue tasks some other way, we probably don't want it populating each day with copies of same task over and over
 				// // Overdue tasks rolled over into next day
 				// if weekList[i].Week > weekNumber && weekList[i].Days[j].Day != dayNumber && !task.Completed {
 				// 	fmt.Println("Overdue task", dayNumber, j)
