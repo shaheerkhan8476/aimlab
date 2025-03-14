@@ -697,6 +697,9 @@ func removeNullsFromSlice(data []interface{}) []interface{} {
 	return cleanedSlice
 }
 
+// Gets a singular task by ID
+// The URL contains the task ID
+// Contains the full task (including specific task type parts)
 func GetTaskByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["task_id"]
@@ -764,7 +767,7 @@ func GetTasksByStudentID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the full tasks
+	// Get the full tasks for the entire list
 	fullTasks, err := GetFullTasks(tasks)
 	if err != nil {
 		http.Error(w, "Failed to get full tasks", http.StatusInternalServerError)
@@ -833,6 +836,30 @@ func CompleteTask(w http.ResponseWriter, r *http.Request) {
 // The URL contains the student ID
 // Also includes the student's completion rate for each week
 func GetTasksByWeekAndDay(w http.ResponseWriter, r *http.Request) {
+	// Example output:
+	// [
+	//	{
+	//	    "Week": 0,
+	//	    "Days": [
+	//	        {
+	//	            "Day": 0,
+	//	            "Tasks": [
+	//	                {
+	//	                    "id": "bd6acf0c-2e88-4c9f-bfe2-342919e538d6",
+	//	                    "created_at": "2025-03-14T00:04:31.372774Z",
+	//	                    "patient_id": "1f1d78f4-345b-48d7-9045-8baa6b6e070a",
+	//	                    "user_id": "b66e3169-2335-48f8-a43f-e4730c053ad8",
+	//	                    "task_type": "patient_question",
+	//	                    "completed": false
+	//	                },
+	//	            ],
+	//	            "CompletionRate": 0
+	//			}
+	//			],
+	//			"CompletionRate": 0
+	//		}
+	// ]
+
 	// Get the student ID and week number from the URL
 	vars := mux.Vars(r)
 	id := vars["student_id"]
@@ -908,15 +935,8 @@ func GetTasksByWeekAndDay(w http.ResponseWriter, r *http.Request) {
 				if weekList[i].Week == weekNumber && j == dayNumber {
 					weekList[i].Days[j].Tasks = append(weekList[i].Days[j].Tasks, task)
 				}
-				// TODO: Implement rollover for overdue tasks some other way, we probably don't want it populating each day with copies of same task over and over
-				// // Overdue tasks rolled over into next day
-				// if weekList[i].Week > weekNumber && weekList[i].Days[j].Day != dayNumber && !task.Completed {
-				// 	fmt.Println("Overdue task", dayNumber, j)
-				// 	weekList[i].Days[j].Tasks = append(weekList[i].Days[j].Tasks, task)
-				// }
 			}
 		}
-
 	}
 
 	// Calculate the completion rate for each week + day
