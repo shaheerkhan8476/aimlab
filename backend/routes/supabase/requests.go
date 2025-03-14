@@ -40,3 +40,19 @@ type InsertFlaggedPatient struct {
 	PatientID uuid.UUID   `json:"patient_id"`
 	Flaggers  []uuid.UUID `json:"flaggers"`
 }
+
+type ForgotPasswordRequest struct {
+	Email string `json:"email"`
+}
+
+type UpdateUserInput struct {
+	Email        string                 `json:"email,omitempty"`
+	Password     string                 `json:"password,omitempty"`
+	AppMetadata  map[string]interface{} `json:"app_metadata,omitempty"`
+	UserMetadata map[string]interface{} `json:"user_metadata,omitempty"`
+}
+
+type ResetPasswordRequest struct {
+	AccessToken string `json:"accessToken"`
+	NewPassword string `json:"newPassword"`
+}
