@@ -672,7 +672,29 @@ func GetFullTasks(tasks []model.Task) ([]interface{}, error) {
 		}
 	}
 	return fullTasks, nil
+}
 
+// Helper function for getting rid of null values from an interface slice
+// Useful for cleaning up the marshaled output from Supabase query --> interface (instead of struct)
+// Currently not being used, I'm adding it just in case
+func removeNullsFromSlice(data []interface{}) []interface{} {
+	cleanedSlice := make([]interface{}, 0)
+
+	for _, item := range data {
+		if itemMap, ok := item.(map[string]interface{}); ok {
+			cleanedMap := make(map[string]interface{})
+			for key, value := range itemMap {
+				if value != nil { // Only add non-nil values
+					cleanedMap[key] = value
+				}
+			}
+			cleanedSlice = append(cleanedSlice, cleanedMap)
+		} else {
+			// If it's not a map[string]interface{}, just add it as is
+			cleanedSlice = append(cleanedSlice, item)
+		}
+	}
+	return cleanedSlice
 }
 
 func GetTaskByID(w http.ResponseWriter, r *http.Request) {
@@ -686,9 +708,8 @@ func GetTaskByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var fullTask []interface{}
-
-	fullTask, err = GetFullTasks(task)
+	// Gets the full task
+	fullTask, err := GetFullTasks(task)
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "Full Task not found", http.StatusNotFound)
