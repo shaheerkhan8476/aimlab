@@ -84,7 +84,7 @@ func main() {
 
 	// Endpoints for tasks (generating, getting, completing, etc.)
 	m.HandleFunc("/generateTasks", supabase.GenerateTasksHTMLWrapper).Methods("POST")                 // generates variable amount of tasks for a student
-	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("GET")                  // displays tasks for a student, filtered by completion in request
+	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("POST")                 // displays tasks for a student, filtered by completion in request
 	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTasksByWeekAndDay).Methods("GET")            // used to display a student's tasks, sorted by week
 	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")                // gets a singular task for a student
 	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST") // completes that singular task
