@@ -28,7 +28,6 @@ func main() {
 
 	// API Gateway
 	m := mux.NewRouter()
-	
 
 	//Job Scheduler
 	c := cron.New(cron.WithSeconds())
@@ -93,6 +92,7 @@ func main() {
 	// Misc
 	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
 
+	m.HandleFunc("/getInstructors", supabase.GetInstructors).Methods("GET")
 	// Allow API requests from frontend
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},

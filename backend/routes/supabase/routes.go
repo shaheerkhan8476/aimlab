@@ -650,8 +650,8 @@ func GetTasksByStudentID(w http.ResponseWriter, r *http.Request) {
 
 	//necessary to enable cors
 	(w).Header().Set("Access-Control-Allow-Origin", "*")
-    (w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-    (w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+	(w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 
 	// Get the request body
 	// Example request body:
@@ -919,4 +919,14 @@ func KeepPatient(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Patient Kept"))
+}
+
+func GetInstructors(w http.ResponseWriter, r *http.Request) {
+	var instructors []model.User
+	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "TRUE").Execute(&instructors)
+	if err != nil {
+		http.Error(w, "No Instructors Found", http.StatusNotFound)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(instructors)
 }
