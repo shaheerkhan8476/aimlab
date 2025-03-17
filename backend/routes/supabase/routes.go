@@ -93,6 +93,57 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+func ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var ForgotPasswordRequest ForgotPasswordRequest
+	bodyBytes, _ := io.ReadAll(r.Body)
+	err := json.Unmarshal(bodyBytes, &ForgotPasswordRequest)
+	if err != nil {
+		http.Error(w, "Cannot read request body", http.StatusBadRequest)
+		return
+	}
+	ctx := context.Background()
+	err = Supabase.Auth.ResetPasswordForEmail(ctx, ForgotPasswordRequest.Email, "http://localhost:3000/reset-password")
+	if err != nil {
+		http.Error(w, "Failed to send reset password", http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Reset password link sent (if email is valid)"))
+}
+
+func ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req ResetPasswordRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Cannot parse reset password request", http.StatusBadRequest)
+		return
+	}
+	ctx := context.Background()
+	err = ResetUserPassword(ctx, Supabase, req.AccessToken, req.NewPassword)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Password updated successfully"))
+}
+func ResetUserPassword(ctx context.Context, supabaseClient *supabase.Client, accessToken string, newPassword string) error {
+	user, err := supabaseClient.Auth.User(ctx, accessToken)
+	if err != nil {
+		return err
+	}
+
+	if user == nil || user.ID == "" {
+		fmt.Println("User Not Found")
+	}
+	_, err = supabaseClient.Auth.UpdateUser(ctx, accessToken, map[string]interface{}{
+		"password": newPassword,
+	})
+	return err
+}
+
 // Function to grab all patients from patients table
 // I removed any body parsing because it's a GET -Julian
 func GetPatients(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +152,8 @@ func GetPatients(w http.ResponseWriter, r *http.Request) {
 	err := Supabase.DB.From("patients").Select("*").Execute(&patients)
 
 	if err != nil {
-		http.Error(w, "Patient not found", http.StatusNotFound)
+		http.Error(w, "Patients not found", http.StatusNotFound)
+		fmt.Println(err)
 		return
 	}
 	patientsJSON, err := json.MarshalIndent(patients, "", "  ")
@@ -209,6 +261,7 @@ func GetResults(w http.ResponseWriter, r *http.Request) {
 	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Execute(&results)
 	if err != nil {
 		http.Error(w, "Grabbing Prescriptions Error", http.StatusBadRequest)
+		fmt.Println(err)
 	}
 	if len(results) == 0 {
 		http.Error(w, "No Prescriptions in Database", http.StatusNotFound)
@@ -351,7 +404,9 @@ func GenerateUniqueIndices(count, max int) []int {
 	return result
 }
 
-func GenerateTasks(w http.ResponseWriter, r *http.Request) {
+// The only thing this function does is extract the number of tasks to generate from the request body
+// and then calls the GenerateTasks function
+func GenerateTasksHTMLWrapper(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Generating tasks")
 	// Get the number of tasks to generate from request body
 	// Example json body:
@@ -370,30 +425,44 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var students []model.User
-	err = Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
-	if err != nil || len(students) == 0 {
-		http.Error(w, "No Students Found", http.StatusNotFound)
+	// Run the task generation function
+	err = GenerateTasks(taskCreateRequest.PatientTaskCount, taskCreateRequest.LabResultTaskCount, taskCreateRequest.PrescriptionTaskCount, taskCreateRequest.GenerateQuestion)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error generating tasks", http.StatusInternalServerError)
 		return
+	}
+
+	w.Write([]byte("Tasks generated"))
+
+}
+
+// Does the actual generation of tasks
+// This function is called by the API endpoint
+func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, generate_question bool) error {
+	var students []model.User
+	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
+	if err != nil || len(students) == 0 {
+		fmt.Println("No students found")
+		return err
 	}
 
 	// Gets all patients from the database
 	var patients []model.Patient
 	err = Supabase.DB.From("patients").Select("*").Execute(&patients)
 	if err != nil || len(patients) == 0 {
-		http.Error(w, "No Patients Found", http.StatusNotFound)
-		return
+		fmt.Println("No patients found")
+		return err
 	}
 
 	// Assigns random index for patient per task between ALL students
-	taskCount := taskCreateRequest.PatientTaskCount + taskCreateRequest.LabResultTaskCount + taskCreateRequest.PrescriptionTaskCount
+	taskCount := numQuestions + numResults + numPrescriptions
 	// Goal here is to make each task use a UNIQUE patient, if there aren't enough patients then it will repeat
 	random_indices := GenerateUniqueIndices(taskCount*len(students), len(patients)) // The actual list of random ints
 	random_index := 0                                                               // Keeps track of the current index in the random_indices list
-	generate_question := taskCreateRequest.GenerateQuestion                         // Whether or not to generate new patient questions on the spot
 	for _, student := range students {
 
-		for i := 0; i < taskCreateRequest.PatientTaskCount; i++ {
+		for i := 0; i < numQuestions; i++ {
 			// Generate a patient question task
 			patient_uuid := patients[random_indices[random_index+i]].Id
 			var question string
@@ -424,12 +493,12 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 				// Marshal the entire combined object into a pretty JSON string.
 				combinedJSON, err := json.MarshalIndent(combinedData, "", "  ")
 				if err != nil {
-					http.Error(w, "Error encoding combined patient data", http.StatusInternalServerError)
-					return
+					fmt.Println("Error encoding combined patient data")
+					return err
 				}
 
 				// Build a prompt that includes all of the data.
-				prompt := fmt.Sprintf("Patient Data:\n%s\n Ignore the \"patient_message\" data. Assume that this patient is part of a basket management system for family medicine. Pretend that you are the patient, who is asking their doctor about recent symptoms they are having. Respond with only the message and nothing else. Do not include the quotation marks with the message.", string(combinedJSON))
+				prompt := fmt.Sprintf("Patient Data:\n%s\n Using this data, generate a new potential question that the patient may ask their doctor. The question should be about recent symptoms the patient has been experiencing. Respond with only the message and nothing else. Do not include the quotation marks with the message.", string(combinedJSON))
 
 				// Create the LLM request payload.
 				llmRequest := map[string]string{
@@ -438,29 +507,29 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 
 				reqBody, err := json.Marshal(llmRequest)
 				if err != nil {
-					http.Error(w, "Error encoding LLM request", http.StatusInternalServerError)
-					return
+					fmt.Println("Error encoding LLM request")
+					return err
 				}
 
 				// Send the request to the LLM microservice.
 				response, err := http.Post(llmURL, "application/json", bytes.NewBuffer(reqBody))
 				if err != nil {
-					http.Error(w, "Error communicating with LLM", http.StatusInternalServerError)
-					return
+					fmt.Println("Error communicating with LLM")
+					return err
 				}
 				defer response.Body.Close()
 
 				body, err := io.ReadAll(response.Body)
 				if err != nil {
-					http.Error(w, "Error reading LLM response", http.StatusInternalServerError)
-					return
+					fmt.Println("Error reading LLM response")
+					return err
 				}
 
 				question_body := map[string]string{}
 				err = json.Unmarshal(body, &question_body)
 				if err != nil {
-					http.Error(w, "Error parsing LLM response", http.StatusInternalServerError)
-					return
+					fmt.Println("Error parsing LLM response")
+					return err
 				}
 
 				question = strings.Trim(question_body["completion"], "\"")
@@ -482,23 +551,21 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 			}
 			err = Supabase.DB.From("tasks").Insert(patient_task).Execute(nil)
 			if err != nil {
-				fmt.Println(err)
-				http.Error(w, "Failed to insert patient question task", http.StatusInternalServerError)
-				return
+				fmt.Println("Failed to insert patient question task")
+				return err
 			}
 		}
-		random_index += taskCreateRequest.PatientTaskCount
+		random_index += numQuestions
 
-		for i := 0; i < taskCreateRequest.LabResultTaskCount; i++ {
+		for i := 0; i < numResults; i++ {
 			// Generate a lab result task
 			var lab_results []model.Result
 			patient_uuid := patients[random_indices[random_index+i]].Id
 			// patient_uuid := "30ed13d4-8d4a-44e5-8821-f05ee761c2b0" // hardcoded test uuid
 			err = Supabase.DB.From("results").Select("*").Eq("patient_id", patient_uuid.String()).Execute(&lab_results)
 			if err != nil {
-				fmt.Println(err)
-				http.Error(w, "Failed to get lab results for the selected patient", http.StatusInternalServerError)
-				return
+				fmt.Println("Failed to get lab results for the selected patient")
+				return err
 			}
 			if len(lab_results) == 0 {
 				// Avoids errors, shouldn't happen in practice because each patient has at least one lab result
@@ -520,22 +587,20 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 			}
 			err = Supabase.DB.From("tasks").Insert(result_task).Execute(nil)
 			if err != nil {
-				fmt.Println(err)
-				http.Error(w, "Failed to insert lab result task", http.StatusInternalServerError)
-				return
+				fmt.Println("Failed to insert lab result task")
+				return err
 			}
 		}
-		random_index += taskCreateRequest.LabResultTaskCount
+		random_index += numResults
 
-		for i := 0; i < taskCreateRequest.PrescriptionTaskCount; i++ {
+		for i := 0; i < numPrescriptions; i++ {
 			// Generate a prescription task
 			var prescriptions []model.Prescription
 			patient_uuid := patients[random_indices[random_index+i]].Id
 			err = Supabase.DB.From("prescriptions").Select("*").Eq("patient_id", patient_uuid.String()).Execute(&prescriptions)
 			if err != nil {
-				fmt.Println(err)
-				http.Error(w, "Failed to get prescriptions for the selected patient", http.StatusInternalServerError)
-				return
+				fmt.Println("Failed to get prescriptions for the selected patient")
+				return err
 			}
 			if len(prescriptions) == 0 {
 				// Avoids errors, shouldn't happen in practice because each patient has at least one prescription
@@ -555,16 +620,13 @@ func GenerateTasks(w http.ResponseWriter, r *http.Request) {
 			}
 			err = Supabase.DB.From("tasks").Insert(prescription_task).Execute(nil)
 			if err != nil {
-				fmt.Println(err)
-				http.Error(w, "Failed to insert prescription task", http.StatusInternalServerError)
-				return
+				fmt.Println("Failed to insert prescription task")
+				return err
 			}
 		}
-		random_index += taskCreateRequest.PrescriptionTaskCount // Not needed, but just in case we add more types
-
+		random_index += numPrescriptions // Not needed, but just in case we add more types
 	}
-	w.Write([]byte("Tasks generated"))
-
+	return nil // no errors
 }
 
 func GetTaskByID(w http.ResponseWriter, r *http.Request) {
@@ -585,6 +647,11 @@ func GetTaskByID(w http.ResponseWriter, r *http.Request) {
 func GetTasksByStudentID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["student_id"]
+
+	//necessary to enable cors
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
+    (w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+    (w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 
 	// Get the request body
 	// Example request body:
@@ -710,36 +777,100 @@ func GetTaskByWeek(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func GetFlaggedPatients(w http.ResponseWriter, r *http.Request) {
-	var flaggedPatients []FlaggedPatientRequest
-	err := Supabase.DB.From("flagged").Select("*,patient:patients(name)").Execute(&flaggedPatients)
+	var flaggedPatients []model.FlaggedPatient
+	err := Supabase.DB.From("flagged").Select("*,patient:patients!flagged_patient_id_fkey(*)").Execute(&flaggedPatients)
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "Error grabbing Flagged Patients", http.StatusInternalServerError)
+		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(flaggedPatients)
+	if err := json.NewEncoder(w).Encode(flaggedPatients); err != nil {
+		http.Error(w, "Error encoding flagged patients", http.StatusInternalServerError)
+	}
 }
 func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
-	var request FlaggedPatientRequest
+	var req FlaggedPatientRequest
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Error reading request body", http.StatusBadRequest)
 		return
 	}
-	err = json.Unmarshal(bodyBytes, &request)
-	if err != nil {
-		http.Error(w, "Error Unmarshling Request", http.StatusInternalServerError)
+	if err := json.Unmarshal(bodyBytes, &req); err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error unmarshaling request", http.StatusBadRequest)
 		return
 	}
-	request.Id = uuid.New()
-	err = Supabase.DB.From("flagged").Insert(request).Execute(nil)
+
+	var existing []InsertFlaggedPatient
+	err = Supabase.DB.
+		From("flagged").
+		Select("*").
+		Eq("patient_id", req.PatientID.String()).
+		Execute(&existing)
 	if err != nil {
 		fmt.Println(err)
-		http.Error(w, "Error Inserting Patient to Flag", http.StatusInternalServerError)
+		http.Error(w, "Error checking flagged table", http.StatusInternalServerError)
 		return
 	}
+
+	if len(existing) == 0 {
+		newFlag := InsertFlaggedPatient{
+			ID:        uuid.New(),
+			PatientID: req.PatientID,
+			Flaggers:  []uuid.UUID{req.UserID},
+		}
+
+		err = Supabase.DB.
+			From("flagged").
+			Insert(newFlag).
+			Execute(nil)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Error inserting new flagged row", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Patient flagged successfully (new row)"))
+		return
+	}
+
+	flaggedRow := existing[0]
+
+	alreadyFlagged := false
+	for _, uid := range flaggedRow.Flaggers {
+		if uid == req.UserID {
+			alreadyFlagged = true
+			break
+		}
+	}
+	if alreadyFlagged {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("User has already flagged this patient"))
+		return
+	}
+
+	flaggedRow.Flaggers = append(flaggedRow.Flaggers, req.UserID)
+
+	updateData := map[string]interface{}{
+		"flaggers": flaggedRow.Flaggers,
+	}
+
+	err = Supabase.DB.
+		From("flagged").
+		Update(updateData).
+		Eq("id", flaggedRow.ID.String()).
+		Execute(nil)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error updating flagged row", http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Patient Flagged"))
+	w.Write([]byte("Patient flagged successfully (updated existing row)"))
 }
 
 func RemoveFlaggedPatient(w http.ResponseWriter, r *http.Request) {

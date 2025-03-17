@@ -1,6 +1,5 @@
 package main
 
-//git sanity check for julian
 import (
 	"fmt"
 	"net/http"
@@ -8,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/robfig/cron/v3"
 	"github.com/rs/cors"
 	"gitlab.msu.edu/team-corewell-2025/routes/llm"
 	"gitlab.msu.edu/team-corewell-2025/routes/supabase"
@@ -17,7 +17,6 @@ func main() {
 
 	// Load env vars
 	err := godotenv.Load(".env")
-
 	if err != nil {
 		fmt.Println("Error loading in .env")
 	}
@@ -25,39 +24,74 @@ func main() {
 	// Create client
 	url := os.Getenv("SUPABASE_URL")
 	key := os.Getenv("SUPABASE_KEY")
-
 	supabase.InitClient(url, key)
 
 	// API Gateway
 	m := mux.NewRouter()
+	
+
+	//Job Scheduler
+	c := cron.New(cron.WithSeconds())
+	_, err = c.AddFunc("@daily", func() {
+		fmt.Println("Job Scheduler Triggered. ")
+		err = supabase.GenerateTasks(3, 3, 3, false)
+		if err != nil {
+			fmt.Println("Error in cron job:", err)
+		}
+		fmt.Println("Tasks generated for the day!")
+	})
+	if err != nil {
+		fmt.Println("Error scheduling cron job:", err)
+		return
+	}
+	c.Start()
 
 	// Endpoints
+
+	// Auth
 	m.HandleFunc("/addUser", supabase.SignUpUser).Methods("POST")
 	m.HandleFunc("/login", supabase.SignInUser).Methods("POST")
-	m.HandleFunc("/patients", supabase.GetPatients).Methods("GET")
-	m.HandleFunc("/patients/{id}", supabase.GetPatientByID).Methods("GET")
-	m.HandleFunc("/patients/{id}/prescriptions", supabase.GetPrescriptionsByPatientID).Methods("GET")
-	m.HandleFunc("/patients/{id}/results", supabase.GetResultsByPatientID).Methods("GET")
-	m.HandleFunc("/prescriptions", supabase.GetPrescriptions).Methods("GET")
-	m.HandleFunc("/prescriptions/{id}", supabase.GetPrescriptionByID).Methods("GET")
-	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST") // don't think this is used anymore?
-	m.HandleFunc("/students", supabase.GetStudents).Methods("GET")
-	m.HandleFunc("/students/{id}", supabase.GetStudentById).Methods("GET")
-	m.HandleFunc("/results", supabase.GetResults).Methods("GET")
-	m.HandleFunc("/results/{id}", supabase.GetResultByID).Methods("GET")
-	// LLM endpoint from the old version – add it if needed
-	m.HandleFunc("/patients/{id}/llm-response", supabase.GetLLMResponseForPatient).Methods("GET")
+	m.HandleFunc("/forgotPassword", supabase.ForgotPassword).Methods("POST")
+	m.HandleFunc("/resetPassword", supabase.ResetPassword).Methods("POST")
+
+	// Patients
+	patientsRouter := m.PathPrefix("/patients").Subrouter()
+	patientsRouter.HandleFunc("", supabase.GetPatients).Methods("GET")
+	patientsRouter.HandleFunc("/{id}", supabase.GetPatientByID).Methods("GET")
+	patientsRouter.HandleFunc("/{id}/prescriptions", supabase.GetPrescriptionsByPatientID).Methods("GET")
+	patientsRouter.HandleFunc("/{id}/results", supabase.GetResultsByPatientID).Methods("GET")
+	patientsRouter.HandleFunc("/{id}/llm-response", supabase.GetLLMResponseForPatient).Methods("GET")
+
+	// Prescriptions
+	prescriptionsRouter := m.PathPrefix("/prescriptions").Subrouter()
+	prescriptionsRouter.HandleFunc("", supabase.GetPrescriptions).Methods("GET")
+	prescriptionsRouter.HandleFunc("/{id}", supabase.GetPrescriptionByID).Methods("GET")
+
+	// Students
+	studentsRouter := m.PathPrefix("/students").Subrouter()
+	studentsRouter.HandleFunc("", supabase.GetStudents).Methods("GET")
+	studentsRouter.HandleFunc("/{id}", supabase.GetStudentById).Methods("GET")
+
+	// Results
+	resultsRouter := m.PathPrefix("/results").Subrouter()
+	resultsRouter.HandleFunc("", supabase.GetResults).Methods("GET")
+	resultsRouter.HandleFunc("/{id}", supabase.GetResultByID).Methods("GET")
+
+	// Flagging Feature
 	m.HandleFunc("/flaggedPatients", supabase.GetFlaggedPatients).Methods("GET")
 	m.HandleFunc("/addFlag", supabase.AddFlaggedPatient).Methods("POST")
 	m.HandleFunc("/removePatient", supabase.RemoveFlaggedPatient).Methods("POST")
 	m.HandleFunc("/keepPatient", supabase.KeepPatient).Methods("POST")
 
 	// Endpoints for tasks (generating, getting, completing, etc.)
-	m.HandleFunc("/generateTasks", supabase.GenerateTasks).Methods("POST")                            // generates variable amount of tasks for a student
-	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("GET")                  // displays tasks for a student, filtered by completion in request
-	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTaskByWeek).Methods("GET")                   // used to display a student's tasks, sorted by week
-	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")                // gets a singular task for a student
-	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST") // completes that singular task
+	m.HandleFunc("/generateTasks", supabase.GenerateTasksHTMLWrapper).Methods("POST")
+	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("POST", "OPTIONS") //had to make this post bc the function expects a body
+	//hardcoded body to show incomplete tasks ^^^
+	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTaskByWeek).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST")
+	// Misc
+	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
 
 	// Allow API requests from frontend
 	handler := cors.New(cors.Options{
@@ -66,6 +100,7 @@ func main() {
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}).Handler(m)
+
 	err = http.ListenAndServe(":8060", handler)
 	if err != nil {
 		fmt.Println(err)
