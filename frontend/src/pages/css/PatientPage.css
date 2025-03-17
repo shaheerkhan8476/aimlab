@@ -181,3 +181,13 @@ messing with other pages */
     justify-content: flex-end;
     width: 100%;
 }
+
+.task-banner {
+    background-color: rgb(120, 164, 203);
+    color: blue;
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    padding: 1rem;
+    width: 80%;
+}

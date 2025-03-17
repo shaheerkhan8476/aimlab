@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation} from 'react-router-dom';
 import "./css/PatientPage.css";
 import ReportFlag from "../images/report-flag.png"
 
@@ -16,11 +16,34 @@ function PatientPage() {
     const [aiResponseUnlocked, setAIResponseUnlocked] = useState(false); //Controls ai response tab locking
     const [disableInput, setDisableInput] = useState(false);
     const [flagState, setFlagState] = useState(false);
+    const [bannerMessage, setBannerMessage] = useState("");
+
+    
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const token = localStorage.getItem("accessToken");
         if (!token) return;
+
+        if (location.state?.task_type) {
+            switch (location.state.task_type) {
+                case "patient_question":
+                    setBannerMessage("Respond to the patient's message!");
+                    setActiveTab("info");
+                    break;
+                case "lab_result":
+                    setBannerMessage(`Analyze the results of ${location.state.lab_name} for your patient!`);
+                    setActiveTab("results");
+                    break;
+                case "prescription":
+                    setBannerMessage(`Should the ${location.state.medicine_name} prescription be refilled? Why or why not?`);
+                    setActiveTab("prescriptions");
+                    break;
+                default:
+                    setBannerMessage("If you see this something went wrong getting task type :(");
+            }
+        }
 
         //for patient detials tab
         fetch(`http://localhost:8060/patients/${id}`, {
@@ -59,7 +82,7 @@ function PatientPage() {
     .then(data => setPrescriptions(data))
     .catch(error => console.error("Failed to fetch prescriptions:", error));
 
-    }, [id]);
+    }, [id, location.state]);
 
     if (!patient)
     {
@@ -113,6 +136,7 @@ function PatientPage() {
             body: JSON.stringify( {
                 "id": `${userId}`,
                 "patient_id": `${id}`,
+                "user_id": `${userId}`
             }),
 
         })
@@ -131,6 +155,7 @@ function PatientPage() {
             <div className="patient-name">{patient.name}</div>
         </div>
 
+       
         {/* New tab nav */}
         <div className="tab-navigation">
             <button 
@@ -293,6 +318,10 @@ function PatientPage() {
                 </div>
             )}
         </div>
+
+        {/* Task instruction banner */}
+        {bannerMessage && <div className="task-banner">{bannerMessage}</div>}
+
 
         {!disableInput && (
         <div>

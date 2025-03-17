@@ -250,7 +250,8 @@ function StudentDashboard(){
                                                     <tr 
                                                         key={index}
                                                         className="clickable-patient"
-                                                        onClick={() => navigate(`/PatientPage/${message.patient_id}`)}
+                                                        onClick={() => navigate(`/PatientPage/${message.patient_id}`, 
+                                                            {state: {task_type: "patient_question", patient_question: message.patient.patient_message}})}
 
                                                     >
                                                         <td>{message.patient.name}</td>
@@ -284,7 +285,12 @@ function StudentDashboard(){
                                                 {prescriptions.map((prescription, index) => (
                                                     <tr key={index}
                                                         className="clickable-patient"
-                                                        onClick={() => navigate(`/PatientPage/${prescription.patient_id}`)}
+                                                        onClick={() => navigate(`/PatientPage/${prescription.patient_id}`, {
+                                                            state: {
+                                                                task_type: "prescription",
+                                                                medicine_name: prescription.prescription?.[0]?.medication || "unknown med"
+                                                            }
+                                                        })}
                                                     >
                                                         <td>{prescription.patient ? prescription.patient.name : "Unknown"}</td>
                                                         <td>{prescription.prescription && prescription.prescription.length > 0 ? prescription.prescription[0].medication : "No medication"}</td>
@@ -316,7 +322,12 @@ function StudentDashboard(){
                                             {results.map((result, index) => (
                                                 <tr key={index}
                                                     className="clickable-patient"
-                                                    onClick={() => navigate(`/PatientPage/${result.patient_id}`)}
+                                                    onClick={() => navigate(`/PatientPage/${result.patient_id}`, {
+                                                        state: {
+                                                            task_type: "lab_result",
+                                                            medicine_name: result.result?.[0]?.test_name || "unknwon result"
+                                                        }
+                                                    })}
                                                 >
                                                     <td>{result.patient ? result.patient.name : "Unknown"}</td>
                                                     <td>{result.result && result.result.length > 0 ? result.result[0].test_name : "No test name"}</td>
