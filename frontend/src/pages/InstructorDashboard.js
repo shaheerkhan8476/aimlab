@@ -101,7 +101,7 @@ function InstructorDashboard(){
                 </button>
                 <button
                     className="logout-but"
-                    onClick={() => navigate(`/FlaggedPaitents`)}
+                    onClick={() => navigate(`/FlaggedPatientsDash`)}
                 >
                     Flagged Paitents
                 </button>
