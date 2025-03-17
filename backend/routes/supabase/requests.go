@@ -1,6 +1,8 @@
 package supabase
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
 // User Create Request Model
 type UserCreateRequest struct {
@@ -55,4 +57,9 @@ type UpdateUserInput struct {
 type ResetPasswordRequest struct {
 	AccessToken string `json:"accessToken"`
 	NewPassword string `json:"newPassword"`
+}
+
+type AddStudentRequest struct {
+    InstructorId string `json:"instructor_id"`
+    StudentId    string `json:"student_id"`
 }

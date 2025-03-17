@@ -54,7 +54,7 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		Name:            userRequest.Name,
 		Email:           userRequest.Email,
 		IsAdmin:         userRequest.IsAdmin,
-		StudentStanding: userRequest.StudentStanding,
+		StudentStanding: &userRequest.StudentStanding,
 	}
 	err = Supabase.DB.From("users").Insert(newUser).Execute(nil)
 	if err != nil {
@@ -929,4 +929,128 @@ func GetInstructors(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(instructors)
+}
+
+func AddStudentToInstructor(w http.ResponseWriter, r *http.Request) {
+	var req AddStudentRequest
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+		return
+	}
+	if err := json.Unmarshal(bodyBytes, &req); err != nil {
+		http.Error(w, "Invalid JSON in request body", http.StatusBadRequest)
+		return
+	}
+
+	instructorID, err := uuid.Parse(req.InstructorId)
+	if err != nil {
+		http.Error(w, "Invalid instructor UUID", http.StatusBadRequest)
+		return
+	}
+	studentID, err := uuid.Parse(req.StudentId)
+	if err != nil {
+		http.Error(w, "Invalid student UUID", http.StatusBadRequest)
+		return
+	}
+
+	var instructorsFound []model.User
+	err = Supabase.DB.From("users").
+		Select("*").
+		Eq("id", instructorID.String()).
+		Execute(&instructorsFound)
+
+	if err != nil {
+		http.Error(w, "Error fetching instructor", http.StatusInternalServerError)
+		return
+	}
+	if len(instructorsFound) == 0 {
+		http.Error(w, "Instructor not found", http.StatusNotFound)
+		return
+	}
+
+	instructor := instructorsFound[0]
+	if !instructor.IsAdmin {
+		http.Error(w, "User is not an instructor", http.StatusForbidden)
+		return
+	}
+
+	for _, s := range instructor.Students {
+		if s == studentID {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Student already assigned"))
+			return
+		}
+	}
+	instructor.Students = append(instructor.Students, studentID)
+
+	updateData := map[string]interface{}{
+		"students": instructor.Students,
+	}
+	err = Supabase.DB.From("users").
+		Update(updateData).
+		Eq("id", instructor.Id.String()).
+		Execute(nil)
+	if err != nil {
+		http.Error(w, "Error updating instructor", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte("Student Added to Instructor"))
+}
+
+func GetInstructorStudents(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	instructorID := vars["instructor_id"]
+	instructorUUID, err := uuid.Parse(instructorID)
+	if err != nil {
+		http.Error(w, "Invalid instructor UUID", http.StatusBadRequest)
+		return
+	}
+
+	var instructorsFound []model.User
+	err = Supabase.DB.From("users").
+		Select("*").
+		Eq("id", instructorUUID.String()).
+		Execute(&instructorsFound)
+	if err != nil {
+		http.Error(w, "Error fetching instructor", http.StatusInternalServerError)
+		return
+	}
+	if len(instructorsFound) == 0 {
+		http.Error(w, "Instructor not found", http.StatusNotFound)
+		return
+	}
+
+	instructor := instructorsFound[0]
+	if !instructor.IsAdmin {
+		http.Error(w, "User is not an instructor", http.StatusForbidden)
+		return
+	}
+
+	if len(instructor.Students) == 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("[]"))
+		return
+	}
+
+	var studentIDStrings []string
+	for _, student_id := range instructor.Students {
+		studentIDStrings = append(studentIDStrings, student_id.String())
+	}
+
+	var students []model.User
+	err = Supabase.DB.From("users").
+		Select("*").
+		In("id", studentIDStrings).
+		Execute(&students)
+
+	if err != nil {
+		http.Error(w, "Error fetching students", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(students)
 }
