@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import "./css/Login.css";
-function CreateUser()
+function CreateInstructor()
 {
     //Create blank form for data user enters
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
-        isAdmin: false,
-        studentStanding : '',
+        isAdmin: true,
+        studentStanding : null
     });
     const [message, setMessage] = useState(""); 
     const navigate = useNavigate();
@@ -41,6 +41,7 @@ function CreateUser()
                 console.log('User created:', data);
                 setMessage("Check your email for confirmation."); 
                 setTimeout(() => navigate("/"), 3000); 
+                
             }
             else
             {
@@ -56,7 +57,7 @@ function CreateUser()
     return (
         <div className="login-container">
             <div className="login-box">
-                <h2>Sign Up</h2>
+                <h2>Instructor Sign Up</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="input-group">
                         <label>Name</label>
@@ -70,20 +71,9 @@ function CreateUser()
                         <label>Password</label>
                         <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Enter your password" required />
                     </div>
-                    {!formData.isAdmin && (
-                        <div className="input-group student-standing-group">
-                            <label className="student-standing-label">Student Standing</label>
-                            <select className="styled-dropdown drop" name="studentStanding" value={formData.studentStanding} onChange={handleChange} required>
-                                <option value="">Select standing</option>
-                                <option value="Resident">Resident</option>
-                                <option value="Clerkship">Clerkship</option>
-                                <option value="Medical Student">Medical Student</option>
-                            </select>
-                        </div>
-                    )}
                     <button type="submit">Sign Up</button>
                 </form>
-                {message && <p className="confirmation-message">{message}</p>} 
+                {message && <p className="confirmation-message">{message}</p>} {/* Display confirmation message */}
                 <p>
                     Already have an account?
                     <span> </span>
@@ -94,4 +84,4 @@ function CreateUser()
     );
 }
 
-export default CreateUser;
+export default CreateInstructor;
