@@ -460,6 +460,7 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 	// Goal here is to make each task use a UNIQUE patient, if there aren't enough patients then it will repeat
 	random_indices := GenerateUniqueIndices(taskCount*len(students), len(patients)) // The actual list of random ints
 	random_index := 0                                                               // Keeps track of the current index in the random_indices list
+	createdAt := time.Now()                                                         // Timestamp for task creation
 	for _, student := range students {
 
 		for i := 0; i < numQuestions; i++ {
@@ -540,14 +541,15 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 
 			patient_task := model.PatientTask{
 				Task: model.Task{
-					PatientId: patient_uuid, // Little convoluted but it keeps track of the index from other loops
-					UserId:    student.Id,
-					TaskType:  model.PatientQuestionTaskType,
-					Completed: false,
+					PatientId:       patient_uuid, // Little convoluted but it keeps track of the index from other loops
+					UserId:          student.Id,
+					TaskType:        model.PatientQuestionTaskType,
+					Completed:       false,
+					CreatedAt:       &createdAt,
+					StudentResponse: nil, // won't be filled in until student responds
+					LLMFeedback:     nil, // won't be filled in until LLM provides feedback
 				},
 				PatientQuestion: &question, // task is generated with patient question
-				StudentResponse: nil,       // won't be filled in until student responds
-				LLMFeedback:     nil,       // won't be filled in until LLM provides feedback
 			}
 			err = Supabase.DB.From("tasks").Insert(patient_task).Execute(nil)
 			if err != nil {
@@ -576,14 +578,15 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 			// result_uuid, err := uuid.Parse("3df2a391-dd2b-4f60-9b1b-00c6a4897396") // hardcoded test uuid
 			result_task := model.ResultTask{
 				Task: model.Task{
-					PatientId: patient_uuid, // Little convoluted but it keeps track of the index from other loops
-					UserId:    student.Id,
-					TaskType:  model.LabResultTaskType,
-					Completed: false,
+					PatientId:       patient_uuid, // Little convoluted but it keeps track of the index from other loops
+					UserId:          student.Id,
+					TaskType:        model.LabResultTaskType,
+					Completed:       false,
+					CreatedAt:       &createdAt,
+					StudentResponse: nil,
+					LLMFeedback:     nil,
 				},
-				ResultId:        result_uuid,
-				StudentResponse: nil,
-				LLMFeedback:     nil,
+				ResultId: result_uuid,
 			}
 			err = Supabase.DB.From("tasks").Insert(result_task).Execute(nil)
 			if err != nil {
@@ -611,10 +614,13 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 
 			prescription_task := model.PrescriptionTask{
 				Task: model.Task{
-					PatientId: patient_uuid, // Little convoluted but it keeps track of the index from other loops
-					UserId:    student.Id,
-					TaskType:  model.PrescriptionTaskType,
-					Completed: false,
+					PatientId:       patient_uuid, // Little convoluted but it keeps track of the index from other loops
+					UserId:          student.Id,
+					TaskType:        model.PrescriptionTaskType,
+					Completed:       false,
+					CreatedAt:       &createdAt,
+					StudentResponse: nil, // won't be filled in until student responds
+					LLMFeedback:     nil, // won't be filled in until LLM provides feedback
 				},
 				PrescriptionId: prescription_uuid,
 			}
@@ -629,16 +635,92 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 	return nil // no errors
 }
 
+// Helper function for getting the entire task (including specific task type parts)
+// Takes a list of tasks (output from Supabase query), returns the list of full tasks
+// Note: Full tasks only used in detailed task view (GetTaskByID, GetTasksByStudentID), not in overall task list view (GetTasksByWeekAndDay)
+func GetFullTasks(tasks []model.Task) ([]interface{}, error) {
+	fullTasks := make([]interface{}, 0)
+	for _, task := range tasks {
+		switch task.TaskType {
+		case "patient_question":
+			var patientTask []model.PatientTask
+			err := Supabase.DB.From("tasks").Select("*").Eq("id", task.Id.String()).Execute(&patientTask)
+			if err == nil {
+				fullTasks = append(fullTasks, patientTask[0])
+			} else {
+				fmt.Println(err)
+				return nil, err
+			}
+		case "lab_result":
+			var labResult []model.ResultTask
+			err := Supabase.DB.From("tasks").Select("*").Eq("id", task.Id.String()).Execute(&labResult)
+			if err == nil {
+				fullTasks = append(fullTasks, labResult[0])
+			} else {
+				fmt.Println(err)
+				return nil, err
+			}
+		case "prescription":
+			var prescription []model.PrescriptionTask
+			err := Supabase.DB.From("tasks").Select("*").Eq("id", task.Id.String()).Execute(&prescription)
+			if err == nil {
+				fullTasks = append(fullTasks, prescription[0])
+			} else {
+				fmt.Println(err)
+				return nil, err
+			}
+		}
+	}
+	return fullTasks, nil
+}
+
+// Helper function for getting rid of null values from an interface slice
+// Useful for cleaning up the marshaled output from Supabase query --> interface (instead of struct)
+// Currently not being used, I'm adding it just in case
+func removeNullsFromSlice(data []interface{}) []interface{} {
+	cleanedSlice := make([]interface{}, 0)
+
+	for _, item := range data {
+		if itemMap, ok := item.(map[string]interface{}); ok {
+			cleanedMap := make(map[string]interface{})
+			for key, value := range itemMap {
+				if value != nil { // Only add non-nil values
+					cleanedMap[key] = value
+				}
+			}
+			cleanedSlice = append(cleanedSlice, cleanedMap)
+		} else {
+			// If it's not a map[string]interface{}, just add it as is
+			cleanedSlice = append(cleanedSlice, item)
+		}
+	}
+	return cleanedSlice
+}
+
+// Gets a singular task by ID
+// The URL contains the task ID
+// Contains the full task (including specific task type parts)
 func GetTaskByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["task_id"]
 	var task []model.Task
 	err := Supabase.DB.From("tasks").Select("*").Eq("id", id).Execute(&task)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Task not found", http.StatusNotFound)
+		return
 	}
+
+	// Gets the full task
+	fullTask, err := GetFullTasks(task)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Full Task not found", http.StatusNotFound)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(task[0])
+	json.NewEncoder(w).Encode(fullTask[0])
 }
 
 // This function gets all the tasks for a student
@@ -690,11 +772,27 @@ func GetTasksByStudentID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get the full tasks for the entire list
+	fullTasks, err := GetFullTasks(tasks)
+	if err != nil {
+		http.Error(w, "Failed to get full tasks", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(tasks)
+	json.NewEncoder(w).Encode(fullTasks)
 }
 
-// CompleteTask only marks a task as completed
+// Helper function to insert NULL into supabase when string is empty instead of empty string
+func NilIfEmptyString(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+// CompleteTask marks a task as completed and fills in information for the task from the request body
+// The URL contains the task ID
 func CompleteTask(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["task_id"]
@@ -707,9 +805,27 @@ func CompleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update only the completed field
+	// All tasks have a student response and LLM feedback
+	var taskCompleteRequest TaskCompleteRequest
+	// Get the request body
+	// Example request body:
+	// {
+	// 	"student_response": "The student's response to the task",
+	// 	"llm_feedback": "The LLM's response to the task"
+	// }
+	bodyBytes, _ := io.ReadAll(r.Body)
+	err = json.Unmarshal(bodyBytes, &taskCompleteRequest)
+	if err != nil {
+		http.Error(w, "Cannot Unmarshal task completion request from request", http.StatusBadRequest)
+		return
+	}
+
+	// Update the fields for the task
 	updateData := map[string]interface{}{
-		"completed": true,
+		"completed":        true,
+		"student_response": taskCompleteRequest.StudentResponse,
+		"llm_feedback":     taskCompleteRequest.LLMFeedback,
+		"completed_at":     time.Now(),
 	}
 
 	// Update DB
@@ -721,9 +837,34 @@ func CompleteTask(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Task completed"))
 }
 
-// GetTaskByWeek gets all the tasks for a student and sorts them by week
+// GetTasksByWeekAndDay gets all the tasks for a student and sorts them by week and day
 // The URL contains the student ID
-func GetTaskByWeek(w http.ResponseWriter, r *http.Request) {
+// Also includes the student's completion rate for each week
+func GetTasksByWeekAndDay(w http.ResponseWriter, r *http.Request) {
+	// Example output:
+	// [
+	//	{
+	//	    "Week": 0,
+	//	    "Days": [
+	//	        {
+	//	            "Day": 0,
+	//	            "Tasks": [
+	//	                {
+	//	                    "id": "bd6acf0c-2e88-4c9f-bfe2-342919e538d6",
+	//	                    "created_at": "2025-03-14T00:04:31.372774Z",
+	//	                    "patient_id": "1f1d78f4-345b-48d7-9045-8baa6b6e070a",
+	//	                    "user_id": "b66e3169-2335-48f8-a43f-e4730c053ad8",
+	//	                    "task_type": "patient_question",
+	//	                    "completed": false
+	//	                },
+	//	            ],
+	//	            "CompletionRate": 0
+	//			}
+	//			],
+	//			"CompletionRate": 0
+	//		}
+	// ]
+
 	// Get the student ID and week number from the URL
 	vars := mux.Vars(r)
 	id := vars["student_id"]
@@ -731,51 +872,117 @@ func GetTaskByWeek(w http.ResponseWriter, r *http.Request) {
 	// Get all the tasks for the student
 	var tasks []model.Task
 	err := Supabase.DB.From("tasks").Select("*").Eq("user_id", id).Execute(&tasks)
-	if err != nil {
+	if err != nil || len(tasks) == 0 {
 		http.Error(w, "No tasks found", http.StatusNotFound)
 		return
 	}
 
-	// Start date for counting by week
-	// Gets the earliest task created date
-	startDate := time.Now()
+	// Gets the bounds (earliest and latest week) for counting by week
+	startDate := time.Now() // Latest date (in theory)
+	endDate := time.Time{}  // Earliest possible date
 	for _, task := range tasks {
 		if task.CreatedAt.Before(startDate) {
 			startDate = *task.CreatedAt
 		}
+		if task.CreatedAt.After(endDate) {
+			endDate = *task.CreatedAt
+		}
 	}
 
-	// Map to store tasks by week
-	// key = week number (int), value = list of tasks for that week
-	weekTasks := make(map[int][]model.Task)
+	// Struct to store info per day (tasks, completion rate)
+	type DayPackage struct {
+		Day            int          // Day number
+		Tasks          []model.Task // List of tasks for the day
+		CompletionRate float64      // Percentage of completed tasks
+	}
+
+	// Struct to store info for each week
+	type WeekPackage struct {
+		Week           int          // Week number
+		Days           []DayPackage // List of Days in the week
+		CompletionRate float64      // Percentage of completed tasks
+	}
+
+	// List of weeks
+	weekList := make([]WeekPackage, 0)
+	numWeeks := int(endDate.Sub(startDate).Hours() / (24 * 7)) // Number of weeks between the two dates
+	numWeeks++                                                 // Add one to include the last week
+	numDays := int(endDate.Sub(startDate).Hours() / 24)        // Number of days between the two dates
+	// fmt.Println(numWeeks)
+
+	// Initialize the list of weeks with empty days
+	for i := 0; i < numWeeks; i++ {
+		// Add each week
+		weekList = append(weekList, WeekPackage{Week: i, Days: []DayPackage{}, CompletionRate: 0})
+
+		// Add each day
+		if i < numWeeks-1 {
+			// Full week
+			for j := 0; j < 7; j++ {
+				weekList[i].Days = append(weekList[i].Days, DayPackage{Day: j, Tasks: []model.Task{}, CompletionRate: 0})
+			}
+		} else {
+			// Last week may not have all days, cutoff early if so
+			for j := 0; j <= numDays%7; j++ {
+				weekList[i].Days = append(weekList[i].Days, DayPackage{Day: j, Tasks: []model.Task{}, CompletionRate: 0})
+			}
+		}
+	}
 
 	// Loop through each task to categorize it by week
 	for _, task := range tasks {
 		// Calculate the number of weeks since the start date
 		weekNumber := int(task.CreatedAt.Sub(startDate).Hours() / (24 * 7)) // Week difference
+		dayNumber := int(task.CreatedAt.Sub(startDate).Hours()/24) % 7      // Day of the week (0-6)
 
-		// Add the task to the corresponding week
-		weekTasks[weekNumber] = append(weekTasks[weekNumber], task)
+		for i := range weekList {
+			for j := range weekList[i].Days {
+				if weekList[i].Week == weekNumber && j == dayNumber {
+					weekList[i].Days[j].Tasks = append(weekList[i].Days[j].Tasks, task)
+				}
+			}
+		}
 	}
 
-	// The output response
-	response := make([]map[string]interface{}, 0)
+	// Calculate the completion rate for each week + day
+	if len(weekList) > 0 {
+		for i, week := range weekList {
+			completedTasksWeekly := 0
+			totalTasksWeekly := 0
+			for j, day := range week.Days {
+				if len(day.Tasks) > 0 {
+					completedTasksDaily := 0
+					for _, task := range day.Tasks {
+						totalTasksWeekly++
+						if task.Completed {
+							completedTasksDaily++
+							completedTasksWeekly++
+						}
+					}
+					weekList[i].Days[j].CompletionRate = float64(completedTasksDaily) / float64(len(day.Tasks)) * 100
+				} else {
+					// Avoids errors in case the day does not have any tasks (should not be possible)
+					weekList[i].Days[j].CompletionRate = 0
+				}
 
-	// Convert weekTasks map to slice of week objects
-	for week, tasksInWeek := range weekTasks {
-		weekData := map[string]interface{}{
-			"week":  week,
-			"tasks": tasksInWeek,
+			}
+			weekList[i].CompletionRate = float64(completedTasksWeekly) / float64(totalTasksWeekly) * 100
 		}
-		response = append(response, weekData)
+	} else {
+		// No tasks (meaning no weeks), so no completion rate
+		// Shouldn't get to this point because we already checked for tasks
+		http.Error(w, "No tasks found", http.StatusNotFound)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(response)
+	// err = json.NewEncoder(w).Encode(response)
+	err = json.NewEncoder(w).Encode(weekList)
 	if err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		fmt.Println(err)
+		http.Error(w, "Failed to encode response when getting tasks grouped chronologically", http.StatusInternalServerError)
 	}
 }
+
 func GetFlaggedPatients(w http.ResponseWriter, r *http.Request) {
 	var flaggedPatients []model.FlaggedPatient
 	err := Supabase.DB.From("flagged").Select("*,patient:patients!flagged_patient_id_fkey(*)").Execute(&flaggedPatients)
