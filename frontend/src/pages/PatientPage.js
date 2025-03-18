@@ -9,8 +9,8 @@ function PatientPage() {
     const { id } = useParams(); //gets id from url
     const [activeTab, setActiveTab] = useState("info");
     const [patient, setPatient] = useState(null);
-    const [results, setResults] = useState(null);
-    const [prescriptions, setPrescriptions] = useState(null);
+    const [results, setResults] = useState([]);
+    const [prescriptions, setPrescriptions] = useState([]);
     const [aiResponse, setAIResponse] = useState(null); //Ai response. will eventually be sample response to patient
     const [userMessage, setUserMessage] = useState(""); //userMessage, updates with change to textarea below
     const [aiResponseUnlocked, setAIResponseUnlocked] = useState(false); //Controls ai response tab locking
@@ -26,24 +26,6 @@ function PatientPage() {
         const token = localStorage.getItem("accessToken");
         if (!token) return;
 
-        if (location.state?.task_type) {
-            switch (location.state.task_type) {
-                case "patient_question":
-                    setBannerMessage("Respond to the patient's message!");
-                    setActiveTab("info");
-                    break;
-                case "lab_result":
-                    setBannerMessage(`Analyze the results of ${location.state.lab_name} for your patient!`);
-                    setActiveTab("results");
-                    break;
-                case "prescription":
-                    setBannerMessage(`Should the ${location.state.medicine_name} prescription be refilled? Why or why not?`);
-                    setActiveTab("prescriptions");
-                    break;
-                default:
-                    setBannerMessage("If you see this something went wrong getting task type :(");
-            }
-        }
 
         //for patient detials tab
         fetch(`http://localhost:8060/patients/${id}`, {
@@ -82,7 +64,42 @@ function PatientPage() {
     .then(data => setPrescriptions(data))
     .catch(error => console.error("Failed to fetch prescriptions:", error));
 
-    }, [id, location.state]);
+    }, [id]);
+
+    useEffect(() => {
+        // if (!results.length && location.state?.task_type === "lab result") {
+        //     setBannerMessage("Error, it's results task but not finding results");
+        //     return;
+        // }
+
+        // if (!prescriptions.length && location.state?.task_type === "prescription") {
+        //     setBannerMessage("Error, it's prescriptions task but not finding prescriptions");
+        //     return ;
+        // }
+
+        if (location.state?.task_type === "lab_result") {
+            const relevantResult = results.find(res => res.result_id === location.state.result_id);
+            if (relevantResult) {
+                setBannerMessage(`Analyze the results of ${relevantResult.test_name} for your patient!`);
+            }
+            else{ setBannerMessage("Couldn't find specific results task"); }
+            setActiveTab("results");
+        }
+
+        else if (location.state?.task_type === "prescription") {
+            const relevantPrescription = prescriptions.find(pres => pres.prescription_id === location.state.prescription_id);
+            if (relevantPrescription) {
+                setBannerMessage(`Should the ${relevantPrescription.medication} prescription be refilled? Why or why not?`);
+            }
+            else{ setBannerMessage("Couldn't find specific prescriptions task"); }
+            setActiveTab("prescriptions");
+        }
+
+        else if (location.state?.task_type === "patient_question") {
+            setBannerMessage("Respond to the patient's message!");
+            setActiveTab("info");
+        }
+    }, [location.state, results, prescriptions]);
 
     if (!patient)
     {

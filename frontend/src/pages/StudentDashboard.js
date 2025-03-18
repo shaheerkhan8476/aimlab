@@ -288,7 +288,7 @@ function StudentDashboard(){
                                                         onClick={() => navigate(`/PatientPage/${prescription.patient_id}`, {
                                                             state: {
                                                                 task_type: "prescription",
-                                                                medicine_name: prescription.prescription?.[0]?.medication || "unknown med"
+                                                                prescription_id: prescription.prescription_id
                                                             }
                                                         })}
                                                     >
@@ -325,7 +325,7 @@ function StudentDashboard(){
                                                     onClick={() => navigate(`/PatientPage/${result.patient_id}`, {
                                                         state: {
                                                             task_type: "lab_result",
-                                                            medicine_name: result.result?.[0]?.test_name || "unknwon result"
+                                                            result_id: result.result_id
                                                         }
                                                     })}
                                                 >
