@@ -6,6 +6,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import InstructorDashboard from './pages/InstructorDashboard';
 import PatientPage from './pages/PatientPage';
 import StudentDetails from './pages/StudentDetails';
+import CreateInstructor from './pages/CreateInstructor';
 
 //Main App entry point
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Route path="/InstructorDashboard" element={<InstructorDashboard />} />
         <Route path="/PatientPage/:id" element={<PatientPage />} />
         <Route path="/StudentDetails/:id" element={<StudentDetails />} />
+        <Route path="/CreateInstructor" element={<CreateInstructor />} />
       </Routes>
     </>
   );
