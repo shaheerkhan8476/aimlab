@@ -58,9 +58,15 @@ function StudentDashboard(){
         .then(async (tasks) => {         //Empty array returned? means bad token. error.
             console.log("tasks fetched successfully", tasks);
 
+            tasks.forEach(task => {
+                console.log(`Task ID: ${task.task_id}, Type: ${task.task_type}, Result ID: ${task.result_id}`);
+            });
+
             const patientMessages = tasks.filter(task => task.task_type === "patient_question");
             const results = tasks.filter(task => task.task_type === "lab_result");
             const prescriptions = tasks.filter(task => task.task_type === "prescription");
+
+            console.log("Filtered results tasks:", results);
 
             setIsAuthenticated(true);
 
@@ -106,14 +112,20 @@ function StudentDashboard(){
 
             const fetchResults = async (taskList) => {
                 return Promise.all(taskList.map(async (task) => {
-                    const fullResult = await fetch(`http://localhost:8060/patients/${task.patient_id}/results`, {
+
+                    console.log(`Fetching result for task ${task.task_id} with result_id: ${task.result_id}`);
+
+                    const fullResult = await fetch(`http://localhost:8060/results/${task.result_id}`, {
                         method: "GET",
                         headers: {
                             "Authorization": `Bearer ${token}`,
                             "Content-Type": "application/json",
                         },
+                    }).then(res => res.json()).catch(err => {
+                        console.error(`failed fetching result with id ${task.result_id}`, err);
+                        return null;
                     });
-                    const resultData = await fullResult.json();
+                    
 
                     const fullPatient = await fetch(`http://localhost:8060/patients/${task.patient_id}`, {
                         method: "GET",
@@ -121,10 +133,12 @@ function StudentDashboard(){
                             "Authorization": `Bearer ${token}`,
                             "Content-Type": "application/json",
                         },
+                    }).then(res => res.ok ? res.json() : null).catch(err => {
+                        console.error(`failed fetching patient with id ${task.patient_id}`, err);
+                        return null;
                     });
                     
-                    const patientData = await fullPatient.ok ? await fullPatient.json() : null;
-                    return { ...task, result: resultData, patient: patientData };
+                    return { ...task, result: fullResult, patient: fullPatient };
                 }))
             };
 
@@ -325,13 +339,13 @@ function StudentDashboard(){
                                                     onClick={() => navigate(`/PatientPage/${result.patient_id}`, {
                                                         state: {
                                                             task_type: "lab_result",
-                                                            result_id: result.result_id
+                                                            result_id: result.result?.result_id
                                                         }
                                                     })}
                                                 >
                                                     <td>{result.patient ? result.patient.name : "Unknown"}</td>
-                                                    <td>{result.result && result.result.length > 0 ? result.result[0].test_name : "No test name"}</td>
-                                                    <td>{result.result && result.result.length > 0 ? result.result[0].test_date : "No test date"}</td>
+                                                    <td>{result.result ? result.result.test_name : "No test name"}</td>
+                                                    <td>{result.result ? result.result.test_date : "No test date"}</td>
                                                     
                                                 </tr>
                                             ))}
