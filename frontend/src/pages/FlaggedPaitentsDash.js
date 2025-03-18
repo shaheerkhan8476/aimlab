@@ -26,16 +26,9 @@ function FlaggedPatientsDash() {
                 "Content-Type": "application/json",
             },
         })
-        .then(response => {
-            if (!response.ok) throw new Error("Failed to fetch user data");
-            return response.json();
-        })
-        .then(data => setUserName(data.name))
-        .catch(error => {
-            console.error(error);
-            setIsAuthenticated(false);
-
-        });
+        .then(response => response.json())
+        .then(data => setUserName(data.name || "Instructor"))
+        .catch(() => setIsAuthenticated(false));
 
         // Get Flagged Patients
         fetch("http://localhost:8060/flaggedPatients", {
@@ -45,76 +38,46 @@ function FlaggedPatientsDash() {
                 "Content-Type": "application/json",
             },
         })
-        .then(response => {
-            if (!response.ok) throw new Error("Failed to fetch flagged patients");
-            return response.json();
-        })
-        .then(async (flaggedData) => {
-            if (!Array.isArray(flaggedData) || flaggedData.length === 0) {
-                setFlaggedPatients([]);
-                return;
-            }
-            
-            // Get paitents and flaggers
-            const patientP = flaggedData.map((flagged) =>
+        .then(response => response.json())
+        .then(async (data) => {
+            console.log("Flagged Patients API Response:", data);
 
-                fetch(`http://localhost:8060/patients/${flagged.patient_id}`, {
-                    method: "GET",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error("Failed to fetch patient data");
-                    return response.json();
-                })
-                .then(patientData => {
-                    // get flaggers
-                    console.log("Flaggers for patient", flagged.patient_id, ":", flagged.flaggers);
+            // Fetch names for each flagger ID
+            const paflaggerNames = await Promise.all(data.map(async (patient) => {
+                if (!patient.flaggers || patient.flaggers.length === 0) return { ...patient, flaggers: ["N/A"] };
 
-                    const flaggerP = (flagged.flaggers || []).map((flaggerId) =>
-                        fetch(`http://localhost:8060/students/${flaggerId}`, {
+                const flaggerNames = await Promise.all(patient.flaggers.map(async (flaggerId) => {
+                    try {
+                        const res = await fetch(`http://localhost:8060/students/${flaggerId}`, {
                             method: "GET",
                             headers: {
                                 "Authorization": `Bearer ${token}`,
                                 "Content-Type": "application/json",
                             },
-                        })
-                        .then(response => {
-                            if (!response.ok) throw new Error(`Failed to fetch student data for ${flaggerId}`);
-                            return response.json();
-                        })
-                        .then(studentData => studentData.name)
-                        .catch(error => {
-                            console.error(`Error fetching flagger ${flaggerId}:`, error);
-                            return "Unknown";
-                        })
-                    );
+                        });
+                        const student = await res.json();
+                        return student.name || "Unknown";
+                    } catch {
+                        return "Unknown";
+                    }
+                }));
 
-                    return Promise.all(flaggerP).then((flaggers) => ({
-                        ...flagged,
-                        patientName: patientData.name, // paitent name
-                        flaggers, // list of people who flagged
-                    }));
-                })
-            );
+                return { ...patient, flaggers: flaggerNames };
+            }));
 
-            const updatedFlaggedPatients = await Promise.all(patientP);
-            setFlaggedPatients(updatedFlaggedPatients);
+            setFlaggedPatients(paflaggerNames);
         })
         .catch(error => {
-            console.error(error);
+            console.error("Error fetching flagged patients:", error);
             setError("Error fetching flagged patients.");
         });
-
     }, []);
 
     if (!isAuthenticated) {
         return (
             <div className="not-authenticated">
                 <h2>Access Denied</h2>
-                <p>Uhhh... you're not supposed to be here. Come back when you're logged in, buddy boy.</p>
+                <p>Please log in to continue.</p>
                 <button onClick={() => navigate("/")} className="login-button">
                     Go to Login
                 </button>
@@ -140,7 +103,7 @@ function FlaggedPatientsDash() {
                 {error ? (
                     <p className="error-message">{error}</p>
                 ) : flaggedPatients === null ? (
-                    <p className="loading-message">...loading patient messages...</p>
+                    <p className="loading-message">...loading flagged patients...</p>
                 ) : flaggedPatients.length === 0 ? (
                     <p>No flagged patients found.</p>
                 ) : (
@@ -154,10 +117,10 @@ function FlaggedPatientsDash() {
                         <tbody>
                             {flaggedPatients.map((patient, index) => (
                                 <tr key={index} className="clickable-patient">
-                                    <td>{patient.patientName}</td>
-                                    <td>{(patient.flaggers || []).join(", ") || "N/A"}</td>
-                                 </tr>
-                             ))}
+                                    <td>{patient.patient?.name || "Unknown"}</td>
+                                    <td>{(patient.flaggers || []).join(", ")}</td>
+                                </tr>
+                            ))}
                         </tbody>
 
                     </table>
