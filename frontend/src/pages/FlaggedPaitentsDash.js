@@ -40,7 +40,7 @@ function FlaggedPatientsDash() {
         })
         .then(response => response.json())
         .then(async (data) => {
-            console.log("Flagged Patients API Response:", data);
+            
 
             // Fetch names for each flagger ID
             const paflaggerNames = await Promise.all(data.map(async (patient) => {
@@ -115,13 +115,16 @@ function FlaggedPatientsDash() {
                             </tr>
                         </thead>
                         <tbody>
-                            {flaggedPatients.map((patient, index) => (
-                                <tr key={index} className="clickable-patient">
-                                    <td>{patient.patient?.name || "Unknown"}</td>
-                                    <td>{(patient.flaggers || []).join(", ")}</td>
-                                </tr>
+                             {flaggedPatients.map((patient, index) => (
+                            <tr key={index} className="clickable-patient"
+                                onClick={() => navigate(`/FlaggedPatient/${patient.patient?.id}`)}>
+                                    
+                                <td>{patient.patient?.name || "Unknown"}</td>
+                                <td>{(patient.flaggers || []).join(", ")}</td>
+                            </tr>
                             ))}
                         </tbody>
+
 
                     </table>
                 )}
