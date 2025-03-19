@@ -28,6 +28,7 @@ func main() {
 
 	// API Gateway
 	m := mux.NewRouter()
+	
 
 	//Job Scheduler
 	c := cron.New(cron.WithSeconds())
@@ -50,6 +51,8 @@ func main() {
 	// Auth
 	m.HandleFunc("/addUser", supabase.SignUpUser).Methods("POST")
 	m.HandleFunc("/login", supabase.SignInUser).Methods("POST")
+	m.HandleFunc("/forgotPassword", supabase.ForgotPassword).Methods("POST")
+	m.HandleFunc("/resetPassword", supabase.ResetPassword).Methods("POST")
 
 	// Patients
 	patientsRouter := m.PathPrefix("/patients").Subrouter()
@@ -82,7 +85,8 @@ func main() {
 
 	// Endpoints for tasks (generating, getting, completing, etc.)
 	m.HandleFunc("/generateTasks", supabase.GenerateTasksHTMLWrapper).Methods("POST")
-	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("POST", "OPTIONS") //had to make this post bc the function expects a body
+	//hardcoded body to show incomplete tasks ^^^
 	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTaskByWeek).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST")

@@ -28,37 +28,119 @@ function StudentDashboard(){
     
     useEffect(() => {
         const token = localStorage.getItem("accessToken");
-        
+        const userId = localStorage.getItem("userId");
+        console.log("user id is", userId);
         if (!token) {
             setIsAuthenticated(false);
+            console.log("ya goofed");
             return;
         }
+        setIsAuthenticated(true);
+        console.log("Fetching:", `http://localhost:8060/${userId}/tasks`);
 
-        fetch("http://localhost:8060/patients",{
-            method: "GET",
+        //Fetch all tasks for student
+        fetch(`http://localhost:8060/${userId}/tasks`,{
+            method: "POST",
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
-            },                
+            },
+            body: JSON.stringify({ get_incomplete_tasks: true, get_complete_tasks: false }),          
         })
         .then(response => {     //Bad token? error.
             if (!response.ok) {
-                throw new Error("Invalid token");
+                throw new Error("student task fetch failed!");
             }
             return response.json();
         })
-        .then(data => {         //Empty array returned? means bad token. error.
-            if (Array.isArray(data) && data.length === 0) {
-                throw new Error("Invalid token");
-            }
+        //In here for each task make necessary calls to that patient's informational api endpoints
+        //to display the preview info on each dash tab
+        .then(async (tasks) => {         //Empty array returned? means bad token. error.
+            console.log("tasks fetched successfully", tasks);
+
+            const patientMessages = tasks.filter(task => task.task_type === "patient_question");
+            const results = tasks.filter(task => task.task_type === "lab_result");
+            const prescriptions = tasks.filter(task => task.task_type === "prescription");
+
             setIsAuthenticated(true);
-            setMessages(data);
+
+            const fetchPatientMessage = async (taskList) => {
+                return Promise.all(taskList.map(async (task) => {
+                    const fullPatient = await fetch(`http://localhost:8060/patients/${task.patient_id}`, {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                    });
+                    const patientData = await fullPatient.json();
+                    return { ...task, patient: patientData };
+                }))
+            };
+
+            //async to ensure api calls all get through before it tries to move on
+            const fetchPrescriptions = async (taskList) => {
+                return Promise.all(taskList.map(async (task) => {
+                    const fullPrescription = await fetch(`http://localhost:8060/patients/${task.patient_id}/prescriptions`,{
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                    });
+                    const prescriptionData = await fullPrescription.json();
+                    //annoyingly we are gonna do two api calls for prescription. Because prescription endpoint doesn't
+                    //have name and that is quite nice to have on prescription tab. similar for result tab below.
+                    const fullPatient = await fetch(`http://localhost:8060/patients/${task.patient_id}`, {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                    });
+                    const patientData = await fullPatient.ok ? await fullPatient.json() : null;
+                    //mush all task info, prescription return, and patientdata return into this return
+                    return { ...task, prescription: prescriptionData, patient: patientData}
+                }))
+            };
+
+            const fetchResults = async (taskList) => {
+                return Promise.all(taskList.map(async (task) => {
+                    const fullResult = await fetch(`http://localhost:8060/patients/${task.patient_id}/results`, {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                    });
+                    const resultData = await fullResult.json();
+
+                    const fullPatient = await fetch(`http://localhost:8060/patients/${task.patient_id}`, {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                    });
+                    
+                    const patientData = await fullPatient.ok ? await fullPatient.json() : null;
+                    return { ...task, result: resultData, patient: patientData };
+                }))
+            };
+
+            const realMessages = await fetchPatientMessage(patientMessages);
+            const realResults = await fetchResults(results);
+            const realPrescriptions = await fetchPrescriptions(prescriptions);
+
+            setMessages(realMessages);
+            setResults(realResults);
+            setPrescriptions(realPrescriptions);
+            
         })
 
         .catch(error => {       //Error? setIsAuthenticated to false to trip the mechanism for the login link
             console.error(error);
             setError("Failed patient data fetch");
-            setIsAuthenticated(false);
         });
     }, [isAuthenticated]);
 
@@ -96,58 +178,6 @@ function StudentDashboard(){
     }, []);
 
 
-
-    const fetchPrescriptions = () => {
-        const token = localStorage.getItem("accessToken")
-
-        if (!token) {
-            setIsAuthenticated(false);
-            return;
-        }
-
-        fetch("http://localhost:8060/prescriptions", {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application.json",
-            },
-        })
-        .then(response => response.json())
-        .then(data => setPrescriptions(data))
-        .catch(error => {
-            console.error(error);
-            setError("failed fetching prescriptions");
-        });
-
-    };
-
-    const fetchResults = () => {
-        const token = localStorage.getItem("accessToken")
-
-        if (!token) {
-            setIsAuthenticated(false);
-            return;
-        }
-
-        fetch("http://localhost:8060/results", {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application.json",
-            },
-        })
-        .then(response => response.json())
-        .then(data => setResults(data))
-        .catch(error => {
-            console.error(error);
-            setError("failed fetching results");
-        });
-
-    };
-
-  
-
-
     return (
         <div className="dashboard-container">
             {/* gray banner at top */}
@@ -180,7 +210,6 @@ function StudentDashboard(){
                         className={`nav-link ${view === "results" ? "active" : ""}`}
                         onClick={() => {
                         setView("results")
-                        fetchResults();
                         }}
                     >
                         Results
@@ -188,7 +217,6 @@ function StudentDashboard(){
                     <button
                         className={`nav-link ${view === "prescriptions" ? "active" : ""}`}
                         onClick={() => {
-                            fetchPrescriptions();
                             setView("prescriptions");
                             
                         }}
@@ -222,22 +250,19 @@ function StudentDashboard(){
                                                     <tr 
                                                         key={index}
                                                         className="clickable-patient"
-                                                        onClick={() => navigate(`/PatientPage/${message.id}`)}
+                                                        onClick={() => navigate(`/PatientPage/${message.patient_id}`)}
 
                                                     >
-                                                        <td>{message.name}</td>
-                                                        <td>{message.date_of_birth}</td>
-                                                        <td>{message.patient_message}</td>
-                                                        <button><img src={QuickReply} alt="Quick Reply" className="quick-reply" onClick={(e)=> {
-                                                            e.stopPropagation();
-                                                            setView("prescriptions");
-                                                        }}></img></button>
+                                                        <td>{message.patient.name}</td>
+                                                        <td>{message.patient.date_of_birth}</td>
+                                                        <td>{message.patient.patient_message}</td>
+                                                        {/* <img src={QuickReply} alt="Quick Reply" className="quick-reply"></img> */}
                                                     </tr>
                                                 ))}
                                             </tbody>
                                         </table>
                                     ) : (
-                                        <p>...loading patient messages...</p>
+                                        <p>No messages tasks!</p>
                                     )}
                                 </div>
                             )}
@@ -252,7 +277,6 @@ function StudentDashboard(){
                                                     <th>Name</th>
                                                     <th>Medication</th>
                                                     <th>Dose</th>
-                                                    <th>Refill Status</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -261,16 +285,15 @@ function StudentDashboard(){
                                                         className="clickable-patient"
                                                         onClick={() => navigate(`/PatientPage/${prescription.patient_id}`)}
                                                     >
-                                                        <td>{prescription.patient.name}</td>
-                                                        <td>{prescription.medication}</td>
-                                                        <td>{prescription.dose}</td>
-                                                        <td>{prescription.refill_status}</td>
+                                                        <td>{prescription.patient ? prescription.patient.name : "Unknown"}</td>
+                                                        <td>{prescription.prescription && prescription.prescription.length > 0 ? prescription.prescription[0].medication : "No medication"}</td>
+                                                        <td>{prescription.prescription && prescription.prescription.length > 0 ? prescription.prescription[0].dose : "No dose"}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
                                         </table>
                                     ) : (
-                                        <p>...loading prescriptions...</p>
+                                        <p>No prescriptions tasks!</p>
                                     )}
                                 </div>
                             )}
@@ -294,16 +317,16 @@ function StudentDashboard(){
                                                     className="clickable-patient"
                                                     onClick={() => navigate(`/PatientPage/${result.patient_id}`)}
                                                 >
-                                                    <td>{result.patient.name}</td>
-                                                    <td>{result.test_name}</td>
-                                                    <td>{result.test_date}</td>
+                                                    <td>{result.patient ? result.patient.name : "Unknown"}</td>
+                                                    <td>{result.result && result.result.length > 0 ? result.result[0].test_name : "No test name"}</td>
+                                                    <td>{result.result && result.result.length > 0 ? result.result[0].test_date : "No test date"}</td>
                                                     
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
                                 ) : (
-                                    <p>...loading results...</p>
+                                    <p>No results tasks!</p>
                                 )}
                             </div>
                             )}
