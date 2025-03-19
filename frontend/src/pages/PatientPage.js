@@ -123,6 +123,24 @@ function PatientPage() {
 
     };
 
+    const handleCompletion = () => {
+        const token = localStorage.getItem("accessToken");
+        const userId = localStorage.getItem("userId")
+        fetch(`/${userId}/tasks/${task_id}/completeTask`,{
+            method:'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                'patient_id': `${id}`,
+                'completed':true,  
+            }),
+        })
+        .then(data => {navigate('/StudentDashboard')})
+        .catch(error => console.error("Failed to complete", error));
+    };
+
     return (
         <div className="patient-container">
         {/* Header, name, logout button */}
@@ -288,6 +306,11 @@ function PatientPage() {
                     
                     ) : (
                         <p><strong>Patient flagged, instructor notified!</strong></p>
+                    )}
+                    </div>
+                    <div className="complete-container">
+                    {(
+                        <button className="complete-task-btn" onClick={handleCompletion}>Complete Task</button>
                     )}
                     </div>
                 </div>
