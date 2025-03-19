@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import "./css/StudentDetails.css"; // Your provided styles
+import "./css/StudentDetails.css"; // student details sytle
 
 function StudentDetails() {
     const { id } = useParams(); //Gets Id From Url
@@ -45,7 +45,7 @@ function StudentDetails() {
             setTasks(data || []);
             //Get Paitent For Id
             const patient_Id  = [...new Set(data.flatMap(week => week.Days.flatMap(day => day.Tasks.map(task => task.patient_id))))];
-            
+
             const patientData = {};
             await Promise.all(
                 patient_Id .map(async (patientId) => {
@@ -77,9 +77,7 @@ function StudentDetails() {
 
     if (!student)
     {
-        {/* this is very necessary, it tries to pull null values from
-            the variable with the api response if you don't have this
-            and it breaks */}
+     
         return (
             <p>Patient loading, please wait</p>
         )
