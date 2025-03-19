@@ -10,6 +10,41 @@ function StudentDetails() {
 
     const navigate = useNavigate();
 
+    const [isInstructor, setIsInstructor] = useState(null);
+
+    useEffect(() => {
+        // Fetch user details (to check if they are an instructor)
+        const userId = localStorage.getItem("userId");
+        console.log(userId);
+        if (!userId) {
+            console.error("User ID is not in local storage");
+            return
+        }
+        fetch(`http://localhost:8060/students/${userId}`,{
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
+                "Content-Type": "application/json",
+            },
+        })
+        
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("failed fetching user data");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log("fetched user data:", data);
+            setIsInstructor(data.isAdmin)
+        })
+        .catch((error) => {
+            console.error(error);
+            setStudent(null);
+        });
+    }, []);
+
+
     useEffect(() => {
         // Get student details
         fetch(`http://localhost:8060/students/${id}`, {
@@ -88,7 +123,7 @@ function StudentDetails() {
         <div className="student-container">
             {/* Header */}
             <div className="student-header">
-                <button onClick={() => navigate("/InstructorDashboard")} className="back-button">
+                <button onClick={() => navigate(isInstructor ? "/InstructorDashboard" : "/StudentDashboard")} className="back-button">
                     ⬅ Back to Dashboard
                 </button>
                 <div className="student-name">{student.name}</div>

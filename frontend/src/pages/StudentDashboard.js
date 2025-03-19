@@ -229,6 +229,12 @@ function StudentDashboard(){
                     >
                         Prescriptions/Refills
                     </button>
+                    <button
+                        className="nav-link"
+                        onClick={() => navigate(`/StudentDetails/${localStorage.getItem("userId")}`)}
+                    >
+                        Previous Tasks
+                    </button>
                 </div>
 
                 {/* main */}
