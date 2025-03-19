@@ -28,6 +28,7 @@ func main() {
 
 	// API Gateway
 	m := mux.NewRouter()
+	
 
 	//Job Scheduler
 	c := cron.New(cron.WithSeconds())
@@ -83,11 +84,12 @@ func main() {
 	m.HandleFunc("/keepPatient", supabase.KeepPatient).Methods("POST")
 
 	// Endpoints for tasks (generating, getting, completing, etc.)
-	m.HandleFunc("/generateTasks", supabase.GenerateTasksHTMLWrapper).Methods("POST")                 // generates variable amount of tasks for a student
-	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("POST")                 // displays tasks for a student, filtered by completion in request
-	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTasksByWeekAndDay).Methods("GET")            // used to display a student's tasks, sorted by week
-	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")                // gets a singular task for a student
-	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST") // completes that singular task
+	m.HandleFunc("/generateTasks", supabase.GenerateTasksHTMLWrapper).Methods("POST")
+	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("POST", "OPTIONS") //had to make this post bc the function expects a body
+	//hardcoded body to show incomplete tasks ^^^
+	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTaskByWeek).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST")
 	// Misc
 	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
 
