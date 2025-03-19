@@ -17,6 +17,8 @@ function PatientPage() {
     const [disableInput, setDisableInput] = useState(false);
     const [flagState, setFlagState] = useState(false);
     const [bannerMessage, setBannerMessage] = useState("");
+    const [refillDecision, setRefillDecision] = useState("");
+    const [finalMessage, setFinalMessage] = useState("");
 
     
     const navigate = useNavigate();
@@ -67,27 +69,20 @@ function PatientPage() {
     }, [id]);
 
     useEffect(() => {
-        // if (!results.length && location.state?.task_type === "lab result") {
-        //     setBannerMessage("Error, it's results task but not finding results");
-        //     return;
-        // }
-
-        // if (!prescriptions.length && location.state?.task_type === "prescription") {
-        //     setBannerMessage("Error, it's prescriptions task but not finding prescriptions");
-        //     return ;
-        // }
-
+        if (!results.length && !prescriptions.length){ //wait for load
+            return;
+        }
         if (location.state?.task_type === "lab_result") {
-            const relevantResult = results.find(res => res.result_id === location.state.result_id);
+            const relevantResult = results.find(res => res.id === location.state.result_id);
             if (relevantResult) {
-                setBannerMessage(`Analyze the results of ${relevantResult.test_name} for your patient!`);
+                setBannerMessage(`Analyze the results of the ${relevantResult.test_name} for your patient!`);
             }
             else{ setBannerMessage("Couldn't find specific results task"); }
             setActiveTab("results");
         }
 
         else if (location.state?.task_type === "prescription") {
-            const relevantPrescription = prescriptions.find(pres => pres.prescription_id === location.state.prescription_id);
+            const relevantPrescription = prescriptions.find(pres => pres.id === location.state.prescription_id);
             if (relevantPrescription) {
                 setBannerMessage(`Should the ${relevantPrescription.medication} prescription be refilled? Why or why not?`);
             }
@@ -124,6 +119,12 @@ function PatientPage() {
             return;
         }
 
+        if (location.state?.task_type === "prescription"){
+            let userMessageCopy = userMessage;
+            let refillMessage = `\n\nThe prescription should ${refillDecision === "Refill" ? "be refilled" : "not be refilled"}.`
+            setUserMessage(userMessageCopy + refillMessage);
+        }
+        
         fetch(`http://localhost:8060/patients/${id}/llm-response`, {
             method: "GET",
             headers: {
@@ -194,6 +195,13 @@ function PatientPage() {
                 Prescriptions
             </button>
 
+            <button
+                className={activeTab === "pdmp" ? "active-tab" : ""}
+                onClick={() => setActiveTab("pdmp")}
+            >
+                PDMP
+            </button>
+
             {/*Ai repsonse tab locked until response submitted */}
             <button 
                 className={activeTab === "ai-response" ? "active-tab" : ""} 
@@ -230,6 +238,22 @@ function PatientPage() {
                                 <td>{patient.allergies}</td>
                             </tr>
                             <tr>
+                                <td><strong>Immunizations</strong></td>
+                                <td>
+                                    {patient.immunization ? (
+                                        <ul>
+                                            {Object.entries(patient.immunization).map(([vax, date]) => (
+                                                <li key={vax}>
+                                                    {vax} ({date})
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        "No Immunizations"
+                                    )}
+                                </td>
+                            </tr>
+                            <tr>
                                 <td><strong>Medical History</strong></td>
                                 <td>{patient.medical_history}</td>
                             </tr>
@@ -245,10 +269,13 @@ function PatientPage() {
                                 <td><strong>Cholesterol</strong></td>
                                 <td>{patient.cholesterol}</td>
                             </tr>
-                            <tr>
-                                <td><strong>Patient Message</strong></td>
-                                <td className="patient-message">{patient.patient_message}</td>
-                            </tr>
+
+                            {location.state?.task_type === "patient_question" && (
+                                <tr>
+                                    <td><strong>Patient Message</strong></td>
+                                    <td className="patient-message">{patient.patient_message}</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -273,9 +300,9 @@ function PatientPage() {
                                         <td>{result.test_date}</td>
                                         <td>
                                             <ul>
-                                                {Object.entries(result.test_result).map(([substance, detected]) => (
-                                                    <li key={substance}>
-                                                        {substance}: {detected ? "Positive" : "Negative"}
+                                                {Object.entries(result.test_result).map(([key, value]) => (
+                                                    <li key={key}>
+                                                        {key}: {typeof value === "boolean" ? (value ? "Positive" : "Negative") : value}
                                                     </li>
                                                 ))}
                                             </ul>
@@ -299,7 +326,6 @@ function PatientPage() {
                                 <tr>
                                     <th>Medication</th>
                                     <th>Dose</th>
-                                    <th>Refill Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -307,7 +333,6 @@ function PatientPage() {
                                     <tr key={index}>
                                         <td>{prescription.medication}</td>
                                         <td>{prescription.dose}</td>
-                                        <td>{prescription.refill_status}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -317,6 +342,42 @@ function PatientPage() {
                     )}
                 </div>
             )}
+
+            {activeTab === "pdmp" && (
+                <div className="pdmp">
+                    <h2>PDMP</h2>
+                    {patient.pdmp ? (
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Drug</th>
+                                    <th>Quantity</th>
+                                    <th>Days</th>
+                                    <th>Refills</th>
+                                    <th>Date Written</th>
+                                    <th>Date Filled</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {patient.pdmp.map((entry, index) => (
+                                    <tr key={index}>
+                                        <td>{entry.drug}</td>
+                                        <td>{entry.qty}</td>
+                                        <td>{entry.days}</td>
+                                        <td>{entry.refill}</td>
+                                        <td>{entry.date_written}</td>
+                                        <td>{entry.date_filled}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p>No PDMP Available</p>
+                    )}
+                    </div>
+            )}
+
+            
             {/* <img src={QuickReply} alt="Quick Reply" className="quick-reply"></img> */}
 
             {activeTab === "ai-response" && (
@@ -342,15 +403,42 @@ function PatientPage() {
 
         {!disableInput && (
         <div>
-        <div className="ai-input-area">
-            <textarea
-                type="text"
-                value={userMessage}
-                onChange={(e) => setUserMessage(e.target.value)}
-                placeholder="Type response here"
-                className="ai-input-box"
-            />
-            
+            <div className="ai-input-area">
+                {location.state?.task_type === "prescription" && (
+                    <div className="refill-buttons-container">
+                        <label>
+                            <input
+                                type="radio"
+                                name="refillDecision"
+                                value="Refill"
+                                checked={refillDecision === "Refill"}
+                                onChange={(e) => setRefillDecision(e.target.value)}
+                            />
+                            Refill
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name="refillDecision"
+                                value="Don't Refill"
+                                checked={refillDecision === "Don't Refill"}
+                                onChange={(e) => setRefillDecision(e.target.value)}
+                            />
+                            Don't Refill
+                        </label>
+                    </div>
+                )}
+                
+                
+        </div>
+        <div>
+        <textarea
+                    type="text"
+                    value={userMessage}
+                    onChange={(e) => setUserMessage(e.target.value)}
+                    placeholder="Type response here"
+                    className="ai-input-box"
+                />
         </div>
         <button onClick={handleSubmit} className="submit-response">Submit</button>
         </div>
