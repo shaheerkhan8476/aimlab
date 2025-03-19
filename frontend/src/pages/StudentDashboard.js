@@ -58,9 +58,15 @@ function StudentDashboard(){
         .then(async (tasks) => {         //Empty array returned? means bad token. error.
             console.log("tasks fetched successfully", tasks);
 
+            tasks.forEach(task => {
+                console.log(`Task ID: ${task.task_id}, Type: ${task.task_type}, Result ID: ${task.result_id}`);
+            });
+
             const patientMessages = tasks.filter(task => task.task_type === "patient_question");
             const results = tasks.filter(task => task.task_type === "lab_result");
             const prescriptions = tasks.filter(task => task.task_type === "prescription");
+
+            console.log("Filtered results tasks:", results);
 
             setIsAuthenticated(true);
 
@@ -81,51 +87,51 @@ function StudentDashboard(){
             //async to ensure api calls all get through before it tries to move on
             const fetchPrescriptions = async (taskList) => {
                 return Promise.all(taskList.map(async (task) => {
-                    const fullPrescription = await fetch(`http://localhost:8060/patients/${task.patient_id}/prescriptions`,{
+                    const fullPrescription = await fetch(`http://localhost:8060/prescriptions/${task.prescription_id}`,{
                         method: "GET",
                         headers: {
                             "Authorization": `Bearer ${token}`,
                             "Content-Type": "application/json",
                         },
+                    }).then(res => res.json()).catch(err => {
+                        console.error(`failed to fetch prescription, id is ${task.prescription_id}`, err);
+                        return null;
                     });
-                    const prescriptionData = await fullPrescription.json();
-                    //annoyingly we are gonna do two api calls for prescription. Because prescription endpoint doesn't
-                    //have name and that is quite nice to have on prescription tab. similar for result tab below.
-                    const fullPatient = await fetch(`http://localhost:8060/patients/${task.patient_id}`, {
-                        method: "GET",
-                        headers: {
-                            "Authorization": `Bearer ${token}`,
-                            "Content-Type": "application/json",
-                        },
-                    });
-                    const patientData = await fullPatient.ok ? await fullPatient.json() : null;
-                    //mush all task info, prescription return, and patientdata return into this return
-                    return { ...task, prescription: prescriptionData, patient: patientData}
-                }))
+
+                    if (!fullPrescription) {return;} //do nothing if prescription null, bc that means it must be not prescrip task
+
+                    return {
+                        ...task,
+                        prescription: fullPrescription,
+                        patient: {name: fullPrescription.patient.name}
+                    };
+                }));
             };
 
             const fetchResults = async (taskList) => {
                 return Promise.all(taskList.map(async (task) => {
-                    const fullResult = await fetch(`http://localhost:8060/patients/${task.patient_id}/results`, {
-                        method: "GET",
-                        headers: {
-                            "Authorization": `Bearer ${token}`,
-                            "Content-Type": "application/json",
-                        },
-                    });
-                    const resultData = await fullResult.json();
 
-                    const fullPatient = await fetch(`http://localhost:8060/patients/${task.patient_id}`, {
+                    console.log(`Fetching result for task ${task.task_id} with result_id: ${task.result_id}`);
+
+                    const fullResult = await fetch(`http://localhost:8060/results/${task.result_id}`, {
                         method: "GET",
                         headers: {
                             "Authorization": `Bearer ${token}`,
                             "Content-Type": "application/json",
                         },
+                    }).then(res => res.json()).catch(err => {
+                        console.error(`failed fetching result with id ${task.result_id}`, err);
+                        return null;
                     });
-                    
-                    const patientData = await fullPatient.ok ? await fullPatient.json() : null;
-                    return { ...task, result: resultData, patient: patientData };
-                }))
+
+                    if (!fullResult) return;  //dont do anything if the call returns null that means it's probably not result task
+
+                    return {
+                        ...task,
+                        result: fullResult,
+                        patient: { name: fullResult.patient.name }
+                    };
+                }));
             };
 
             const realMessages = await fetchPatientMessage(patientMessages);
@@ -250,7 +256,8 @@ function StudentDashboard(){
                                                     <tr 
                                                         key={index}
                                                         className="clickable-patient"
-                                                        onClick={() => navigate(`/PatientPage/${message.patient_id}`)}
+                                                        onClick={() => navigate(`/PatientPage/${message.patient_id}`, 
+                                                            {state: {task_type: "patient_question", patient_question: message.patient.patient_message}})}
 
                                                     >
                                                         <td>{message.patient.name}</td>
@@ -284,11 +291,16 @@ function StudentDashboard(){
                                                 {prescriptions.map((prescription, index) => (
                                                     <tr key={index}
                                                         className="clickable-patient"
-                                                        onClick={() => navigate(`/PatientPage/${prescription.patient_id}`)}
+                                                        onClick={() => navigate(`/PatientPage/${prescription.patient_id}`, {
+                                                            state: {
+                                                                task_type: "prescription",
+                                                                prescription_id: prescription.prescription_id
+                                                            }
+                                                        })}
                                                     >
                                                         <td>{prescription.patient ? prescription.patient.name : "Unknown"}</td>
-                                                        <td>{prescription.prescription && prescription.prescription.length > 0 ? prescription.prescription[0].medication : "No medication"}</td>
-                                                        <td>{prescription.prescription && prescription.prescription.length > 0 ? prescription.prescription[0].dose : "No dose"}</td>
+                                                        <td>{prescription.prescription ? prescription.prescription.medication : "No medication"}</td>
+                                                        <td>{prescription.prescription ? prescription.prescription.dose : "No dose"}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -316,11 +328,24 @@ function StudentDashboard(){
                                             {results.map((result, index) => (
                                                 <tr key={index}
                                                     className="clickable-patient"
-                                                    onClick={() => navigate(`/PatientPage/${result.patient_id}`)}
+                                                    onClick={() => {
+                                                        console.log("Navigating to PatientPage with task:", {
+                                                            task_type: "lab_result",
+                                                            result_id: result.result_id,
+                                                        });                                         
+                                                        
+                                                        
+                                                        
+                                                        navigate(`/PatientPage/${result.patient_id}`, {
+                                                        state: {
+                                                            task_type: "lab_result",
+                                                            result_id: result.result_id
+                                                        }
+                                                    });}}
                                                 >
                                                     <td>{result.patient ? result.patient.name : "Unknown"}</td>
-                                                    <td>{result.result && result.result.length > 0 ? result.result[0].test_name : "No test name"}</td>
-                                                    <td>{result.result && result.result.length > 0 ? result.result[0].test_date : "No test date"}</td>
+                                                    <td>{result.result ? result.result.test_name : "No test name"}</td>
+                                                    <td>{result.result ? result.result.test_date : "No test date"}</td>
                                                     
                                                 </tr>
                                             ))}

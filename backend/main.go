@@ -28,6 +28,7 @@ func main() {
 
 	// API Gateway
 	m := mux.NewRouter()
+	
 
 	//Job Scheduler
 	c := cron.New(cron.WithSeconds())
@@ -89,12 +90,6 @@ func main() {
 	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTaskByWeek).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST")
-
-	// Student Assignment Feature
-	m.HandleFunc("/getInstructors", supabase.GetInstructors).Methods("GET")
-	m.HandleFunc("/instructors/{instructor_id}/students", supabase.GetInstructorStudents).Methods("GET")
-	m.HandleFunc("/addStudent", supabase.AddStudentToInstructor).Methods("POST")
-
 	// Misc
 	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
 
