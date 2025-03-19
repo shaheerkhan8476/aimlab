@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import "./css/StudentDetails.css"; // student details sytle
+import "./css/StudentDetails.css";
 
 function StudentDetails() {
     const { id } = useParams(); //Gets Id From Url
-    const [student, setStudent] = useState(null);
-    const [tasks, setTasks] = useState([]);
+    const [student, setStudent] = useState(null); //store student
+    const [tasks, setTasks] = useState([]); //store task
     const [patient, setPatients] = useState({}); // Store patient names
 
     const navigate = useNavigate();
@@ -50,6 +50,7 @@ function StudentDetails() {
             await Promise.all(
                 patient_Id .map(async (patientId) => {
                     try {
+                        //loads paitent with its id
                         const response = await fetch(`http://localhost:8060/patients/${patientId}`, {
                             method: "GET",
                             headers: {
@@ -103,6 +104,7 @@ function StudentDetails() {
                         const weeklyCompletionRate = totalTasks > 0 ? ((completedTasks / totalTasks) * 100).toFixed(2) : 0;
                         
                         return (
+                            //displays task
                             <div key={windex} className="task-week">
                                 <h3>Week {week.Week} - Completion Rate: {weeklyCompletionRate}%</h3>
                                 {week.Days.map((day, dindex) => (
