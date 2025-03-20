@@ -269,6 +269,19 @@ function PatientPage() {
                                 <td><strong>Cholesterol</strong></td>
                                 <td>{patient.cholesterol}</td>
                             </tr>
+                            <tr>
+                                <td><strong>Height</strong></td>
+                                <td>{patient.height}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Weight</strong></td>
+                                <td>{patient.weight}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Blood Pressure</strong></td>
+                                <td>{patient.last_bp}</td>
+                            </tr>
+
 
                             {location.state?.task_type === "patient_question" && (
                                 <tr>
