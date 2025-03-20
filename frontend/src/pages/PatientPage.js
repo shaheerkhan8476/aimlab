@@ -278,7 +278,7 @@ function PatientPage() {
                                 <td>{patient.weight}</td>
                             </tr>
                             <tr>
-                                <td><strong>Blood Pressure</strong></td>
+                                <td><strong>Last Known Blood Pressure</strong></td>
                                 <td>{patient.last_bp}</td>
                             </tr>
 
