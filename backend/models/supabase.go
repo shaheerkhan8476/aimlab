@@ -17,6 +17,9 @@ type Patient struct {
 	PatientMessage       string            `json:"patient_message"`
 	PDMP                 []PDMPEntry       `json:"pdmp"`
 	Immunization         map[string]string `json:"immunization"`
+	Height               string            `json:"height"`
+	Weight               string            `json:"weight"`
+	BP                   string            `json:"last_bp"`
 }
 
 type PDMPEntry struct {
