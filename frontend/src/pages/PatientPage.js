@@ -300,11 +300,23 @@ function PatientPage() {
                                         <td>{result.test_date}</td>
                                         <td>
                                             <ul>
-                                                {Object.entries(result.test_result).map(([key, value]) => (
+                                            {Object.entries(result.test_result).map(([key, value]) => {
+                                                let displayValue;
+                                                if (typeof value === "object" && value !== null) {
+                                                    //check to see if you have the value as another object (usually in labs that have a specific value and reference value)
+                                                    displayValue = `Value: ${value.value}, Reference Range: ${value.reference_range}`;
+                                                } else if (typeof value === "boolean") {
+                                                    displayValue = value ? "Positive" : "Negative";
+                                                } else {
+                                                    //meaning it's just a number
+                                                    displayValue = value;
+                                                }
+                                                return (
                                                     <li key={key}>
-                                                        {key}: {typeof value === "boolean" ? (value ? "Positive" : "Negative") : value}
+                                                    {key}: {displayValue}
                                                     </li>
-                                                ))}
+                                                );
+                                                })}
                                             </ul>
                                         </td>
                                     </tr>
