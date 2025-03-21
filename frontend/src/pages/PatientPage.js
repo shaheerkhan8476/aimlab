@@ -119,18 +119,31 @@ function PatientPage() {
             return;
         }
 
+        let messageToSend = userMessage;
+
         if (location.state?.task_type === "prescription"){
-            let userMessageCopy = userMessage;
-            let refillMessage = `\n\nThe prescription should ${refillDecision === "Refill" ? "be refilled" : "not be refilled"}.`
-            setUserMessage(userMessageCopy + refillMessage);
+            const refillMessage = `\n\nThe prescription should ${refillDecision === "Refill" ? "be refilled" : "not be refilled"}.`
+            messageToSend += refillMessage;
         }
+
+        const giga_json = {
+            patient,
+            results,
+            prescriptions,
+            pdmp: patient.pdmp || [],
+            task_type: location.state?.task_type || "",
+            user_message: messageToSend,
+        };
+
+        console.log(giga_json);
         
-        fetch(`http://localhost:8060/patients/${id}/llm-response`, {
-            method: "GET",
+        fetch(`http://localhost:8060/llm-response`, {
+            method: "POST",
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
             },
+            body: JSON.stringify(giga_json),
 
         })
         .then(response => response.json())
