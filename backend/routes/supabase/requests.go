@@ -1,6 +1,8 @@
 package supabase
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
 // User Create Request Model
 type UserCreateRequest struct {
@@ -31,6 +33,11 @@ type TaskGetRequest struct {
 	GetCompleteTasks   *bool `json:"get_complete_tasks,omitempty"`
 }
 
+type TaskCompleteRequest struct {
+	StudentResponse string `json:"student_response"`
+	LLMFeedback     string `json:"llm_feedback"`
+}
+
 type FlaggedPatientRequest struct {
 	PatientID uuid.UUID `json:"patient_id"`
 	UserID    uuid.UUID `json:"user_id"`
@@ -55,4 +62,9 @@ type UpdateUserInput struct {
 type ResetPasswordRequest struct {
 	AccessToken string `json:"accessToken"`
 	NewPassword string `json:"newPassword"`
+}
+
+type AddStudentRequest struct {
+    InstructorId string `json:"instructor_id"`
+    StudentId    string `json:"student_id"`
 }

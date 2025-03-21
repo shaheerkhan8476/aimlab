@@ -28,7 +28,6 @@ func main() {
 
 	// API Gateway
 	m := mux.NewRouter()
-	
 
 	//Job Scheduler
 	c := cron.New(cron.WithSeconds())
@@ -87,7 +86,7 @@ func main() {
 	m.HandleFunc("/generateTasks", supabase.GenerateTasksHTMLWrapper).Methods("POST")
 	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("POST", "OPTIONS") //had to make this post bc the function expects a body
 	//hardcoded body to show incomplete tasks ^^^
-	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTaskByWeek).Methods("GET")
+	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTasksByWeekAndDay).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST")
 	// Misc
