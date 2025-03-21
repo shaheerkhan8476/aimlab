@@ -137,7 +137,7 @@ function PatientPage() {
 
         console.log(giga_json);
         
-        fetch(`http://localhost:8060/llm-response`, {
+        fetch(`http://localhost:8060/patients/${id}/llm-response`, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${token}`,
