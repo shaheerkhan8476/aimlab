@@ -2,23 +2,23 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function FlaggedPatientsDash() {
-    const [userName, setUserName] = useState("Instructor Name");
-    const [flaggedPatients, setFlaggedPatients] = useState(null);
-    const [error, setError] = useState(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(true);
-    const navigate = useNavigate();
+    const [userName, setUserName] = useState("Instructor Name"); //helps sets instructor name deafault Instructor Name
+    const [flaggedPatients, setFlaggedPatients] = useState(null);//set flagged paitents
+    const [error, setError] = useState(null);// helps navigate through error
+    const [isAuthenticated, setIsAuthenticated] = useState(true);//checks if auth default true
+    const navigate = useNavigate();//naviagte to new page
 
     useEffect(() => {
-        const userId = localStorage.getItem("userId");
-        const token = localStorage.getItem("accessToken");
+        const userId = localStorage.getItem("userId");//get local userid
+        const token = localStorage.getItem("accessToken");//get access token
 
+        //check if auth
         if (!userId || !token) {
-            console.error("User ID or token is missing");
             setIsAuthenticated(false);
             return;
         }
 
-        // Get Teacher name
+        // get instructor name
         fetch(`http://localhost:8060/students/${userId}`, {
             method: "GET",
             headers: {
@@ -26,11 +26,20 @@ function FlaggedPatientsDash() {
                 "Content-Type": "application/json",
             },
         })
-        .then(response => response.json())
-        .then(data => setUserName(data.name || "Instructor"))
-        .catch(() => setIsAuthenticated(false));
-
-        // Get Flagged Patients
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("failed fetching user data");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log("fetched user data:", data);
+            setUserName(data.name)
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+        // get paitients that are flagged
         fetch("http://localhost:8060/flaggedPatients", {
             method: "GET",
             headers: {
@@ -42,11 +51,11 @@ function FlaggedPatientsDash() {
         .then(async (data) => {
             
 
-            // Fetch names for each flagger ID
+            // get names for each flagged paitent
             const paflaggerNames = await Promise.all(data.map(async (patient) => {
-                if (!patient.flaggers || patient.flaggers.length === 0) return { ...patient, flaggers: ["N/A"] };
-
+                //for every id get name
                 const flaggerNames = await Promise.all(patient.flaggers.map(async (flaggerId) => {
+                    //get student data with id
                     try {
                         const res = await fetch(`http://localhost:8060/students/${flaggerId}`, {
                             method: "GET",
@@ -56,12 +65,12 @@ function FlaggedPatientsDash() {
                             },
                         });
                         const student = await res.json();
-                        return student.name || "Unknown";
+                        return student.name;
                     } catch {
-                        return "Unknown";
+                        return "Error flagger name not found";
                     }
                 }));
-
+                //return with paitent bit flagger replaced by names
                 return { ...patient, flaggers: flaggerNames };
             }));
 
@@ -69,7 +78,6 @@ function FlaggedPatientsDash() {
         })
         .catch(error => {
             console.error("Error fetching flagged patients:", error);
-            setError("Error fetching flagged patients.");
         });
     }, []);
 
@@ -117,9 +125,10 @@ function FlaggedPatientsDash() {
                         <tbody>
                              {flaggedPatients.map((patient, index) => (
                             <tr key={index} className="clickable-patient"
-                                onClick={() => navigate(`/FlaggedPatient/${patient.patient?.id}`)}>
+                                onClick={() => navigate(`/FlaggedPatient/${patient.id}`)}>
                                     
-                                <td>{patient.patient?.name || "Unknown"}</td>
+                                <td>{patient.patient?.name }</td>
+                                {/*displays flaggers with , in betweeb*/}
                                 <td>{(patient.flaggers || []).join(", ")}</td>
                             </tr>
                             ))}
