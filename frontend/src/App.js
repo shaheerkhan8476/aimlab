@@ -8,7 +8,7 @@ import PatientPage from './pages/PatientPage';
 import FlaggedPatientsDash from './pages/FlaggedPaitentsDash';
 import StudentDetails from './pages/StudentDetails';
 import CreateInstructor from './pages/CreateInstructor';
-import FlaggedPatient from './pages/FlaggedPage';
+
 
 //Main App entry point
 function App() {
@@ -24,7 +24,7 @@ function App() {
         <Route path="/CreateInstructor" element={<CreateInstructor />} />
         <Route path="/StudentDetails/:id" element={<StudentDetails />} />
         <Route path="/FlaggedPatientsDash" element={<FlaggedPatientsDash />} />
-        <Route path="/FlaggedPatient/:id" element={<FlaggedPatient/>} />
+        
         
       </Routes>
     </>

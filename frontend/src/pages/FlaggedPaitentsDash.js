@@ -125,7 +125,7 @@ function FlaggedPatientsDash() {
                         <tbody>
                              {flaggedPatients.map((patient, index) => (
                             <tr key={index} className="clickable-patient"
-                                onClick={() => navigate(`/FlaggedPatient/${patient.id}`)}>
+                                onClick={() => navigate(`/PatientPage/${patient.patient_id}`)}>
                                     
                                 <td>{patient.patient?.name }</td>
                                 {/*displays flaggers with , in betweeb*/}
