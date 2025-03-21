@@ -39,7 +39,6 @@ function FlaggedPatientsDash() {
         .catch((error) => {
             console.error(error);
         });
-        // get paitients that are flagged
         fetch("http://localhost:8060/flaggedPatients", {
             method: "GET",
             headers: {
@@ -49,13 +48,16 @@ function FlaggedPatientsDash() {
         })
         .then(response => response.json())
         .then(async (data) => {
+            //empty arrary to hold flagger name
+            const flaggerName = [];
             
-
-            // get names for each flagged paitent
-            const paflaggerNames = await Promise.all(data.map(async (patient) => {
-                //for every id get name
-                const flaggerNames = await Promise.all(patient.flaggers.map(async (flaggerId) => {
-                    //get student data with id
+            // get each patient of name
+            for (const patient of data) {
+                //Empty array to hold student name
+                const studentName = [];
+                
+                // get each flagger id of flaggers
+                for (const flaggerId of patient.flaggers) {
                     try {
                         const res = await fetch(`http://localhost:8060/students/${flaggerId}`, {
                             method: "GET",
@@ -65,16 +67,17 @@ function FlaggedPatientsDash() {
                             },
                         });
                         const student = await res.json();
-                        return student.name;
+                        //add name of student to array
+                        studentName.push(student.name);
                     } catch {
                         return "Error flagger name not found";
                     }
-                }));
-                //return with paitent bit flagger replaced by names
-                return { ...patient, flaggers: flaggerNames };
-            }));
-
-            setFlaggedPatients(paflaggerNames);
+                }
+                //Replace flagger id with student name
+                flaggerName.push({ ...patient, flaggers: studentName });
+            }
+            //Set the flagged patient to array of flaggers
+            setFlaggedPatients(flaggerName);
         })
         .catch(error => {
             console.error("Error fetching flagged patients:", error);
