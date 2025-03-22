@@ -89,6 +89,12 @@ func main() {
 	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTasksByWeekAndDay).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST")
+
+	//Student Instructor Assignment Feature
+	m.HandleFunc("/instructors", supabase.GetInstructors).Methods("GET")
+	m.HandleFunc("/instructors/{id}/students", supabase.GetInstructorStudents).Methods("GET")
+	m.HandleFunc("/addStudent", supabase.AddStudentToInstructor).Methods("POST")
+
 	// Misc
 	m.HandleFunc("/messageRequest", llm.RequestMessage).Methods("POST")
 

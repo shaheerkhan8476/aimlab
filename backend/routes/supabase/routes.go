@@ -1209,9 +1209,11 @@ func AddStudentToInstructor(w http.ResponseWriter, r *http.Request) {
 
 func GetInstructorStudents(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	instructorID := vars["instructor_id"]
+	instructorID := vars["id"]
+	fmt.Println(&instructorID)
 	instructorUUID, err := uuid.Parse(instructorID)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Invalid instructor UUID", http.StatusBadRequest)
 		return
 	}
