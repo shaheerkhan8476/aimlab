@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { data, useNavigate } from "react-router-dom";
 import "./css/Flagg.css";
 function FlaggedPatientsDash() {
-    const [userName, setUserName] = useState("Instructor Name"); //helps sets instructor name deafault Instructor Name
+    const [userName, setUserName] = useState(""); //helps sets instructor name deafault Instructor Name
     const [flaggedPatients, setFlaggedPatients] = useState(null);//set flagged paitents
     const [error, setError] = useState(null);// helps navigate through error
     const [isAuthenticated, setIsAuthenticated] = useState(true);//checks if auth default true
@@ -149,7 +149,9 @@ function FlaggedPatientsDash() {
                     ⬅ Back to Dashboard
                 </button>
                 <div className="spacer"></div>
-                <div className="welcome-message">Welcome, {userName}</div>
+                
+                {userName && (<div className="welcome-message">Welcome, {userName}</div>
+)}
             </div>
 
             {/* Main content */}
