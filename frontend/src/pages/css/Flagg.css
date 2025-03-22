@@ -5,7 +5,7 @@ body {
     padding: 0;
     background-color: #f4f7f9;
 }
-
+/* container style*/
 .dashboard-container {
     display: flex;
     flex-direction: column;
@@ -22,77 +22,13 @@ body {
     padding: 1em;
     height: 10%;
 }
-.button-container {
-    display: flex;
-    gap: 10px;
-}
-.logout-but {
-    background-color: #002855;
-    color: white;
-    border: none;
-    padding: 0.5em 1em;
-    border-radius: 0.375em;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-    max-width: fit-content;
-}
-.flagged-but {
-    background-color: #002855;
-    color: white;
-    border: none;
-    padding: 0.5em 1em;
-    border-radius: 0.375em;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-    max-width: fit-content;
-    
-}
+/*welcome message style*/
 .welcome-message {
     font-size: 1.2em;
     font-weight: bold;
 }
-/* Sidebar and Main container */
-.main-container {
-    display: flex;
-    flex-grow: 1;
-    height: 90%;
-}
 
-/* Sidebar */
-.sidebar {
-    background-color: #002855;
-    color: white;
-    flex: 0 0 12%; 
-    padding: 1em;
-    display: flex;
-    flex-direction: column;
-}
-
-.sidebar h2 {
-    color: #fff;
-    text-align: center;
-    margin-bottom: 1em;
-    font-size: 1.5rem; 
-}
-
-/*buttons on left*/
-.nav-link {
-    color: #002855;
-    text-decoration: none;
-    margin: 0.5em 0; 
-    padding: 0.5em 0.75em;
-    border-radius: 0.375em;
-    text-align: center; 
-    font-size: 1.1rem; 
-    transition: background-color 0.2s ease-in-out;
-    background-color: #FFFFFF; 
-}
-
-.nav-link.active {
-    background-color: #8B9EB7;
-}
-
-/* Main stuff */
+/* Main container */
 .content {
     flex-grow: 1;
     padding: 1em;
@@ -100,11 +36,7 @@ body {
     overflow-y: auto; /* should scroll if too many entries */
 }
 
-.data-section h2 {
-    color: #003f91;
-}
-
-/* Info table */
+/* Data table styles */
 .data-table {
     width: 100%;
     border-collapse: collapse;
@@ -114,27 +46,75 @@ body {
     overflow: hidden;
     box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.1);
 }
-
-.data-table th,
-.data-table td {
+/*text and allign*/
+.data-table th, .data-table td {
     padding: 1em;
     text-align: left;
 }
-
+/*color of header*/
 .data-table th {
     background-color: #FFFFFF;
     color: #000000;
 }
-
+/*color of table*/
 .data-table tr {
     background-color: #002855;
     color: #FFFFFF;
 }
-
+/*when hover over table*/
 .data-table tr:hover {
     background-color: #778cd2;
 }
 
-.quick-reply {
-    width: 2rem;
+/* Buttons container inside table cells */
+.data-table td:last-child {
+    white-space: normal;
+    text-align: center;
+}
+
+/* Button styles */
+button {
+    cursor: pointer;
+    border: none;
+}
+
+/* style of keep and remove */
+.keep-button, .remove-button {
+    display: block;
+    width: 70%; 
+    margin: 0 auto 10px; 
+    padding: 0.3em 0.6em; 
+    border-radius: 0.375em;
+}
+/*color of keep button*/
+.keep-button {
+    background-color: #28a745;
+    color: white;
+}
+/*color of when hover keep*/
+.keep-button:hover {
+    background-color: #218838;
+}
+/*color of remove button*/
+.remove-button {
+    background-color: #dc3545;
+    color: white;
+}
+/*color of hover remove*/
+.remove-button:hover {
+    background-color: #c82333;
+}
+
+/* login button  */
+.login-button {
+    background-color: #002855;
+    color: white;
+    padding: 0.5em 1em;
+    border-radius: 0.375em;
+}
+/* lading and error message and non auth */
+.loading-message, .error-message,.not-authenticated {
+    text-align: center;
+    padding: 1em;
+    
 }

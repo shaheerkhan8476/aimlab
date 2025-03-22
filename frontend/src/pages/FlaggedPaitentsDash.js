@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-
+import { data, useNavigate } from "react-router-dom";
+import "./css/Flagg.css";
 function FlaggedPatientsDash() {
     const [userName, setUserName] = useState("Instructor Name"); //helps sets instructor name deafault Instructor Name
     const [flaggedPatients, setFlaggedPatients] = useState(null);//set flagged paitents
     const [error, setError] = useState(null);// helps navigate through error
     const [isAuthenticated, setIsAuthenticated] = useState(true);//checks if auth default true
+    const [refresh, setRefresh] = useState(0); //used to refresh screen
     const navigate = useNavigate();//naviagte to new page
 
     useEffect(() => {
@@ -82,8 +83,52 @@ function FlaggedPatientsDash() {
         .catch(error => {
             console.error("Error fetching flagged patients:", error);
         });
-    }, []);
+    }, [refresh]);//refresh screen
 
+    // Handle keep patient request
+    const handleKeep = async (patientId) => {
+        const token = localStorage.getItem("accessToken");
+        try {
+            const response = await fetch("http://localhost:8060/keepPatient", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                //feeds the paitent id
+                body: JSON.stringify({ patient_id: patientId }),
+            });
+            if (response.ok) {
+                setRefresh(prev => prev + 1);//will refresh
+            } else {
+                console.error("Failed to keep patient:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error keeping patient:", error);
+        }
+    };
+    //Handle remove patient request
+    const handleRemove = async (patientId) => {
+        const token = localStorage.getItem("accessToken");
+        try {
+            const response = await fetch("http://localhost:8060/removePatient", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                //feeds the patient id
+                body: JSON.stringify({ patient_id: patientId }),
+            });
+            if (response.ok) {
+                setRefresh(prev => prev + 1);//refreshes
+            } else {
+                console.error("Failed to remove patient:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error removing patient:", error);
+        }
+    };
     if (!isAuthenticated) {
         return (
             <div className="not-authenticated">
@@ -126,18 +171,31 @@ function FlaggedPatientsDash() {
                             </tr>
                         </thead>
                         <tbody>
-                             {flaggedPatients.map((patient, index) => (
-                            <tr key={index} className="clickable-patient"
-                                onClick={() => navigate(`/PatientPage/${patient.patient_id}`)}>
-                                    
-                                <td>{patient.patient?.name }</td>
-                                {/*displays flaggers with , in betweeb*/}
-                                <td>{(patient.flaggers || []).join(", ")}</td>
-                            </tr>
+                            {flaggedPatients.map((patient, index) => (
+                                <tr key={index} className="clickable-patient"
+                                    onClick={() => navigate(`/PatientPage/${patient.patient_id}`)}>
+                
+                                    <td>{patient.patient?.name }</td>
+                                    {/*displays flaggers with , in betweeb*/}
+                                    <td>{(patient.flaggers || []).join(", ")}</td>
+                
+                                    {/* Keep and Remove buttons */}
+                                    <td>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Prevents from clicking on flagged patient
+                                                handleKeep(patient.patient_id);//runs keep
+                                            }} className="keep-button">Keep
+                                        </button>
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); //prevents from clicking on flagged patient
+                                            handleRemove(patient.patient_id);//runs remove
+                                             }} className="remove-button">Remove
+                                        </button>
+                                    </td>
+                                </tr>
                             ))}
                         </tbody>
-
-
                     </table>
                 )}
             </div>
