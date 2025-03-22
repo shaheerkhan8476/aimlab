@@ -7,6 +7,7 @@ import InstructorDashboard from './pages/InstructorDashboard';
 import PatientPage from './pages/PatientPage';
 import StudentDetails from './pages/StudentDetails';
 import CreateInstructor from './pages/CreateInstructor';
+import ForgotPassword from './pages/ForgotPassword';
 
 //Main App entry point
 function App() {
@@ -20,6 +21,7 @@ function App() {
         <Route path="/PatientPage/:id" element={<PatientPage />} />
         <Route path="/StudentDetails/:id" element={<StudentDetails />} />
         <Route path="/CreateInstructor" element={<CreateInstructor />} />
+        <Route path="/ForgotPassword" element={<ForgotPassword />} />
       </Routes>
     </>
   );
