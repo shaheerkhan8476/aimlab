@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import "./css/Login.css";
@@ -6,11 +6,20 @@ function ResetPassword()
 {
     //Create blank form for data user enters
     const [formData, setFormData] = useState({
-        email: '',
-        password: ''
+        password: '',
+        token: ''
     });
     const [message, setMessage] = useState(""); 
     const navigate = useNavigate();
+
+    //gets acess token from url with hash
+    useEffect(() => {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const token = hashParams.get("access_token");
+        if (token) {
+            setFormData((prev) => ({ ...prev, token }));
+        }
+    }, []);
 
     //Listen for user adjustment of html and apply to form
     const handleChange = (e) => {
@@ -26,19 +35,22 @@ function ResetPassword()
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:8060/resetPassword"',{
+            const response = await fetch('http://localhost:8060/resetPassword',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    accessToken: formData.token,  // Sends access token
+                    newPassword: formData.password // sends new password
+                }),
             });
             const responseText = await response.text();
             console.log("Response Data:", responseText);//for whatever reason doesnt work in if statement
             
-            if (responseText.includes("Reset password link sent (if email is valid)")) //used this instead of response.ok and works
+            if (responseText.includes("Password updated successfully")) //used this instead of response.ok and works
             {
-                setMessage("Check your email to reset password."); 
+                setMessage("Password updated successfully"); 
                 setTimeout(() => navigate("/"), 3000); 
             }
             else
@@ -57,10 +69,6 @@ function ResetPassword()
             <div className="login-box">
                 <h2>Reset Password</h2>
                 <form onSubmit={handleSubmit}>
-                    <div className="input-group">
-                        <label>Email</label>
-                        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter your email" required />
-                    </div>
                     <div className="input-group">
                         <label>Password</label>
                         <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Enter your new password"required/>

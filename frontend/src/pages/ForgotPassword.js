@@ -21,7 +21,7 @@ function ForgotPassword()
         });
     };
 
-    //Handle submit button and make POST request to backend to run /forgotPassword
+    //Handle submit button and make POST request to backend to run /addUser
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -33,10 +33,10 @@ function ForgotPassword()
                 body: JSON.stringify(formData),
             });
             const responseText = await response.text();
-            console.log("Response Data:", responseText);//for whatever reason doesnt work in if statement
-            
-            if (responseText.includes("Reset password link sent (if email is valid)")) //used this instead of response.ok and works
+            console.log("Response Data:", responseText);
+            if (responseText.includes("Reset password link sent")) 
             {
+
                 setMessage("Check your email to reset password."); 
                 setTimeout(() => navigate("/"), 3000); 
             }
