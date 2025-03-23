@@ -37,7 +37,7 @@ function ForgotPassword()
             if (responseText.includes("Reset password link sent")) 
             {
 
-                setMessage("Check your email to reset password."); 
+                setMessage("Check your inbox or spam to reset password"); 
                 setTimeout(() => navigate("/"), 3000); 
             }
             else

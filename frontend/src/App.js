@@ -22,6 +22,7 @@ function App() {
         <Route path="/PatientPage/:id" element={<PatientPage />} />
         <Route path="/StudentDetails/:id" element={<StudentDetails />} />
         <Route path="/CreateInstructor" element={<CreateInstructor />} />
+        <Route path="/FlaggedPatientsDash" element={<FlaggedPatientsDash />} />
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
