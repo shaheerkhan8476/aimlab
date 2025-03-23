@@ -115,17 +115,21 @@ function SignInUser()
                     </div>
                     <button type="submit">Login</button>
                 </form>
-                <p>
-                    Don't have an account?
+                <p> Don't have an account?
                     <span> </span>
-                    <span  
-                        className="signup-link" 
+                    <span  className="signup-link" 
                         onClick={() => {
                             navigate("/CreateUser");
-                        }}
-                    >
-                         Sign up</span>
+                        }}>Sign up</span>
                 </p>
+                <p> Forgot Password?
+                    <span> </span>
+                    <span  className="signup-link" 
+                        onClick={() => {
+                            navigate("/ForgotPassword");
+                        }}>Click here</span>
+                </p>
+
             </div>
         </div>
     );

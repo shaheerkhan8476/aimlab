@@ -8,8 +8,8 @@ import PatientPage from './pages/PatientPage';
 import FlaggedPatientsDash from './pages/FlaggedPaitentsDash';
 import StudentDetails from './pages/StudentDetails';
 import CreateInstructor from './pages/CreateInstructor';
-
-
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 //Main App entry point
 function App() {
   return (
@@ -22,10 +22,9 @@ function App() {
         <Route path="/PatientPage/:id" element={<PatientPage />} />
         <Route path="/StudentDetails/:id" element={<StudentDetails />} />
         <Route path="/CreateInstructor" element={<CreateInstructor />} />
-        <Route path="/StudentDetails/:id" element={<StudentDetails />} />
         <Route path="/FlaggedPatientsDash" element={<FlaggedPatientsDash />} />
-        
-        
+        <Route path="/ForgotPassword" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </>
   );
