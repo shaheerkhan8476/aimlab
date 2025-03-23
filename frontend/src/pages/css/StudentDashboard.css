@@ -22,7 +22,10 @@ body {
     padding: 1em;
     height: 10%;
 }
-
+.button-container {
+    display: flex;
+    gap: 10px;
+}
 .logout-but {
     background-color: #002855;
     color: white;
@@ -33,14 +36,23 @@ body {
     transition: background-color 0.2s ease-in-out;
     max-width: fit-content;
 }
-
-
-
+.flagged-but {
+    background-color: #002855;
+    color: white;
+    border: none;
+    padding: 0.5em 1em;
+    border-radius: 0.375em;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    max-width: fit-content;
+    
+}
 .welcome-message {
     font-size: 1.2em;
+    min-width: 250px;
+    text-align: right;
     font-weight: bold;
 }
-
 /* Sidebar and Main container */
 .main-container {
     display: flex;
