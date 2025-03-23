@@ -4,7 +4,7 @@ import "./css/Login.css";
 
 function SignUpTeacher() {
     const [teachers, setTeachers] = useState([]);
-    const [formData, setFormData] = useState({ instructorId: "", studentId: "" });
+    const [formData, setFormData] = useState({ instructor_id: "", student_id: "" });
     const [message, setMessage] = useState(""); 
     const navigate = useNavigate();
 
@@ -22,15 +22,15 @@ function SignUpTeacher() {
             console.error("User ID is not in local storage");
             return;
         }
-        setFormData(prevData => ({ ...prevData, studentId: userId }));
+        setFormData(prevData => ({ ...prevData, student_id: userId }));
     }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
+        setFormData(prevData => ({
+            ...prevData,
             [name]: value,
-        });
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -45,7 +45,7 @@ function SignUpTeacher() {
             });
             if (response.ok) {
                 setMessage("Student assigned successfully.");
-                setTimeout(() => navigate("/"), 3000);
+                setTimeout(() => navigate("/StudentDashboard"), 3000);
             } else {
                 console.error('Failed to assign student:', response.statusText);
             }
@@ -61,7 +61,7 @@ function SignUpTeacher() {
                 <form onSubmit={handleSubmit}>
                     <div className="input-group student-standing-group">
                         <label className="student-standing-label">Choose Instructor</label>
-                        <select className="styled-dropdown drop" name="instructorId" value={formData.instructorId} onChange={handleChange} required>
+                        <select className="styled-dropdown drop" name="instructor_id" value={formData.instructor_id} onChange={handleChange} required>
                             <option value="">Select an instructor</option>
                             {teachers.map((teacher) => (
                                 <option key={teacher.id} value={teacher.id}>{teacher.name}</option>

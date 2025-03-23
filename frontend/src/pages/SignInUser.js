@@ -43,6 +43,7 @@ function SignInUser()
                 const userId = data.user.id;
                 localStorage.setItem("accessToken", token);
                 localStorage.setItem("isAdmin", loginData.isAdmin);
+                localStorage.setItem("isAssigned", loginData.isAssigned);
                 localStorage.setItem("userEmail", loginData.email);
                 localStorage.setItem("userPassword", loginData.password);
                 localStorage.setItem("userId", userId);
@@ -60,8 +61,15 @@ function SignInUser()
                 
                 const isAdmin = userData.isAdmin;
                 localStorage.setItem("isAdmin", isAdmin);
+                
+                const isAssigned = userData.isAssigned;
+                localStorage.setItem("isAssigned", isAssigned);
 
-                if (isAdmin) {
+                if(!isAdmin && !isAssigned)
+                {
+                    navigate("/SignUpTeacher")
+                }
+                else if (isAdmin) {
                     navigate("/InstructorDashboard");
                 }
                 else {

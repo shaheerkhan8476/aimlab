@@ -19,13 +19,14 @@ function InstructorDashboard(){
     //determines if user authenticated
     useEffect(() => {
         const token = localStorage.getItem("accessToken");
-        
-        if (!token) {
+        const userId = localStorage.getItem("userId"); //gets teacher id
+    
+        if (!token || !userId) {
             setIsAuthenticated(false);
             return;
         }
-
-        fetch("http://localhost:8060/students",{
+    
+        fetch(`http://localhost:8060/instructors/${userId}/students`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -52,37 +53,6 @@ function InstructorDashboard(){
             setIsAuthenticated(false);
         });
     }, [isAuthenticated]);
-    useEffect(() => {
-        const userId = localStorage.getItem("userId");
-        console.log(userId);
-        if (!userId) {
-            console.error("User ID is not in local storage");
-            setIsAuthenticated(false);
-            return
-        }
-        fetch(`http://localhost:8060/students/${userId}`,{
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
-                "Content-Type": "application/json",
-            },
-        })
-        
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error("failed fetching user data");
-            }
-            return response.json();
-        })
-        .then((data) => {
-            console.log("fetched user data:", data);
-            setUserName(data.name)
-        })
-        .catch((error) => {
-            console.error(error);
-            setError("fetch user data failed");
-        });
-    }, []);
 
 
     return (
@@ -117,7 +87,7 @@ function InstructorDashboard(){
             <div className="content">
                     {!isAuthenticated ? (
                         <div className="not-authenticated">
-                            Uhhh... you're not supposed to be here. Come back when you're logged in, buddy boy
+                            Sorry....you have no students
                         </div>
                     ) : (
                         <div className="data-section">
