@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, useLocation} from 'react-router-dom';
+import { useNavigate, useParams, useLocation, data} from 'react-router-dom';
 import "./css/PatientPage.css";
 import ReportFlag from "../images/report-flag.png"
 
@@ -19,13 +19,46 @@ function PatientPage() {
     const [bannerMessage, setBannerMessage] = useState("");
     const [refillDecision, setRefillDecision] = useState("");
     const [finalMessage, setFinalMessage] = useState("");
-
+    const [isAdmin, setIsAdmin] = useState(null); //If user is admin for flagging page
     
     const navigate = useNavigate();
     const location = useLocation();
+   
+
+    useEffect(() => {
+        // Fetch user details (to check if they are an instructor)
+        const userId = localStorage.getItem("userId");
+        console.log(userId);
+        if (!userId) {
+            console.error("User ID is not in local storage");
+            return
+        }
+        fetch(`http://localhost:8060/students/${userId}`,{
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
+                "Content-Type": "application/json",
+            },
+        })
+        
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("failed fetching user data");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log("fetched user data:", data);
+            setIsAdmin(data.isAdmin)
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+    }, []);
 
     useEffect(() => {
         const token = localStorage.getItem("accessToken");
+        const userId = localStorage.getItem("userId");//get local userid
         if (!token) return;
 
 
@@ -168,10 +201,22 @@ function PatientPage() {
     return (
         <div className="patient-container">
         {/* Header, name, logout button */}
+        {(!isAdmin) && (
         <div className="patient-header">
+            
             <button onClick={() => navigate('/StudentDashboard')} className="back-button">⬅ Back to Dashboard</button>
             <div className="patient-name">{patient.name}</div>
         </div>
+        )}
+        {/*If teacher going through flagged go back that way*/}
+        {(isAdmin) && (
+        <div className="patient-header">
+            
+            <button onClick={() => navigate('/FlaggedPatientsDash')} className="back-button">⬅ Back to Dashboard</button>
+            <div className="patient-name">{patient.name}</div>
+        </div>
+        )}
+
 
        
         {/* New tab nav */}
@@ -425,8 +470,8 @@ function PatientPage() {
         {/* Task instruction banner */}
         {bannerMessage && <div className="task-banner">{bannerMessage}</div>}
 
-
-        {!disableInput && (
+        {/*if input is disabled or is teacher dont go in*/}
+        {(!disableInput && !isAdmin) && (
         <div>
             <div className="ai-input-area">
                 {location.state?.task_type === "prescription" && (

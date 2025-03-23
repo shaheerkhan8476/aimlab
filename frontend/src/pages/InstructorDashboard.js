@@ -9,7 +9,7 @@ function InstructorDashboard(){
     const [error, setError] = useState(null);   //state for error message
     const [isAuthenticated, setIsAuthenticated] = useState(true);
     const [view, setView] = useState("students");
-    const [userName, setUserName] = useState("Name McNameson")
+    const [userName, setUserName] = useState("")
     
 
     const navigate = useNavigate();
@@ -99,8 +99,16 @@ function InstructorDashboard(){
                 >
                     Log Out
                 </button>
+                <button
+                    className="logout-but"
+                    onClick={() => navigate(`/FlaggedPatientsDash`)}
+                >
+                    Flagged Patients
+                </button>
                 {/* hardcoded for now sry */}
-                <div className="welcome-message">Welcome, {userName}</div>
+                <div className="welcome-message">
+                    {userName ? `Welcome, ${userName}` : ""}
+                </div>
             </div>
             
     

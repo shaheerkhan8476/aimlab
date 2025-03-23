@@ -5,11 +5,11 @@ import SignInUser from './pages/SignInUser';
 import StudentDashboard from './pages/StudentDashboard';
 import InstructorDashboard from './pages/InstructorDashboard';
 import PatientPage from './pages/PatientPage';
+import FlaggedPatientsDash from './pages/FlaggedPaitentsDash';
 import StudentDetails from './pages/StudentDetails';
 import CreateInstructor from './pages/CreateInstructor';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-
 //Main App entry point
 function App() {
   return (

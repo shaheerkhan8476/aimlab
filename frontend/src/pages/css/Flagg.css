@@ -1,0 +1,120 @@
+/* general */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f9;
+}
+/* container style*/
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* gray welcome banner */
+.top-banner {
+    background-color: #d3d3d3; /* made it a different gray than mockup for this cuz it loooks nicer */
+    color: #002855;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1em;
+    height: 10%;
+}
+/*welcome message style*/
+.welcome-message {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+/* Main container */
+.content {
+    flex-grow: 1;
+    padding: 1em;
+    background-color: #8B9EB7;
+    overflow-y: auto; /* should scroll if too many entries */
+}
+
+/* Data table styles */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+    background-color: white;
+    border-radius: 0.375em;
+    overflow: hidden;
+    box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.1);
+}
+/*text and allign*/
+.data-table th, .data-table td {
+    padding: 1em;
+    text-align: left;
+}
+/*color of header*/
+.data-table th {
+    background-color: #FFFFFF;
+    color: #000000;
+}
+/*color of table*/
+.data-table tr {
+    background-color: #002855;
+    color: #FFFFFF;
+}
+/*when hover over table*/
+.data-table tr:hover {
+    background-color: #778cd2;
+}
+
+/* Buttons container inside table cells */
+.data-table td:last-child {
+    white-space: normal;
+    text-align: center;
+}
+
+/* Button styles */
+button {
+    cursor: pointer;
+    border: none;
+}
+
+/* style of keep and remove */
+.keep-button, .remove-button {
+    display: block;
+    width: 70%; 
+    margin: 0 auto 10px; 
+    padding: 0.3em 0.6em; 
+    border-radius: 0.375em;
+}
+/*color of keep button*/
+.keep-button {
+    background-color: #28a745;
+    color: white;
+}
+/*color of when hover keep*/
+.keep-button:hover {
+    background-color: #218838;
+}
+/*color of remove button*/
+.remove-button {
+    background-color: #dc3545;
+    color: white;
+}
+/*color of hover remove*/
+.remove-button:hover {
+    background-color: #c82333;
+}
+
+/* login button  */
+.login-button {
+    background-color: #002855;
+    color: white;
+    padding: 0.5em 1em;
+    border-radius: 0.375em;
+}
+/* lading and error message and non auth */
+.loading-message, .error-message,.not-authenticated {
+    text-align: center;
+    padding: 1em;
+    
+}
