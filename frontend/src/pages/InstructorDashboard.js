@@ -18,6 +18,38 @@ function InstructorDashboard(){
     //this useEffect runs when page renders
     //determines if user authenticated
     useEffect(() => {
+        const userId = localStorage.getItem("userId");
+        console.log(userId);
+        if (!userId) {
+            console.error("User ID is not in local storage");
+            setIsAuthenticated(false);
+            return
+        }
+        fetch(`http://localhost:8060/students/${userId}`,{
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
+                "Content-Type": "application/json",
+            },
+        })
+        
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("failed fetching user data");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log("fetched user data:", data);
+            setUserName(data.name)
+        })
+        .catch((error) => {
+            console.error(error);
+            setError("fetch user data failed");
+        });
+    }, []);
+
+    useEffect(() => {
         const token = localStorage.getItem("accessToken");
         const userId = localStorage.getItem("userId"); //gets teacher id
     

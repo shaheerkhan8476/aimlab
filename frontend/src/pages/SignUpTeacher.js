@@ -61,12 +61,16 @@ function SignUpTeacher() {
                 <form onSubmit={handleSubmit}>
                     <div className="input-group student-standing-group">
                         <label className="student-standing-label">Choose Instructor</label>
-                        <select className="styled-dropdown drop" name="instructor_id" value={formData.instructor_id} onChange={handleChange} required>
-                            <option value="">Select an instructor</option>
+                        <div className="radio-group">
                             {teachers.map((teacher) => (
-                                <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
+                                <div key={teacher.id} className="radio-option">
+                                    <input type="radio" id={`teacher-${teacher.id}`} name="instructor_id"
+                                        value={teacher.id} checked={formData.instructor_id === teacher.id.toString()}
+                                        onChange={handleChange} required />
+                                    <label htmlFor={`teacher-${teacher.id}`}> {teacher.name} <br  /> {teacher.email}</label>
+                                </div>
                             ))}
-                        </select>
+                        </div>
                     </div>
                     <button type="submit">Submit</button>
                 </form>
