@@ -10,6 +10,7 @@ import StudentDetails from './pages/StudentDetails';
 import CreateInstructor from './pages/CreateInstructor';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import SignUpTeacher from './pages/SignUpTeacher';
 //Main App entry point
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/FlaggedPatientsDash" element={<FlaggedPatientsDash />} />
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/SignUpTeacher" element={<SignUpTeacher />} />
       </Routes>
     </>
   );

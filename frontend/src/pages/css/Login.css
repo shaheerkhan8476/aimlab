@@ -48,15 +48,15 @@
     text-decoration: underline;
     color: #0056b3;
 }
-/* Align radio buttons horizontally */
+/* Align radio buttons vertically */
 .radio-group {
   display: flex;
-  justify-content: center;
+  flex-direction: column; 
   gap: 20px;
   margin-top: 10px;
 }
 
-/* Syle */
+/* Style */
 .radio-group input[type="radio"] {
   display: none;
 }
@@ -84,9 +84,9 @@
 }
 /* fille white if checked */
 .radio-group input[type="radio"]:checked + label::before {
-  background-color: #0056b3;
+  background-color: #0056b3; 
   border: 2px solid white;
-  box-shadow: 0 0 4px white;
+  box-shadow: 0 0 4px white; 
 }
 /* make signup/login button */
 button {

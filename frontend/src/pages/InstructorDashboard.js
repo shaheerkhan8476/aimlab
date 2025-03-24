@@ -18,41 +18,6 @@ function InstructorDashboard(){
     //this useEffect runs when page renders
     //determines if user authenticated
     useEffect(() => {
-        const token = localStorage.getItem("accessToken");
-        
-        if (!token) {
-            setIsAuthenticated(false);
-            return;
-        }
-
-        fetch("http://localhost:8060/students",{
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },                
-        })
-        .then(response => {     //Bad token? error.
-            if (!response.ok) {
-                throw new Error("Invalid token");
-            }
-            return response.json();
-        })
-        .then(data => {         //Empty array returned? means bad token. error.
-            if (Array.isArray(data) && data.length === 0) {
-                throw new Error("Invalid token");
-            }
-            setIsAuthenticated(true);
-            setStudents(data);
-        })
-
-        .catch(error => {       //Error? setIsAuthenticated to false to trip the mechanism for the login link
-            console.error(error);
-            setError("Failed student data fetch");
-            setIsAuthenticated(false);
-        });
-    }, [isAuthenticated]);
-    useEffect(() => {
         const userId = localStorage.getItem("userId");
         console.log(userId);
         if (!userId) {
@@ -83,6 +48,43 @@ function InstructorDashboard(){
             setError("fetch user data failed");
         });
     }, []);
+
+    useEffect(() => {
+        const token = localStorage.getItem("accessToken");
+        const userId = localStorage.getItem("userId"); //gets teacher id
+    
+        if (!token || !userId) {
+            setIsAuthenticated(false);
+            return;
+        }
+    
+        fetch(`http://localhost:8060/instructors/${userId}/students`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },                
+        })
+        .then(response => {     //Bad token? error.
+            if (!response.ok) {
+                throw new Error("Invalid token");
+            }
+            return response.json();
+        })
+        .then(data => {         //Empty array returned? means bad token. error.
+            if (Array.isArray(data) && data.length === 0) {
+                throw new Error("Invalid token");
+            }
+            setIsAuthenticated(true);
+            setStudents(data);
+        })
+
+        .catch(error => {       //Error? setIsAuthenticated to false to trip the mechanism for the login link
+            console.error(error);
+            setError("Failed student data fetch");
+            setIsAuthenticated(false);
+        });
+    }, [isAuthenticated]);
 
 
     return (
@@ -117,7 +119,7 @@ function InstructorDashboard(){
             <div className="content">
                     {!isAuthenticated ? (
                         <div className="not-authenticated">
-                            Uhhh... you're not supposed to be here. Come back when you're logged in, buddy boy
+                            Sorry....you have no students
                         </div>
                     ) : (
                         <div className="data-section">
