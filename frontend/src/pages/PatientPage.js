@@ -168,15 +168,15 @@ function PatientPage() {
     const handleCompletion = () => {
         const token = localStorage.getItem("accessToken");
         const userId = localStorage.getItem("userId")
-        fetch(`/${userId}/tasks/${task_id}/completeTask`,{
+        fetch(`/${userId}/tasks/${location.state.id}/completeTask`,{
             method:'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                'patient_id': `${id}`,
-                'completed':true,  
+               'student_response': `${userMessage}`,
+               'llm_feedback': `${aiResponse}` 
             }),
         })
         .then(data => {navigate('/StudentDashboard')})
