@@ -56,6 +56,7 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		msg := fmt.Sprintf("Supabase Sign Up Error: %v", err)
 		fmt.Println(msg)
 		http.Error(w, "Sign Up User Error", http.StatusNotAcceptable)
+		return
 	}
 	parsedID, err := uuid.Parse(user.ID)
 	if err != nil {
@@ -114,6 +115,7 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 		msg := fmt.Sprintf("Supabase Sign In Error: %v", err)
 		fmt.Println(msg)
 		http.Error(w, "Sign In User Error", http.StatusNotAcceptable)
+		return
 	}
 	Supabase.DB.AddHeader("Authorization", "Bearer "+user.AccessToken)
 	w.Header().Set("Content-Type", "application/json")
@@ -127,6 +129,7 @@ func ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		msg := fmt.Sprintf("Error Reading Forgot Password Request Body: %v", err)
 		fmt.Println(msg)
 		http.Error(w, msg, http.StatusBadRequest)
+		return
 	}
 	err = json.Unmarshal(bodyBytes, &ForgotPasswordRequest)
 	if err != nil {
@@ -308,6 +311,7 @@ func GetStudents(w http.ResponseWriter, r *http.Request) {
 	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
 	if err != nil {
 		http.Error(w, "No Students Found", http.StatusNotFound)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(students)
@@ -1091,6 +1095,7 @@ func GetFlaggedPatients(w http.ResponseWriter, r *http.Request) {
 		msg := fmt.Sprintf("GetFlaggedPatients: error encoding flagged patients: %v", err)
 		fmt.Println(msg)
 		http.Error(w, msg, http.StatusInternalServerError)
+		return
 	}
 }
 func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
@@ -1370,7 +1375,7 @@ func GetInstructorStudents(w http.ResponseWriter, r *http.Request) {
 	if len(instructor.Students) == 0 {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte("[]"))
-		return
+
 	}
 
 	var studentIDStrings []string
