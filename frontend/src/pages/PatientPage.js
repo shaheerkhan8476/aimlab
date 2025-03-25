@@ -28,7 +28,6 @@ function PatientPage() {
         const token = localStorage.getItem("accessToken");
         if (!token) return;
 
-
         //for patient detials tab
         fetch(`http://localhost:8060/patients/${id}`, {
             method: "GET",
@@ -168,7 +167,7 @@ function PatientPage() {
     const handleCompletion = () => {
         const token = localStorage.getItem("accessToken");
         const userId = localStorage.getItem("userId")
-        fetch(`/${userId}/tasks/${location.state.id}/completeTask`,{
+        fetch(`http://localhost:8060/${userId}/tasks/${location.state.task_id}/completeTask`,{
             method:'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -178,6 +177,11 @@ function PatientPage() {
                'student_response': `${userMessage}`,
                'llm_feedback': `${aiResponse}` 
             }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`whoopsies! no task completion`);
+            }
         })
         .then(data => {navigate('/StudentDashboard')})
         .catch(error => console.error("Failed to complete", error));

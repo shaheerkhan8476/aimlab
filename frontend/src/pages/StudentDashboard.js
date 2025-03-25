@@ -58,9 +58,9 @@ function StudentDashboard(){
         .then(async (tasks) => {         //Empty array returned? means bad token. error.
             console.log("tasks fetched successfully", tasks);
 
-            tasks.forEach(task => {
-                console.log(`Task ID: ${task.task_id}, Type: ${task.task_type}, Result ID: ${task.result_id}`);
-            });
+            // tasks.forEach(task => {
+            //     console.log(`Task ID: ${task.id}, Type: ${task.task_type}, Result ID: ${task.result_id}`);
+            // });
 
             const patientMessages = tasks.filter(task => task.task_type === "patient_question");
             const results = tasks.filter(task => task.task_type === "lab_result");
@@ -111,7 +111,7 @@ function StudentDashboard(){
             const fetchResults = async (taskList) => {
                 return Promise.all(taskList.map(async (task) => {
 
-                    console.log(`Fetching result for task ${task.task_id} with result_id: ${task.result_id}`);
+                    //console.log(`Fetching result for task ${task.id} with result_id: ${task.result_id}`);
 
                     const fullResult = await fetch(`http://localhost:8060/results/${task.result_id}`, {
                         method: "GET",
@@ -263,7 +263,10 @@ function StudentDashboard(){
                                                         key={index}
                                                         className="clickable-patient"
                                                         onClick={() => navigate(`/PatientPage/${message.patient_id}`, 
-                                                            {state: {task_type: "patient_question", patient_question: message.patient.patient_message}})}
+                                                            {state: {
+                                                                task_type: "patient_question", 
+                                                                patient_question: message.patient.patient_message,
+                                                                task_id: message.id}})}
 
                                                     >
                                                         <td>{message.patient.name}</td>
@@ -299,7 +302,8 @@ function StudentDashboard(){
                                                         onClick={() => navigate(`/PatientPage/${prescription.patient_id}`, {
                                                             state: {
                                                                 task_type: "prescription",
-                                                                prescription_id: prescription.prescription_id
+                                                                prescription_id: prescription.prescription_id,
+                                                                task_id: prescription.id
                                                             }
                                                         })}
                                                     >
@@ -344,7 +348,8 @@ function StudentDashboard(){
                                                         navigate(`/PatientPage/${result.patient_id}`, {
                                                         state: {
                                                             task_type: "lab_result",
-                                                            result_id: result.result_id
+                                                            result_id: result.result_id,
+                                                            task_id: result.id
                                                         }
                                                     });}}
                                                 >
