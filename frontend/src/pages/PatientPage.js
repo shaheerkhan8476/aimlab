@@ -19,6 +19,7 @@ function PatientPage() {
     const [bannerMessage, setBannerMessage] = useState("");
     const [refillDecision, setRefillDecision] = useState("");
     const [finalMessage, setFinalMessage] = useState("");
+    const [activeResultTab, setActiveResultTab] = useState(null);
 
     
     const navigate = useNavigate();
@@ -118,6 +119,8 @@ function PatientPage() {
             return;
         }
 
+        setDisableInput(true);
+
         if (location.state?.task_type === "prescription"){
             let userMessageCopy = userMessage;
             let refillMessage = `\n\nThe prescription should ${refillDecision === "Refill" ? "be refilled" : "not be refilled"}.`
@@ -195,7 +198,8 @@ function PatientPage() {
             <div className="patient-name">{patient.name}</div>
         </div>
 
-       
+       {/* Task instruction banner */}
+        {bannerMessage && <div className="task-banner">{bannerMessage}</div>}
         {/* New tab nav */}
         <div className="tab-navigation">
             <button 
@@ -235,129 +239,150 @@ function PatientPage() {
             </button>
         </div>
 
+        {activeTab === "results" && results.length > 0 && (
+            <div className="sub-tab-navigation">
+                {results.map((result, index) => (
+                    <button
+                        key={index}
+                        className={activeResultTab === index ? "active-sub-tab" : ""}
+                        onClick={() => setActiveResultTab(index)}
+                    >
+                        {result.test_name}
+                    </button>
+                ))}
+            </div>
+        )}
+
+
 
         {/* Display info based on tab selected */}
         <div className="patient-content">
-            {activeTab === "info" && (
-                <div className="patient-details">
-                    <h2>General Info</h2>
-                    <table className="data-table">
-                        <tbody>
-                            <tr>
-                                <td><strong>Date of Birth</strong></td>
-                                <td>{patient.date_of_birth} (Age: {patient.age})</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Gender</strong></td>
-                                <td>{patient.gender}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Medical Condition</strong></td>
-                                <td>{patient.medical_condition}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Allergies</strong></td>
-                                <td>{patient.allergies}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Immunizations</strong></td>
-                                <td>
-                                    {patient.immunization ? (
-                                        <ul>
-                                            {Object.entries(patient.immunization).map(([vax, date]) => (
-                                                <li key={vax}>
-                                                    {vax} ({date})
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        "No Immunizations"
-                                    )}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Medical History</strong></td>
-                                <td>{patient.medical_history}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Family Medical History</strong></td>
-                                <td>{patient.family_medical_history}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Surgical History</strong></td>
-                                <td>{patient.surgical_history}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Cholesterol</strong></td>
-                                <td>{patient.cholesterol}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Height</strong></td>
-                                <td>{patient.height}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Weight</strong></td>
-                                <td>{patient.weight}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Blood Pressure</strong></td>
-                                <td>{patient.last_bp}</td>
-                            </tr>
-
-
-                            {location.state?.task_type === "patient_question" && (
-                                <tr>
-                                    <td><strong>Patient Message</strong></td>
-                                    <td className="patient-message">{patient.patient_message}</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+        {activeTab === "info" && (
+            <div className="patient-details">
+                <h2>General Info</h2>
+                <div className="health-summary">
+                
+                <div className="info-group">
+                    <h3>Demographics</h3>
+                    <p><strong>Date of Birth:</strong> {patient.date_of_birth} (Age: {patient.age})</p>
+                    <p><strong>Gender:</strong> {patient.gender}</p>
                 </div>
-            )}
+
+                <div className="info-group">
+                    <h3>Medical Condition</h3>
+                    <p>{patient.medical_condition}</p>
+                </div>
+
+                <div className="info-group">
+                    <h3>Allergies</h3>
+                    <p>{patient.allergies || "None"}</p>
+                </div>
+
+                <div className="info-group">
+                    <h3>Immunizations</h3>
+                    {patient.immunization ? (
+                    <ul>
+                        {Object.entries(patient.immunization).map(([vax, date]) => (
+                        <li key={vax}>{vax} ({date})</li>
+                        ))}
+                    </ul>
+                    ) : (
+                    <p>No Immunizations</p>
+                    )}
+                </div>
+
+                <div className="info-group">
+                    <h3>Medical History</h3>
+                    <p>{patient.medical_history}</p>
+                </div>
+
+                <div className="info-group">
+                    <h3>Family Medical History</h3>
+                    <p>{patient.family_medical_history}</p>
+                </div>
+
+                <div className="info-group">
+                    <h3>Surgical History</h3>
+                    <p>{patient.surgical_history}</p>
+                </div>
+
+                <div className="info-group">
+                    <h3>Vitals and Measurements</h3>
+                    <p><strong>Cholesterol:</strong> {patient.cholesterol}</p>
+                    <p><strong>Height:</strong> {patient.height}</p>
+                    <p><strong>Weight:</strong> {patient.weight}</p>
+                    <p><strong>Blood Pressure:</strong> {patient.last_bp}</p>
+                </div>
+
+                {location.state?.task_type === "patient_question" && (
+                <div className="info-group full-width">
+                    <h3>Patient Message</h3>
+                    <p className="patient-message">{patient.patient_message}</p>
+                </div>
+                )}
+
+
+                </div>
+                
+            </div>
+            
+        )}
+
 
             {activeTab === "results" && (
                 <div className="patient-results">
                     <h2>Lab Results</h2>
                     {results && results.length > 0 ? (
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Test Name</th>
-                                    <th>Test Date</th>
-                                    <th>Results</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {results.map((result, index) => (
-                                    <tr key={index}>
-                                        <td>{result.test_name}</td>
-                                        <td>{result.test_date}</td>
-                                        <td>
-                                            <ul>
-                                            {Object.entries(result.test_result).map(([key, value]) => {
-                                                let displayValue;
-                                                if (typeof value === "object" && value !== null) {
-                                                    //check to see if you have the value as another object (usually in labs that have a specific value and reference value)
-                                                    displayValue = `Value: ${value.value}, Reference Range: ${value.reference_range}`;
-                                                } else if (typeof value === "boolean") {
-                                                    displayValue = value ? "Positive" : "Negative";
-                                                } else {
-                                                    //meaning it's just a number
-                                                    displayValue = value;
-                                                }
-                                                return (
-                                                    <li key={key}>
-                                                    {key}: {displayValue}
-                                                    </li>
-                                                );
-                                                })}
-                                            </ul>
-                                        </td>
+                        <>
+                        {activeResultTab !== null ? (
+                            <div className="lab-result-group">
+                            <h3>{results[activeResultTab].test_name}</h3>
+                            <p><strong>Date:</strong> {results[activeResultTab].test_date}</p>
+                          
+                            {(() => {
+                              const currentResult = results[activeResultTab];
+                              const hasReferenceRange = Object.values(currentResult.test_result).some(
+                                (value) => typeof value === "object" && value.reference_range
+                              );
+                          
+                              return (
+                                <table className="data-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Test</th>
+                                      <th>Result</th>
+                                      {hasReferenceRange && <th>Reference Range</th>}
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                  </thead>
+                                  <tbody>
+                                    {Object.entries(currentResult.test_result).map(([key, value]) => {
+                                      const resultVal = typeof value === "object" && value !== null
+                                        ? value.value
+                                        : typeof value === "boolean"
+                                        ? (value ? "Positive" : "Negative")
+                                        : value;
+                          
+                                      const referenceRange = (typeof value === "object" && value.reference_range) || null;
+                          
+                                      return (
+                                        <tr key={key}>
+                                          <td>{key}</td>
+                                          <td>{resultVal}</td>
+                                          {hasReferenceRange && <td>{referenceRange || ""}</td>}
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              );
+                            })()}
+                          </div>
+                          
+                        ) : (
+                            <p>Select a test to view results.</p>
+                        )}
+                        </>
+                        
                     ) : (
                         <p>No test results available.</p>
                     )}
@@ -449,48 +474,43 @@ function PatientPage() {
             )}
         </div>
 
-        {/* Task instruction banner */}
-        {bannerMessage && <div className="task-banner">{bannerMessage}</div>}
-
 
         {!disableInput && (
         <div>
             <div className="ai-input-area">
                 {location.state?.task_type === "prescription" && (
                     <div className="refill-buttons-container">
-                        <label>
-                            <input
-                                type="radio"
-                                name="refillDecision"
-                                value="Refill"
-                                checked={refillDecision === "Refill"}
-                                onChange={(e) => setRefillDecision(e.target.value)}
-                            />
-                            Refill
-                        </label>
-                        <label>
-                            <input
-                                type="radio"
-                                name="refillDecision"
-                                value="Don't Refill"
-                                checked={refillDecision === "Don't Refill"}
-                                onChange={(e) => setRefillDecision(e.target.value)}
-                            />
-                            Don't Refill
-                        </label>
-                    </div>
+                        <input
+                            type="radio"
+                            name="refillDecision"
+                            value="Refill"
+                            id="refill"
+                            checked={refillDecision === "Refill"}
+                            onChange={(e) => setRefillDecision(e.target.value)}
+                        />
+                        <label htmlFor="refill">Refill</label>
+                    
+                        <input
+                            type="radio"
+                            name="refillDecision"
+                            value="Don't Refill"
+                            id="dont-refill"
+                            checked={refillDecision === "Don't Refill"}
+                            onChange={(e) => setRefillDecision(e.target.value)}
+                        />
+                        <label htmlFor="dont-refill">Don't Refill</label>
+                </div>
+                
                 )}
-                
-                
-        </div>
+            </div>
         <div>
-        <textarea
-                    type="text"
-                    value={userMessage}
-                    onChange={(e) => setUserMessage(e.target.value)}
-                    placeholder="Type response here"
-                    className="ai-input-box"
-                />
+            <textarea
+                        type="text"
+                        value={userMessage}
+                        onChange={(e) => setUserMessage(e.target.value)}
+                        placeholder="Type response here"
+                        className="ai-input-box"
+                    />
         </div>
         <button onClick={handleSubmit} className="submit-response">Submit</button>
         </div>

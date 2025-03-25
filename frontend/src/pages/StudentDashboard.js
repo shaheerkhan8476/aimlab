@@ -14,6 +14,10 @@ function StudentDashboard(){
     const [isAuthenticated, setIsAuthenticated] = useState(true);
     const [view, setView] = useState("messages"); //patient messages by default. swtich to prescriptions if clicked
     const [userName, setUserName] = useState("")
+
+    const [messageCount, setMessageCount] = useState(0);
+    const [resultCount, setResultCount] = useState(0);
+    const [prescriptionCount, setPrescriptionCount] = useState(0);
     
 
     const navigate = useNavigate();
@@ -63,8 +67,15 @@ function StudentDashboard(){
             // });
 
             const patientMessages = tasks.filter(task => task.task_type === "patient_question");
+            setMessageCount(patientMessages.length);
+
             const results = tasks.filter(task => task.task_type === "lab_result");
+            setResultCount(results.length);
+
             const prescriptions = tasks.filter(task => task.task_type === "prescription");
+            setPrescriptionCount(prescriptions.length);
+
+
 
             console.log("Filtered results tasks:", results);
 
@@ -150,6 +161,9 @@ function StudentDashboard(){
         });
     }, [isAuthenticated]);
 
+
+    //Gets username -- admittedly there's either a better way to do this or
+    //There isn't and I forgot why this is necessary because I did it so long ago
     useEffect(() => {
         const userId = localStorage.getItem("userId");
         console.log(userId);
@@ -210,7 +224,7 @@ function StudentDashboard(){
                         className={`nav-link ${view === "messages" ? "active" : ""}`}
                         onClick={() => setView("messages")}
                     >
-                        Patient Messages
+                        Patient Messages ({messageCount})
                     </button>
                     <button
                         className={`nav-link ${view === "results" ? "active" : ""}`}
@@ -218,7 +232,7 @@ function StudentDashboard(){
                         setView("results")
                         }}
                     >
-                        Results
+                        Results ({resultCount})
                     </button>
                     <button
                         className={`nav-link ${view === "prescriptions" ? "active" : ""}`}
@@ -227,7 +241,7 @@ function StudentDashboard(){
                             
                         }}
                     >
-                        Prescriptions/Refills
+                        Prescriptions/Refills ({prescriptionCount})
                     </button>
                     <button
                         className="nav-link"
