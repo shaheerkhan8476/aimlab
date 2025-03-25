@@ -1375,7 +1375,7 @@ func GetInstructorStudents(w http.ResponseWriter, r *http.Request) {
 	if len(instructor.Students) == 0 {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte("[]"))
-
+		return
 	}
 
 	var studentIDStrings []string
