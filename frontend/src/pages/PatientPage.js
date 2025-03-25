@@ -520,9 +520,7 @@ function PatientPage() {
             )}
         </div>
 
-        {/* Task instruction banner */}
-        {bannerMessage && <div className="task-banner">{bannerMessage}</div>}
-
+    
 
         {!(disableInput && !isAdmin) && (
         <div>
