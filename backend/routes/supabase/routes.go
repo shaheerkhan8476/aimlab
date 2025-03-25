@@ -1191,7 +1191,7 @@ func AddStudentToInstructor(w http.ResponseWriter, r *http.Request) {
 	}
 	instructor.Students = append(instructor.Students, studentID)
 
-	updateData := map[string]interface{}{
+	updateData := map[string]any{
 		"students": instructor.Students,
 	}
 	err = Supabase.DB.From("users").
@@ -1199,19 +1199,34 @@ func AddStudentToInstructor(w http.ResponseWriter, r *http.Request) {
 		Eq("id", instructor.Id.String()).
 		Execute(nil)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Error updating instructor", http.StatusInternalServerError)
 		return
 	}
-
+	updateData = map[string]any{
+		"isAssigned": true,
+	}
+	err = Supabase.DB.From("users").
+		Update(updateData).
+		Eq("id", studentID.String()).
+		Execute(nil)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error updating student isAssigned", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Student Added to Instructor"))
 }
 
 func GetInstructorStudents(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	instructorID := vars["instructor_id"]
+	instructorID := vars["id"]
+	fmt.Println(&instructorID)
 	instructorUUID, err := uuid.Parse(instructorID)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Invalid instructor UUID", http.StatusBadRequest)
 		return
 	}
