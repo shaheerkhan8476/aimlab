@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+
 import "./css/StudentDetails.css";
 
 function StudentDetails() {
@@ -148,7 +149,12 @@ function StudentDetails() {
                                         <ul className="task-list">
                                             {day.Tasks.map((task, tindex) => (
                                                 <li key={tindex} className="task-item">
-                                                    <span className="task-id">Task: {patient[task.patient_id] || "Unknown Patient"} - {task.task_type.replace(/_/g, " ")}</span>
+                                                    <span className="task-id">
+                                                        Task: {" "}
+                                                        <Link to={`/PatientPage/${task.patient_id}`}>
+                                                        {patient[task.patient_id] || "Unknown Patient"} - {task.task_type.replace(/_/g, " ")}
+                                                        </Link>
+                                                    </span>
                                                     <span className={`task-status-${task.completed ? "completed" : "incomplete"}`}>
                                                         {task.completed ? " Complete" : " Incomplete"}
                                                     </span>
