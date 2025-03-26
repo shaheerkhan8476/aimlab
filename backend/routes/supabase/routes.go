@@ -296,83 +296,83 @@ func GetResultsByPatientID(w http.ResponseWriter, r *http.Request) {
 
 // GetLLMResponseForPatient generates an LLM-based response using full patient data,
 // including related prescriptions and results.
-func GetLLMResponseForPatient(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
+// func GetLLMResponseForPatient(w http.ResponseWriter, r *http.Request) {
+// 	vars := mux.Vars(r)
+// 	id := vars["id"]
 
-	// Retrieve the patient record.
-	var patients []model.Patient
-	err := Supabase.DB.From("patients").Select("*").Eq("id", id).Execute(&patients)
-	if err != nil || len(patients) == 0 {
-		http.Error(w, "Patient not found", http.StatusNotFound)
-		return
-	}
-	patient := patients[0]
+// 	// Retrieve the patient record.
+// 	var patients []model.Patient
+// 	err := Supabase.DB.From("patients").Select("*").Eq("id", id).Execute(&patients)
+// 	if err != nil || len(patients) == 0 {
+// 		http.Error(w, "Patient not found", http.StatusNotFound)
+// 		return
+// 	}
+// 	patient := patients[0]
 
-	// Retrieve prescriptions for this patient.
-	var prescriptions []model.Prescription
-	err = Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Eq("patient_id", id).Execute(&prescriptions)
-	if err != nil {
-		// If an error occurs, you might choose to continue with an empty list.
-		prescriptions = []model.Prescription{}
-	}
+// 	// Retrieve prescriptions for this patient.
+// 	var prescriptions []model.Prescription
+// 	err = Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Eq("patient_id", id).Execute(&prescriptions)
+// 	if err != nil {
+// 		// If an error occurs, you might choose to continue with an empty list.
+// 		prescriptions = []model.Prescription{}
+// 	}
 
-	// Retrieve test results for this patient.
-	var results []model.Result
-	err = Supabase.DB.From("results").Select("*,patient:patients(name)").Eq("patient_id", id).Execute(&results)
-	if err != nil {
-		results = []model.Result{}
-	}
+// 	// Retrieve test results for this patient.
+// 	var results []model.Result
+// 	err = Supabase.DB.From("results").Select("*,patient:patients(name)").Eq("patient_id", id).Execute(&results)
+// 	if err != nil {
+// 		results = []model.Result{}
+// 	}
 
-	// Combine the patient, prescriptions, and results into one object.
-	combinedData := map[string]interface{}{
-		"patient":       patient,
-		"prescriptions": prescriptions,
-		"results":       results,
-	}
+// 	// Combine the patient, prescriptions, and results into one object.
+// 	combinedData := map[string]interface{}{
+// 		"patient":       patient,
+// 		"prescriptions": prescriptions,
+// 		"results":       results,
+// 	}
 
-	// Marshal the entire combined object into a pretty JSON string.
-	combinedJSON, err := json.MarshalIndent(combinedData, "", "  ")
-	if err != nil {
-		http.Error(w, "Error encoding combined patient data", http.StatusInternalServerError)
-		return
-	}
+// 	// Marshal the entire combined object into a pretty JSON string.
+// 	combinedJSON, err := json.MarshalIndent(combinedData, "", "  ")
+// 	if err != nil {
+// 		http.Error(w, "Error encoding combined patient data", http.StatusInternalServerError)
+// 		return
+// 	}
 
-	// Build a prompt that includes all of the data.
-	prompt := fmt.Sprintf("Patient Data:\n%s\nHow should a medical student respond to this case?", string(combinedJSON))
+// 	// Build a prompt that includes all of the data.
+// 	prompt := fmt.Sprintf("Patient Data:\n%s\nHow should a medical student respond to this case?", string(combinedJSON))
 
-	// Create the LLM request payload.
-	llmRequest := map[string]string{
-		"message": prompt,
-	}
+// 	// Create the LLM request payload.
+// 	llmRequest := map[string]string{
+// 		"message": prompt,
+// 	}
 
-	reqBody, err := json.Marshal(llmRequest)
-	if err != nil {
-		http.Error(w, "Error encoding LLM request", http.StatusInternalServerError)
-		return
-	}
+// 	reqBody, err := json.Marshal(llmRequest)
+// 	if err != nil {
+// 		http.Error(w, "Error encoding LLM request", http.StatusInternalServerError)
+// 		return
+// 	}
 
-	// Send the request to the LLM microservice.
-	response, err := http.Post(llmURL, "application/json", bytes.NewBuffer(reqBody))
-	if err != nil {
-		http.Error(w, "Error communicating with LLM", http.StatusInternalServerError)
-		return
-	}
-	defer response.Body.Close()
+// 	// Send the request to the LLM microservice.
+// 	response, err := http.Post(llmURL, "application/json", bytes.NewBuffer(reqBody))
+// 	if err != nil {
+// 		http.Error(w, "Error communicating with LLM", http.StatusInternalServerError)
+// 		return
+// 	}
+// 	defer response.Body.Close()
 
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		http.Error(w, "Error reading LLM response", http.StatusInternalServerError)
-		return
-	}
+// 	body, err := io.ReadAll(response.Body)
+// 	if err != nil {
+// 		http.Error(w, "Error reading LLM response", http.StatusInternalServerError)
+// 		return
+// 	}
 
-	// TODO: Store response in Supabase for later retrieval.
-	// Problem: How do we get associated task for this call?
-	// Might have to redirect route from main to the associated task (instead of generic patient page), which calls this function and then stores the response
+// 	// TODO: Store response in Supabase for later retrieval.
+// 	// Problem: How do we get associated task for this call?
+// 	// Might have to redirect route from main to the associated task (instead of generic patient page), which calls this function and then stores the response
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(body)
-}
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.Write(body)
+// }
 
 /*
 *
@@ -1260,4 +1260,43 @@ func GetInstructorStudents(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(students)
+}
+
+// PostLLMResponseForPatient is the new route that forwards the entire GIGA JSON to app.py
+func PostLLMResponseForPatient(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"] // optional if you want to log or pass it for debugging
+
+	// Read the raw JSON from the request body
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Cannot read POST body", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println("Received GIGA JSON for patient:", id)
+	fmt.Println("Full JSON body:", string(bodyBytes)) // optional debug print
+
+	// Forward the entire JSON payload to your Python microservice
+	flaskURL := "http://127.0.0.1:5001/api/message-request"
+	resp, err := http.Post(flaskURL, "application/json", bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		fmt.Println("Error forwarding JSON to Flask microservice:", err)
+		http.Error(w, "Failed to contact LLM microservice", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read the LLM’s response from Python
+	responseBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading LLM response:", err)
+		http.Error(w, "Failed to read LLM response", http.StatusInternalServerError)
+		return
+	}
+
+	// Return that response to the frontend
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(responseBytes)
 }

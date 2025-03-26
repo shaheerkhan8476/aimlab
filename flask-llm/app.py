@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -49,42 +50,129 @@ def generate_text():
 
 @app.route("/api/message-request", methods=["POST"])
 def message_request():
-    data = request.get_json() or {}
-    # Use a clear variable name:
-    patient_message = data.get("message", "")
-    if not patient_message:
-        return jsonify({"error": "No message provided"}), 400
-    else:
-        print("Message:", patient_message)
-
-    # Build a detailed prompt as in the old version:
-    prompt = f"""
-    You are a medical student replying to an EHR message from a patient
-    who is under your care. You are their primary healthcare provider.
-    
-    The patient wrote: "{patient_message}"
-
-    Your response should be professional, patient-friendly, and authoritative.
-    Ask the patient questions if necessary. If and only if the question is related to mental health, 
-    give them a disclaimer about calling the Suicide & Crisis Lifeline at 988.
-
-    **Do NOT include any sign-off, closing phrase, farewell, or any kind of concluding words like
-    "Take care," "Best," "Sincerely," "Thanks," or anything similar. Do NOT include a placeholder for a name.**
-    
-    Simply end the message after the last relevant sentence. Nothing more.
+    """
+    1) If task_type == "patient_question", the LLM sees patient_message
+       in both sample_response & feedback.
+    2) If task_type != "patient_question", we remove patient_message from GIGA JSON,
+       so the LLM never sees it for sample or feedback.
+    3) The sample_response ALWAYS omits user_message from consideration.
+    4) The feedback ALWAYS uses the final GIGA JSON + user_message (so it can "grade" the student's response).
+    5) The LLM must return raw JSON with exactly two keys:
+         "sample_response"
+         "feedback_response"
+       in unformatted plaintext (no bold, markdown, etc.).
     """
 
+    import json
+    from flask import Response, jsonify
+
+    original_data = request.get_json() or {}
+    user_message = original_data.get("user_message", "")
+    task_type = original_data.get("task_type", "patient_question")
+
+    # ---------------------------------------------------------
+    # 1) Remove patient_message entirely if not patient_question
+    # ---------------------------------------------------------
+    if task_type != "patient_question":
+        original_data.pop("patient_message", None)
+        if "patient" in original_data:
+            original_data["patient"].pop("patient_message", None)
+
+    # ---------------------------------------------------------
+    # 2) For the sample response, we do NOT include user_message or task_type
+    # ---------------------------------------------------------
+    data_for_first_paragraph = dict(original_data)
+    data_for_first_paragraph.pop("user_message", None)
+    data_for_first_paragraph.pop("task_type", None)
+    data_for_first_str = json.dumps(data_for_first_paragraph, indent=2)
+
+    # ---------------------------------------------------------
+    # 3) For the feedback, we show the entire final data (minus patient_message if not patient_question),
+    #    plus we pass user_message separately so it can be "graded."
+    # ---------------------------------------------------------
+    full_json_str = json.dumps(original_data, indent=2)
+
+    # ---------------------------------------------------------
+    # 4) The prompt for the SAMPLE RESPONSE.
+    # ---------------------------------------------------------
+    universal_intro = f"""
+You are an AI assistant. You must return EXACTLY one JSON object with the two keys:
+"sample_response" and "feedback_response".
+
+No markdown, no bold text, no italics. Plain text only.
+
+Below is partial GIGA JSON (without user_message & possibly without patient_message if not patient_question):
+{data_for_first_str}
+
+Craft the sample response as if you were a medical student. Be concise, professional, and end quickly.
+Put this text in the "sample_response" field of your JSON output.
+"""
+
+    if task_type == "patient_question":
+        task_specific_part = """
+Since task_type is patient_question, this is a direct patient inquiry. Provide a succinct, 
+patient-friendly explanation or plan. No farewell or filler.
+        """
+    elif task_type == "lab_result":
+        task_specific_part = """
+Since task_type is lab_result, provide a succinct interpretation of the lab results 
+and relevant next steps. No concluding phrases or farewells.
+        """
+    elif task_type == "prescription":
+        task_specific_part = """
+Since task_type is prescription, provide a concise plan for prescription changes, 
+refills, or dosage. Avoid farewells or fluff.
+        """
+    else:
+        task_specific_part = """
+Unknown task_type. Provide a concise, professional response with no concluding words or farewells.
+        """
+
+    first_paragraph = universal_intro + task_specific_part
+
+    # ---------------------------------------------------------
+    # 5) The prompt for the FEEDBACK.
+    # ---------------------------------------------------------
+    second_paragraph = f"""
+Now create the "feedback_response" in plain text, based on the COMPLETE GIGA JSON:
+{full_json_str}
+
+The student's actual response was: "{user_message}"
+
+Explain what might be missing or unclear, and how to improve clarity, correctness, or completeness.
+
+REMEMBER: Output must be valid JSON with exactly these 2 keys:
+"sample_response" and "feedback_response"
+No extra keys, no markup.
+"""
+
+    # ---------------------------------------------------------
+    # Combine into final prompt
+    # ---------------------------------------------------------
+    prompt = f"""
+FIRST PARAGRAPH (Sample Response Instructions):
+{first_paragraph}
+
+SECOND PARAGRAPH (Feedback Instructions):
+{second_paragraph}
+"""
+
     try:
+        # Same call as original, except we expect raw JSON from GPT with sample_response & feedback_response.
         response = client.chat.completions.create(
             model="gpt-4-turbo",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=500,
+            max_tokens=600,
             temperature=0.7
         )
         text_output = response.choices[0].message.content.strip()
-        return jsonify({"completion": text_output})
+
+        # Return GPT's raw JSON directly, as "application/json"
+        return Response(text_output, mimetype="application/json")
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/api/hardcoded-case", methods=["GET"])
