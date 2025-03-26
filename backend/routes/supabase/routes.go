@@ -32,10 +32,20 @@ func InitClient(url, key string) *supabase.Client {
 // Signs up the user
 func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	var userRequest UserCreateRequest
-	bodyBytes, _ := io.ReadAll(r.Body)
-	err := json.Unmarshal(bodyBytes, &userRequest)
+	bodyBytes, err := io.ReadAll(r.Body)
+
 	if err != nil {
-		http.Error(w, "Cannot Unmarshal user from request", http.StatusBadRequest)
+		msg := fmt.Sprintf("SignUpUser: failed to read request body: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusBadRequest) // 400
+		return
+	}
+	err = json.Unmarshal(bodyBytes, &userRequest)
+	if err != nil {
+		msg := fmt.Sprintf("SignUpUser: cannot unmarshal user from request: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusBadRequest) // 400
+		return
 	}
 	ctx := context.Background()
 	user, err := Supabase.Auth.SignUp(ctx, supabase.UserCredentials{
@@ -43,11 +53,17 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		Password: userRequest.Password,
 	})
 	if err != nil {
+		msg := fmt.Sprintf("Supabase Sign Up Error: %v", err)
+		fmt.Println(msg)
 		http.Error(w, "Sign Up User Error", http.StatusNotAcceptable)
+		return
 	}
 	parsedID, err := uuid.Parse(user.ID)
 	if err != nil {
-		http.Error(w, "Cannot Parse UUID correctly", http.StatusBadRequest)
+		msg := fmt.Sprintf("SignUpUser: cannot parse user.ID as UUID (%s): %v", user.ID, err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusBadRequest) // 400
+		return
 	}
 	newUser := model.User{
 		Id:              parsedID,
@@ -58,12 +74,16 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err = Supabase.DB.From("users").Insert(newUser).Execute(nil)
 	if err != nil {
-		http.Error(w, "User has already been created", http.StatusConflict)
+		msg := fmt.Sprintf("SignUpUser: insert to DB failed, possibly conflict: %v", err)
+		fmt.Println(msg)
+		http.Error(w, "User has already been created", http.StatusConflict) // 409
 		return
 	}
 	b, err := json.Marshal(user)
 	if err != nil {
-		fmt.Println("Marshal Error:", err)
+		msg := fmt.Sprintf("SignUpUser: error marshaling supabase user response: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusInternalServerError) // 500
 		return
 	}
 	w.Write(b)
@@ -72,10 +92,18 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 // Signs in the user
 func SignInUser(w http.ResponseWriter, r *http.Request) {
 	var userRequest UserLoginRequest
-	bodyBytes, _ := io.ReadAll(r.Body)
-	err := json.Unmarshal(bodyBytes, &userRequest)
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Cannot read request body", http.StatusBadRequest)
+		msg := fmt.Sprintf("SignInUser: failed to read request body: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+	err = json.Unmarshal(bodyBytes, &userRequest)
+	if err != nil {
+		msg := fmt.Sprintf("SignInUser: failed to Unmarshal request body: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusBadRequest)
 		return
 	}
 	ctx := context.Background()
@@ -84,8 +112,9 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 		Password: userRequest.Password,
 	})
 	if err != nil {
-		fmt.Println("Error signing in:", err)
-		http.Error(w, "Sign-in failed", http.StatusUnauthorized)
+		msg := fmt.Sprintf("Supabase Sign In Error: %v", err)
+		fmt.Println(msg)
+		http.Error(w, "Sign In User Error", http.StatusNotAcceptable)
 		return
 	}
 	Supabase.DB.AddHeader("Authorization", "Bearer "+user.AccessToken)
@@ -95,17 +124,26 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 
 func ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	var ForgotPasswordRequest ForgotPasswordRequest
-	bodyBytes, _ := io.ReadAll(r.Body)
-	err := json.Unmarshal(bodyBytes, &ForgotPasswordRequest)
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Cannot read request body", http.StatusBadRequest)
+		msg := fmt.Sprintf("Error Reading Forgot Password Request Body: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+	err = json.Unmarshal(bodyBytes, &ForgotPasswordRequest)
+	if err != nil {
+		msg := fmt.Sprintf("ForgotPassword: cannot unmarshal request body: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusBadRequest) // 400
 		return
 	}
 	ctx := context.Background()
 	err = Supabase.Auth.ResetPasswordForEmail(ctx, ForgotPasswordRequest.Email, "http://localhost:3000/reset-password")
 	if err != nil {
-		http.Error(w, "Failed to send reset password", http.StatusInternalServerError)
-		fmt.Println(err)
+		msg := fmt.Sprintf("ForgotPassword: ResetPasswordForEmail failed: %v", err)
+		fmt.Println(msg)
+		http.Error(w, "Failed to send reset password", http.StatusInternalServerError) // 500
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -116,13 +154,17 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 	var req ResetPasswordRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, "Cannot parse reset password request", http.StatusBadRequest)
+		msg := fmt.Sprintf("ResetPassword: cannot parse request: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusBadRequest) // 400
 		return
 	}
 	ctx := context.Background()
 	err = ResetUserPassword(ctx, Supabase, req.AccessToken, req.NewPassword)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		msg := fmt.Sprintf("ResetPassword: error resetting user password: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusInternalServerError) // 500
 		return
 	}
 
@@ -152,14 +194,16 @@ func GetPatients(w http.ResponseWriter, r *http.Request) {
 	err := Supabase.DB.From("patients").Select("*").Execute(&patients)
 
 	if err != nil {
-		http.Error(w, "Patients not found", http.StatusNotFound)
-		fmt.Println(err)
+		msg := fmt.Sprintf("GetPatients: error selecting from DB: %v", err)
+		fmt.Println(msg)
+		http.Error(w, "Patients not found", http.StatusNotFound) // 404
 		return
 	}
 	patientsJSON, err := json.MarshalIndent(patients, "", "  ")
 	if err != nil {
-		fmt.Println("Error marshaling patients:", err)
-		http.Error(w, "Failed to convert patients to JSON", http.StatusInternalServerError)
+		msg := fmt.Sprintf("GetPatients: error marshaling JSON: %v", err)
+		fmt.Println(msg)
+		http.Error(w, "Failed to convert patients to JSON", http.StatusInternalServerError) // 500
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -180,8 +224,15 @@ func GetPatientByID(w http.ResponseWriter, r *http.Request) {
 	// Queries database for patient using ID from URL, unmarshals into patient struct and returns error, if any
 	err := Supabase.DB.From("patients").Select("*").Eq("id", id).Execute(&patient)
 
-	if err != nil || len(patient) == 0 { // len of 0 means no patient found in DB
-		http.Error(w, "Patient not found", http.StatusNotFound)
+	if err != nil {
+		msg := fmt.Sprintf("GetPatientByID: DB select error (id=%s): %v", id, err)
+		fmt.Println(msg)
+		http.Error(w, "Error fetching patient", http.StatusInternalServerError)
+		return
+	}
+
+	if len(patient) == 0 {
+		http.Error(w, "Patient not found", http.StatusNotFound) // 404
 		return
 	}
 
@@ -195,11 +246,18 @@ func GetPrescriptions(w http.ResponseWriter, r *http.Request) {
 	var prescriptions []model.Prescription
 	err := Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Execute(&prescriptions)
 	if err != nil {
-		fmt.Println(err)
+		msg := fmt.Sprintf("GetPrescriptions: DB select error: %v", err)
+		fmt.Println(msg)
+		http.Error(w, "Failed to fetch prescriptions", http.StatusInternalServerError)
+		return
+	}
+	if len(prescriptions) == 0 {
+		http.Error(w, "No prescriptions found", http.StatusNotFound)
+		return
 	}
 	prescriptionsJSON, err := json.MarshalIndent(prescriptions, "", "  ")
 	if err != nil {
-		fmt.Println("Error marshaling prescriptions:", err)
+		fmt.Println("Error marshaling prescriptions json in Get Prescriptions:", err)
 		http.Error(w, "Failed to convert prescriptions to JSON", http.StatusInternalServerError)
 		return
 	}
@@ -214,7 +272,14 @@ func GetPrescriptionByID(w http.ResponseWriter, r *http.Request) {
 	var prescription []model.Prescription
 	err := Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Eq("id", id).Execute(&prescription)
 	if err != nil {
+		msg := fmt.Sprintf("GetPrescriptionByID: DB error (id=%s): %v", id, err)
+		fmt.Println(msg)
 		http.Error(w, "Prescription not found", http.StatusNotFound)
+		return
+	}
+	if len(prescription) == 0 {
+		http.Error(w, "Prescription not found", http.StatusNotFound)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(prescription[0])
@@ -227,7 +292,14 @@ func GetPrescriptionsByPatientID(w http.ResponseWriter, r *http.Request) {
 	var prescription []model.Prescription
 	err := Supabase.DB.From("prescriptions").Select("*,patient:patients(name)").Eq("patient_id", id).Execute(&prescription)
 	if err != nil {
+		msg := fmt.Sprintf("GetPrescriptionsByPatientID: DB error (patient_id=%s): %v", id, err)
+		fmt.Println(msg)
 		http.Error(w, "Prescriptions not found", http.StatusNotFound)
+		return
+	}
+	if len(prescription) == 0 {
+		http.Error(w, "No prescriptions found for that patient", http.StatusNotFound)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(prescription)
@@ -239,6 +311,7 @@ func GetStudents(w http.ResponseWriter, r *http.Request) {
 	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
 	if err != nil {
 		http.Error(w, "No Students Found", http.StatusNotFound)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(students)
@@ -249,8 +322,15 @@ func GetStudentById(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 	var student []model.User
 	err := Supabase.DB.From("users").Select("*").Eq("id", id).Execute(&student)
-	if err != nil || len(student) == 0 {
-		http.Error(w, "Student not found", http.StatusNotFound)
+	if err != nil {
+		msg := fmt.Sprintf("GetStudents: DB error: %v", err)
+		fmt.Println(msg)
+		http.Error(w, "No Students Found", http.StatusNotFound)
+		return
+	}
+	if len(student) == 0 {
+		http.Error(w, "No Students Found", http.StatusNotFound)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(student[0])
@@ -260,11 +340,14 @@ func GetResults(w http.ResponseWriter, r *http.Request) {
 	var results []model.Result
 	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Execute(&results)
 	if err != nil {
-		http.Error(w, "Grabbing Prescriptions Error", http.StatusBadRequest)
-		fmt.Println(err)
+		msg := fmt.Sprintf("GetResults: DB error: %v", err)
+		fmt.Println(msg)
+		http.Error(w, "Error fetching results", http.StatusBadRequest)
+		return
 	}
 	if len(results) == 0 {
-		http.Error(w, "No Prescriptions in Database", http.StatusNotFound)
+		http.Error(w, "No Results in Database", http.StatusNotFound)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(results)
@@ -276,7 +359,14 @@ func GetResultByID(w http.ResponseWriter, r *http.Request) {
 	var result []model.Result
 	err := Supabase.DB.From("results").Select("*,patient:patients(name)").Eq("id", id).Execute(&result)
 	if err != nil {
-		http.Error(w, "Grabbing Prescription Error", http.StatusBadRequest)
+		msg := fmt.Sprintf("GetResultByID: DB error (id=%s): %v", id, err)
+		fmt.Println(msg)
+		http.Error(w, "Grabbing Result Error", http.StatusBadRequest)
+		return
+	}
+	if len(result) == 0 {
+		http.Error(w, "Result not found", http.StatusNotFound)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result[0])
@@ -287,7 +377,14 @@ func GetResultsByPatientID(w http.ResponseWriter, r *http.Request) {
 	var results []model.Result
 	err := Supabase.DB.From("results").Select("*").Eq("patient_id", id).Execute(&results)
 	if err != nil {
+		msg := fmt.Sprintf("GetResultsByPatientID: DB error (patient_id=%s): %v", id, err)
+		fmt.Println(msg)
 		http.Error(w, "Results not found", http.StatusNotFound)
+		return
+	}
+	if len(results) == 0 {
+		http.Error(w, "No results found for that patient", http.StatusNotFound)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(results)
@@ -913,8 +1010,12 @@ func GetFlaggedPatients(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(flaggedPatients); err != nil {
-		http.Error(w, "Error encoding flagged patients", http.StatusInternalServerError)
+	err = json.NewEncoder(w).Encode(flaggedPatients)
+	if err != nil {
+		msg := fmt.Sprintf("GetFlaggedPatients: error encoding flagged patients: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
 	}
 }
 func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
@@ -1028,7 +1129,9 @@ func KeepPatient(w http.ResponseWriter, r *http.Request) {
 	var request FlaggedPatientRequest
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+		msg := fmt.Sprintf("KeepPatient: failed to read request body: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusBadRequest)
 		return
 	}
 	err = json.Unmarshal(bodyBytes, &request)
@@ -1052,7 +1155,15 @@ func GetInstructors(w http.ResponseWriter, r *http.Request) {
 	var instructors []model.User
 	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "TRUE").Execute(&instructors)
 	if err != nil {
+		msg := fmt.Sprintf("GetInstructors: DB error: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusNotFound)
+		return
+	}
+
+	if len(instructors) == 0 {
 		http.Error(w, "No Instructors Found", http.StatusNotFound)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(instructors)
@@ -1062,11 +1173,15 @@ func AddStudentToInstructor(w http.ResponseWriter, r *http.Request) {
 	var req AddStudentRequest
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+		msg := fmt.Sprintf("AddStudentToInstructor: failed to read request body: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusBadRequest)
 		return
 	}
 	if err := json.Unmarshal(bodyBytes, &req); err != nil {
-		http.Error(w, "Invalid JSON in request body", http.StatusBadRequest)
+		msg := fmt.Sprintf("AddStudentToInstructor: invalid JSON: %v", err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusBadRequest)
 		return
 	}
 
@@ -1077,7 +1192,9 @@ func AddStudentToInstructor(w http.ResponseWriter, r *http.Request) {
 	}
 	studentID, err := uuid.Parse(req.StudentId)
 	if err != nil {
-		http.Error(w, "Invalid student UUID", http.StatusBadRequest)
+		msg := fmt.Sprintf("AddStudentToInstructor: invalid instructor UUID (%s): %v", req.InstructorId, err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusBadRequest)
 		return
 	}
 
@@ -1088,7 +1205,9 @@ func AddStudentToInstructor(w http.ResponseWriter, r *http.Request) {
 		Execute(&instructorsFound)
 
 	if err != nil {
-		http.Error(w, "Error fetching instructor", http.StatusInternalServerError)
+		msg := fmt.Sprintf("AddStudentToInstructor: error fetching instructor (id=%s): %v", instructorID.String(), err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 	if len(instructorsFound) == 0 {
@@ -1111,7 +1230,7 @@ func AddStudentToInstructor(w http.ResponseWriter, r *http.Request) {
 	}
 	instructor.Students = append(instructor.Students, studentID)
 
-	updateData := map[string]interface{}{
+	updateData := map[string]any{
 		"students": instructor.Students,
 	}
 	err = Supabase.DB.From("users").
@@ -1119,19 +1238,34 @@ func AddStudentToInstructor(w http.ResponseWriter, r *http.Request) {
 		Eq("id", instructor.Id.String()).
 		Execute(nil)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Error updating instructor", http.StatusInternalServerError)
 		return
 	}
-
+	updateData = map[string]any{
+		"isAssigned": true,
+	}
+	err = Supabase.DB.From("users").
+		Update(updateData).
+		Eq("id", studentID.String()).
+		Execute(nil)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error updating student isAssigned", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Student Added to Instructor"))
 }
 
 func GetInstructorStudents(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	instructorID := vars["instructor_id"]
+	instructorID := vars["id"]
+	fmt.Println(&instructorID)
 	instructorUUID, err := uuid.Parse(instructorID)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Invalid instructor UUID", http.StatusBadRequest)
 		return
 	}
@@ -1142,7 +1276,9 @@ func GetInstructorStudents(w http.ResponseWriter, r *http.Request) {
 		Eq("id", instructorUUID.String()).
 		Execute(&instructorsFound)
 	if err != nil {
-		http.Error(w, "Error fetching instructor", http.StatusInternalServerError)
+		msg := fmt.Sprintf("GetInstructorStudents: DB error (id=%s): %v", instructorUUID.String(), err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 	if len(instructorsFound) == 0 {
@@ -1174,7 +1310,9 @@ func GetInstructorStudents(w http.ResponseWriter, r *http.Request) {
 		Execute(&students)
 
 	if err != nil {
-		http.Error(w, "Error fetching students", http.StatusInternalServerError)
+		msg := fmt.Sprintf("GetInstructorStudents: error fetching students for IDs=%v: %v", studentIDStrings, err)
+		fmt.Println(msg)
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 
