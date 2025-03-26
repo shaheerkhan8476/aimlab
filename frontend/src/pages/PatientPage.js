@@ -522,7 +522,7 @@ function PatientPage() {
 
     
 
-        {!(disableInput && !isAdmin) && (
+        {(!disableInput && !isAdmin) && (
         <div>
             <div className="ai-input-area">
                 {location.state?.task_type === "prescription" && (
