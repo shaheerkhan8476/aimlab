@@ -152,7 +152,7 @@ function InstructorDashboard(){
                                             </tbody>
                                         </table>
                                     ) : (
-                                        <p>...loading patient messages...</p>
+                                        <p>Loading student list...</p>
                                     )}
                                 </div>
                             )}
