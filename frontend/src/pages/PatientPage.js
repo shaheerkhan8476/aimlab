@@ -170,6 +170,8 @@ function PatientPage() {
             task_type: location.state?.task_type || "",
             user_message: messageToSend,
         };
+
+        console.log(giga_json);
         
         try {
             const response = await fetch(`http://localhost:8060/patients/${id}/llm-response`, {
@@ -182,7 +184,7 @@ function PatientPage() {
 
                 });
                 const data = await response.json();
-                const fullResponse = data.completion + ` Best Regards, ${localStorage.getItem("userName")}.`;
+                const fullResponse = data.feedback_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
                 setAIResponse(fullResponse);
                 
                 await fetch(`http://localhost:8060/${userId}/tasks/${location.state.task_id}/completeTask`, {
@@ -200,7 +202,7 @@ function PatientPage() {
 
                 setAIResponseUnlocked(true);
                 setActiveTab("ai-response");
-            }
+        }
         catch (error) {
             console.error ("completing and submitting failed", error);
             setDisableInput(false);
