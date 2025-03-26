@@ -99,7 +99,11 @@ func main() {
 		AllowCredentials: true,
 	}).Handler(m)
 
-	err = http.ListenAndServe(":8060", handler)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8060" // fallback for local development
+	}
+	err = http.ListenAndServe(":"+port, handler)
 	if err != nil {
 		fmt.Println(err)
 	}
