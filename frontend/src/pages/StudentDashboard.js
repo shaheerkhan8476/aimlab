@@ -14,6 +14,10 @@ function StudentDashboard(){
     const [isAuthenticated, setIsAuthenticated] = useState(true);
     const [view, setView] = useState("messages"); //patient messages by default. swtich to prescriptions if clicked
     const [userName, setUserName] = useState("")
+
+    const [messageCount, setMessageCount] = useState(0);
+    const [resultCount, setResultCount] = useState(0);
+    const [prescriptionCount, setPrescriptionCount] = useState(0);
     
 
     const navigate = useNavigate();
@@ -58,13 +62,20 @@ function StudentDashboard(){
         .then(async (tasks) => {         //Empty array returned? means bad token. error.
             console.log("tasks fetched successfully", tasks);
 
-            tasks.forEach(task => {
-                console.log(`Task ID: ${task.task_id}, Type: ${task.task_type}, Result ID: ${task.result_id}`);
-            });
+            // tasks.forEach(task => {
+            //     console.log(`Task ID: ${task.id}, Type: ${task.task_type}, Result ID: ${task.result_id}`);
+            // });
 
             const patientMessages = tasks.filter(task => task.task_type === "patient_question");
+            setMessageCount(patientMessages.length);
+
             const results = tasks.filter(task => task.task_type === "lab_result");
+            setResultCount(results.length);
+
             const prescriptions = tasks.filter(task => task.task_type === "prescription");
+            setPrescriptionCount(prescriptions.length);
+
+
 
             console.log("Filtered results tasks:", results);
 
@@ -111,7 +122,7 @@ function StudentDashboard(){
             const fetchResults = async (taskList) => {
                 return Promise.all(taskList.map(async (task) => {
 
-                    console.log(`Fetching result for task ${task.task_id} with result_id: ${task.result_id}`);
+                    //console.log(`Fetching result for task ${task.id} with result_id: ${task.result_id}`);
 
                     const fullResult = await fetch(`http://localhost:8060/results/${task.result_id}`, {
                         method: "GET",
@@ -150,6 +161,9 @@ function StudentDashboard(){
         });
     }, [isAuthenticated]);
 
+
+    //Gets username -- admittedly there's either a better way to do this or
+    //There isn't and I forgot why this is necessary because I did it so long ago
     useEffect(() => {
         const userId = localStorage.getItem("userId");
         console.log(userId);
@@ -210,7 +224,7 @@ function StudentDashboard(){
                         className={`nav-link ${view === "messages" ? "active" : ""}`}
                         onClick={() => setView("messages")}
                     >
-                        Patient Messages
+                        Patient Messages ({messageCount})
                     </button>
                     <button
                         className={`nav-link ${view === "results" ? "active" : ""}`}
@@ -218,7 +232,7 @@ function StudentDashboard(){
                         setView("results")
                         }}
                     >
-                        Results
+                        Results ({resultCount})
                     </button>
                     <button
                         className={`nav-link ${view === "prescriptions" ? "active" : ""}`}
@@ -227,7 +241,7 @@ function StudentDashboard(){
                             
                         }}
                     >
-                        Prescriptions/Refills
+                        Prescriptions/Refills ({prescriptionCount})
                     </button>
                     <button
                         className="nav-link"
@@ -263,7 +277,10 @@ function StudentDashboard(){
                                                         key={index}
                                                         className="clickable-patient"
                                                         onClick={() => navigate(`/PatientPage/${message.patient_id}`, 
-                                                            {state: {task_type: "patient_question", patient_question: message.patient.patient_message}})}
+                                                            {state: {
+                                                                task_type: "patient_question", 
+                                                                patient_question: message.patient.patient_message,
+                                                                task_id: message.id}})}
 
                                                     >
                                                         <td>{message.patient.name}</td>
@@ -272,7 +289,6 @@ function StudentDashboard(){
                                                         {/* <img src={QuickReply} alt="Quick Reply" className="quick-reply"></img> */}
                                                     </tr>
                                                 ))}
-                                                
                                             </tbody>
                                         </table>
                                     ) : (
@@ -300,7 +316,8 @@ function StudentDashboard(){
                                                         onClick={() => navigate(`/PatientPage/${prescription.patient_id}`, {
                                                             state: {
                                                                 task_type: "prescription",
-                                                                prescription_id: prescription.prescription_id
+                                                                prescription_id: prescription.prescription_id,
+                                                                task_id: prescription.id
                                                             }
                                                         })}
                                                     >
@@ -345,7 +362,8 @@ function StudentDashboard(){
                                                         navigate(`/PatientPage/${result.patient_id}`, {
                                                         state: {
                                                             task_type: "lab_result",
-                                                            result_id: result.result_id
+                                                            result_id: result.result_id,
+                                                            task_id: result.id
                                                         }
                                                     });}}
                                                 >
