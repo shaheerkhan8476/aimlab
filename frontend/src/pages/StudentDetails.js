@@ -115,7 +115,7 @@ function StudentDetails() {
     {
      
         return (
-            <p>Patient loading, please wait</p>
+            <p>Student details loading, please wait</p>
         )
     }
 
