@@ -19,7 +19,7 @@ import (
 )
 
 // LLM service URL
-const llmURL = "http://127.0.0.1:5001/api/message-request"
+const llmURL = "https://capstonetest-production.up.railway.app/api/message-request"
 
 var Supabase *supabase.Client
 

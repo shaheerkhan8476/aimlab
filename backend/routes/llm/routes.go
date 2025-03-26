@@ -24,7 +24,7 @@ func RequestMessage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to marshal message", http.StatusInternalServerError)
 		return
 	}
-	flaskURL := "http://127.0.0.1:5001/api/message-request"
+	flaskURL := "https://capstonetest-production.up.railway.app/api/message-request"
 	responseHTML, err := http.Post(flaskURL, "application/json", bytes.NewBuffer(msgData))
 	if err != nil {
 		fmt.Println("Error sending message to Flask:", err)
