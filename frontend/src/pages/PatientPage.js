@@ -21,11 +21,13 @@ function PatientPage() {
     const [finalMessage, setFinalMessage] = useState("");
     const [isAdmin, setIsAdmin] = useState(null); //If user is admin for flagging page    
     const [activeResultTab, setActiveResultTab] = useState(null);
+    
 
     
     const navigate = useNavigate();
     const location = useLocation();
-   
+    const queryParams = new URLSearchParams(location.search);
+    const taskId = queryParams.get("task_id");
 
     useEffect(() => {
         // Fetch user details (to check if they are an instructor)
@@ -63,7 +65,7 @@ function PatientPage() {
         const userId = localStorage.getItem("userId");//get local userid
         if (!token) return;
 
-        //for patient detials tab
+        //for patient details tab
         fetch(`http://localhost:8060/patients/${id}`, {
             method: "GET",
             headers: {
@@ -87,7 +89,7 @@ function PatientPage() {
         .then(data => setResults(data))
         .catch(error => console.error("Failed to fetch results", error));
 
-        //for prescripitiosn tab
+        //for prescriptions tab
         fetch(`http://localhost:8060/patients/${id}/prescriptions`, {
             method: "GET",
             headers: {
@@ -95,12 +97,34 @@ function PatientPage() {
                 "Content-Type": "application/json",
             },
             
-    })
-    .then(response => response.json())
-    .then(data => setPrescriptions(data))
-    .catch(error => console.error("Failed to fetch prescriptions:", error));
+        })
+        .then(response => response.json())
+        .then(data => setPrescriptions(data))
+        .catch(error => console.error("Failed to fetch prescriptions:", error));
 
-    }, [id]);
+        // for student/AI response tab
+        if (taskId) {  // should only run if there is a task id in the query params
+            fetch(`http://localhost:8060/tasks/${taskId}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            })
+            .then(response => response.json())
+            .then(data => {  
+                if (data.completed) {   // if task is already completed, show the AI response
+                    setAIResponseUnlocked(true);
+                    setDisableInput(true);
+                    setActiveTab("ai-response");
+                    setUserMessage(data.student_response);
+                    setAIResponse(data.llm_feedback);
+                }
+            })
+            .catch(error => console.error("Failed to get student and AI response for task", error));
+        }
+
+    }, [id, taskId]);
 
     useEffect(() => {
         if (!results.length && !prescriptions.length){ //wait for load

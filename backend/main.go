@@ -87,7 +87,7 @@ func main() {
 	m.HandleFunc("/{student_id}/tasks", supabase.GetTasksByStudentID).Methods("POST", "OPTIONS") //had to make this post bc the function expects a body
 	//hardcoded body to show incomplete tasks ^^^
 	m.HandleFunc("/{student_id}/tasks/week", supabase.GetTasksByWeekAndDay).Methods("GET")
-	m.HandleFunc("/{student_id}/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
+	m.HandleFunc("/tasks/{task_id}", supabase.GetTaskByID).Methods("GET")
 	m.HandleFunc("/{student_id}/tasks/{task_id}/completeTask", supabase.CompleteTask).Methods("POST")
 
 	//Student Instructor Assignment Feature

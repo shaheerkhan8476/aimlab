@@ -151,7 +151,7 @@ function StudentDetails() {
                                                 <li key={tindex} className="task-item">
                                                     <span className="task-id">
                                                         Task: {" "}
-                                                        <Link to={`/PatientPage/${task.patient_id}`}>
+                                                        <Link to={`/PatientPage/${task.patient_id}?task_id=${task.id}`} className="task-link">
                                                         {patient[task.patient_id] || "Unknown Patient"} - {task.task_type.replace(/_/g, " ")}
                                                         </Link>
                                                     </span>
