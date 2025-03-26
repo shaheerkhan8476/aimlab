@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/cors"
 	"gitlab.msu.edu/team-corewell-2025/routes/llm"
@@ -14,13 +13,7 @@ import (
 )
 
 func main() {
-
-	// Load env vars
-	err := godotenv.Load(".env")
-	if err != nil {
-		fmt.Println("Error loading in .env")
-	}
-
+	var err error
 	// Create client
 	url := os.Getenv("SUPABASE_URL")
 	key := os.Getenv("SUPABASE_KEY")
