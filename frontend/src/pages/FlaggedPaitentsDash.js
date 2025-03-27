@@ -12,12 +12,15 @@ function FlaggedPatientsDash() {
     useEffect(() => {
         const userId = localStorage.getItem("userId");//get local userid
         const token = localStorage.getItem("accessToken");//get access token
+        const isAdmin = localStorage.getItem("isAdmin")  === "true"; //get is admin and make it a bool
 
+  
         //check if auth
-        if (!userId || !token) {
+        if (!userId || !token || !isAdmin ) {
             setIsAuthenticated(false);
             return;
         }
+        
 
         // get instructor name
         fetch(`http://localhost:8060/students/${userId}`, {
@@ -128,6 +131,10 @@ function FlaggedPatientsDash() {
         } catch (error) {
             console.error("Error removing patient:", error);
         }
+        const isAdmin = localStorage.getItem("isAdmin") === "true";
+
+
+
     };
     if (!isAuthenticated) {
         return (
@@ -140,7 +147,7 @@ function FlaggedPatientsDash() {
             </div>
         );
     }
-
+    else{
     return (
         <div className="dashboard-container">
             {/* Top Banner */}
@@ -203,6 +210,7 @@ function FlaggedPatientsDash() {
             </div>
         </div>
     );
+}
 }
 
 export default FlaggedPatientsDash;
