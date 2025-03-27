@@ -131,7 +131,7 @@ function FlaggedPatientsDash() {
         } catch (error) {
             console.error("Error removing patient:", error);
         }
-        const isAdmin = localStorage.getItem("isAdmin") === "true";
+
 
 
 
