@@ -106,7 +106,7 @@ function PatientPage() {
 
         // for student/AI response tab
         if (taskId) {  // should only run if there is a task id in the query params
-            fetch(`http://localhost:8060/tasks/${taskId}`, {
+            fetch(`http://localhost:8060/${studentId}/tasks/${taskId}`, {
                 method: "GET",
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -221,7 +221,7 @@ function PatientPage() {
                 const fullResponse = data.feedback_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
                 setAIResponse(fullResponse);
                 
-                await fetch(`http://localhost:8060/${userId}/tasks/${location.state.task_id}/completeTask`, {
+                await fetch(`http://localhost:8060/${studentId}/tasks/${taskId}/completeTask`, {
                     method: "POST",
                     headers: {
                         "Authorization": `Bearer ${token}`,
@@ -241,42 +241,6 @@ function PatientPage() {
             console.error ("completing and submitting failed", error);
             setDisableInput(false);
         }
-        
-        fetch(`http://localhost:8060/patients/${id}/llm-response`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-
-        })
-        .then(response => response.json())
-        .then(data => {
-            const llmReply = data.completion + ` Best Regards, ${localStorage.getItem("userName")}.`;
-            setAIResponse(llmReply);
-            setAIResponseUnlocked(true);
-            setDisableInput(true);
-
-            // Saves the data and marks task as complete AFTER llm response is received
-            return fetch(`http://localhost:8060/${studentId}/tasks/${taskId}/completeTask`,{
-                method:'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                'student_response': `${userMessage}`,
-                'llm_feedback': llmReply 
-                }),
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`whoopsies! no task completion`);
-                }
-            })
-            .catch(error => console.error("Failed to complete", error));
-        })
-        .catch(error => console.error("Failed to get ai response", error));
     };
 
     const flagPatient = () => {
