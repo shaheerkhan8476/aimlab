@@ -25,7 +25,7 @@ function ForgotPassword()
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('https://team-corewell-frontend.vercel.app/forgotPassword',{
+            const response = await fetch('https://corewell-backend-production.up.railway.app/forgotPassword',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

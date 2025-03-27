@@ -35,7 +35,7 @@ function ResetPassword()
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('https://team-corewell-frontend.vercel.app/resetPassword',{
+            const response = await fetch('https://corewell-backend-production.up.railway.app/resetPassword',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

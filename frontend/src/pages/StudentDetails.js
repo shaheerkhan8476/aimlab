@@ -20,7 +20,7 @@ function StudentDetails() {
             console.error("User ID is not in local storage");
             return
         }
-        fetch(`https://team-corewell-frontend.vercel.app/students/${userId}`,{
+        fetch(`https://corewell-backend-production.up.railway.app/students/${userId}`,{
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
@@ -47,7 +47,7 @@ function StudentDetails() {
 
     useEffect(() => {
         // Get student details
-        fetch(`https://team-corewell-frontend.vercel.app/students/${id}`, {
+        fetch(`https://corewell-backend-production.up.railway.app/students/${id}`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
@@ -67,7 +67,7 @@ function StudentDetails() {
         });
 
         // Get tasks
-        fetch(`https://team-corewell-frontend.vercel.app/${id}/tasks/week`, {
+        fetch(`https://corewell-backend-production.up.railway.app/${id}/tasks/week`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
@@ -86,7 +86,7 @@ function StudentDetails() {
                 patient_Id .map(async (patientId) => {
                     try {
                         //loads paitent with its id
-                        const response = await fetch(`https://team-corewell-frontend.vercel.app/patients/${patientId}`, {
+                        const response = await fetch(`https://corewell-backend-production.up.railway.app/patients/${patientId}`, {
                             method: "GET",
                             headers: {
                                 "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,

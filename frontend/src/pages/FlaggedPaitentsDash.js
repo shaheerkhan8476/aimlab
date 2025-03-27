@@ -20,7 +20,7 @@ function FlaggedPatientsDash() {
         }
 
         // get instructor name
-        fetch(`https://team-corewell-frontend.vercel.app/students/${userId}`, {
+        fetch(`https://corewell-backend-production.up.railway.app/students/${userId}`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -40,7 +40,7 @@ function FlaggedPatientsDash() {
         .catch((error) => {
             console.error(error);
         });
-        fetch("https://team-corewell-frontend.vercel.app/flaggedPatients", {
+        fetch("https://corewell-backend-production.up.railway.app/flaggedPatients", {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -60,7 +60,7 @@ function FlaggedPatientsDash() {
                 // get each flagger id of flaggers
                 for (const flaggerId of patient.flaggers) {
                     try {
-                        const res = await fetch(`https://team-corewell-frontend.vercel.app/students/${flaggerId}`, {
+                        const res = await fetch(`https://corewell-backend-production.up.railway.app/students/${flaggerId}`, {
                             method: "GET",
                             headers: {
                                 "Authorization": `Bearer ${token}`,
@@ -89,7 +89,7 @@ function FlaggedPatientsDash() {
     const handleKeep = async (patientId) => {
         const token = localStorage.getItem("accessToken");
         try {
-            const response = await fetch("https://team-corewell-frontend.vercel.app/keepPatient", {
+            const response = await fetch("https://corewell-backend-production.up.railway.app/keepPatient", {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -111,7 +111,7 @@ function FlaggedPatientsDash() {
     const handleRemove = async (patientId) => {
         const token = localStorage.getItem("accessToken");
         try {
-            const response = await fetch("https://team-corewell-frontend.vercel.app/removePatient", {
+            const response = await fetch("https://corewell-backend-production.up.railway.app/removePatient", {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,

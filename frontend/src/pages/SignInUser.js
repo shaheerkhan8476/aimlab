@@ -28,7 +28,7 @@ function SignInUser()
         e.preventDefault();
         setError("");
         try {
-            const response = await fetch('https://team-corewell-frontend.vercel.app/login',{
+            const response = await fetch('https://corewell-backend-production.up.railway.app/login',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ function SignInUser()
                 localStorage.setItem("userId", userId);
                 console.log('Login Successful', data);
 
-                const userResponse = await fetch(`https://team-corewell-frontend.vercel.app/students/${userId}`, {
+                const userResponse = await fetch(`https://corewell-backend-production.up.railway.app/students/${userId}`, {
                     method: "GET",
                     headers: {
                         "Authorization": `Bearer ${token}`,

@@ -35,7 +35,7 @@ function PatientPage() {
             console.error("User ID is not in local storage");
             return
         }
-        fetch(`https://team-corewell-frontend.vercel.app/students/${userId}`,{
+        fetch(`https://corewell-backend-production.up.railway.app/students/${userId}`,{
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
@@ -64,7 +64,7 @@ function PatientPage() {
         if (!token) return;
 
         //for patient detials tab
-        fetch(`https://team-corewell-frontend.vercel.app/patients/${id}`, {
+        fetch(`https://corewell-backend-production.up.railway.app/patients/${id}`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -76,7 +76,7 @@ function PatientPage() {
         .catch(error => console.error("Failed to fetch patient", error));
 
         //for results tab
-        fetch(`https://team-corewell-frontend.vercel.app/patients/${id}/results`, {
+        fetch(`https://corewell-backend-production.up.railway.app/patients/${id}/results`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -88,7 +88,7 @@ function PatientPage() {
         .catch(error => console.error("Failed to fetch results", error));
 
         //for prescripitiosn tab
-        fetch(`https://team-corewell-frontend.vercel.app/patients/${id}/prescriptions`, {
+        fetch(`https://corewell-backend-production.up.railway.app/patients/${id}/prescriptions`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -174,7 +174,7 @@ function PatientPage() {
         console.log(giga_json);
         
         try {
-            const response = await fetch(`https://team-corewell-frontend.vercel.app/patients/${id}/llm-response`, {
+            const response = await fetch(`https://corewell-backend-production.up.railway.app/patients/${id}/llm-response`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -187,7 +187,7 @@ function PatientPage() {
                 const fullResponse = data.feedback_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
                 setAIResponse(fullResponse);
                 
-                await fetch(`https://team-corewell-frontend.vercel.app/${userId}/tasks/${location.state.task_id}/completeTask`, {
+                await fetch(`https://corewell-backend-production.up.railway.app/${userId}/tasks/${location.state.task_id}/completeTask`, {
                     method: "POST",
                     headers: {
                         "Authorization": `Bearer ${token}`,
@@ -212,7 +212,7 @@ function PatientPage() {
     const flagPatient = () => {
         const token = localStorage.getItem("accessToken");
         const userId = localStorage.getItem("userId")
-        fetch(`https://team-corewell-frontend.vercel.app/addFlag`,{
+        fetch(`https://corewell-backend-production.up.railway.app/addFlag`,{
             method: 'POST',
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -236,7 +236,7 @@ function PatientPage() {
         const token = localStorage.getItem("accessToken");
         const userId = localStorage.getItem("userId")
 
-        return fetch(`https://team-corewell-frontend.vercel.app/${userId}/tasks/${location.state.task_id}/completeTask`,{
+        return fetch(`https://corewell-backend-production.up.railway.app/${userId}/tasks/${location.state.task_id}/completeTask`,{
             method:'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,

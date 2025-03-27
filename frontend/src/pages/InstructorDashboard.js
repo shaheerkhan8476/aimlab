@@ -25,7 +25,7 @@ function InstructorDashboard(){
             setIsAuthenticated(false);
             return
         }
-        fetch(`https://team-corewell-frontend.vercel.app/students/${userId}`,{
+        fetch(`https://corewell-backend-production.up.railway.app/students/${userId}`,{
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
@@ -58,7 +58,7 @@ function InstructorDashboard(){
             return;
         }
     
-        fetch(`https://team-corewell-frontend.vercel.app/instructors/${userId}/students`, {
+        fetch(`https://corewell-backend-production.up.railway.app/instructors/${userId}/students`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,

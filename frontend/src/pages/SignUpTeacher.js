@@ -9,7 +9,7 @@ function SignUpTeacher() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch("https://team-corewell-frontend.vercel.app/instructors")
+        fetch("https://corewell-backend-production.up.railway.app/instructors")
             .then(response => response.json())
             .then(data => setTeachers(data))
             .catch(error => console.error("Error fetching instructors:", error));
@@ -36,7 +36,7 @@ function SignUpTeacher() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('https://team-corewell-frontend.vercel.app/addStudent', {
+            const response = await fetch('https://corewell-backend-production.up.railway.app/addStudent', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

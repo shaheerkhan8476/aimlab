@@ -43,10 +43,10 @@ function StudentDashboard(){
             return;
         }
         setIsAuthenticated(true);
-        console.log("Fetching:", `https://team-corewell-frontend.vercel.app/${userId}/tasks`);
+        console.log("Fetching:", `https://corewell-backend-production.up.railway.app/${userId}/tasks`);
 
         //Fetch all tasks for student
-        fetch(`https://team-corewell-frontend.vercel.app/${userId}/tasks`,{
+        fetch(`https://corewell-backend-production.up.railway.app/${userId}/tasks`,{
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -86,7 +86,7 @@ function StudentDashboard(){
 
             const fetchPatientMessage = async (taskList) => {
                 return Promise.all(taskList.map(async (task) => {
-                    const fullPatient = await fetch(`https://team-corewell-frontend.vercel.app/patients/${task.patient_id}`, {
+                    const fullPatient = await fetch(`https://corewell-backend-production.up.railway.app/patients/${task.patient_id}`, {
                         method: "GET",
                         headers: {
                             "Authorization": `Bearer ${token}`,
@@ -101,7 +101,7 @@ function StudentDashboard(){
             //async to ensure api calls all get through before it tries to move on
             const fetchPrescriptions = async (taskList) => {
                 return Promise.all(taskList.map(async (task) => {
-                    const fullPrescription = await fetch(`https://team-corewell-frontend.vercel.app/prescriptions/${task.prescription_id}`,{
+                    const fullPrescription = await fetch(`https://corewell-backend-production.up.railway.app/prescriptions/${task.prescription_id}`,{
                         method: "GET",
                         headers: {
                             "Authorization": `Bearer ${token}`,
@@ -127,7 +127,7 @@ function StudentDashboard(){
 
                     //console.log(`Fetching result for task ${task.id} with result_id: ${task.result_id}`);
 
-                    const fullResult = await fetch(`https://team-corewell-frontend.vercel.app/results/${task.result_id}`, {
+                    const fullResult = await fetch(`https://corewell-backend-production.up.railway.app/results/${task.result_id}`, {
                         method: "GET",
                         headers: {
                             "Authorization": `Bearer ${token}`,
@@ -175,7 +175,7 @@ function StudentDashboard(){
             setIsAuthenticated(false);
             return
         }
-        fetch(`https://team-corewell-frontend.vercel.app/students/${userId}`,{
+        fetch(`https://corewell-backend-production.up.railway.app/students/${userId}`,{
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
@@ -207,7 +207,7 @@ function StudentDashboard(){
         if (!quickReplyText.trim()) {return;}
 
         try {
-            await fetch(`https://team-corewell-frontend.vercel.app/${userId}/tasks/${task.id}/completeTask`, {
+            await fetch(`https://corewell-backend-production.up.railway.app/${userId}/tasks/${task.id}/completeTask`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,
