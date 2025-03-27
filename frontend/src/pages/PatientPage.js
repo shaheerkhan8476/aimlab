@@ -153,42 +153,55 @@ function PatientPage() {
         if (!token || !userMessage) {
             return;
         }
-
         setDisableInput(true);
+        let messageToSend = userMessage;
 
         if (location.state?.task_type === "prescription"){
             let userMessageCopy = userMessage;
             let refillMessage = `\n\nThe prescription should ${refillDecision === "Refill" ? "be refilled" : "not be refilled"}.`
             setUserMessage(userMessageCopy + refillMessage);
         }
+
+        const giga_json = {
+            patient,
+            results,
+            prescriptions,
+            pdmp: patient.pdmp || [],
+            task_type: location.state?.task_type || "",
+            user_message: messageToSend,
+        };
+
+        console.log(giga_json);
+        
         try {
             const response = await fetch(`http://localhost:8060/patients/${id}/llm-response`, {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-
-            });
-            const data = await response.json();
-            const fullResponse = data.completion + ` Best Regards, ${localStorage.getItem("userName")}.`;
-            setAIResponse(fullResponse);
-            
-            await fetch(`http://localhost:8060/${userId}/tasks/${location.state.task_id}/completeTask`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    student_response: `${userMessage}`,
-                    llm_feedback: fullResponse,
+                body: JSON.stringify(giga_json),
 
-                }),
-            });
+                });
+                const data = await response.json();
+                const fullResponse = data.feedback_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
+                setAIResponse(fullResponse);
+                
+                await fetch(`http://localhost:8060/${userId}/tasks/${location.state.task_id}/completeTask`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        student_response: `${userMessage}`,
+                        llm_feedback: fullResponse,
 
-            setAIResponseUnlocked(true);
-            setActiveTab("ai-response");
+                    }),
+                })
+
+                setAIResponseUnlocked(true);
+                setActiveTab("ai-response");
         }
         catch (error) {
             console.error ("completing and submitting failed", error);
