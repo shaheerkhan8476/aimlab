@@ -27,6 +27,7 @@ func RequestMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	flaskURL := "https://capstonetest-production.up.railway.app/api/message-request"
+
 	responseHTML, err := http.Post(flaskURL, "application/json", bytes.NewBuffer(msgData))
 	if err != nil {
 		fmt.Println("Error sending message to Flask:", err)
@@ -62,7 +63,7 @@ func PostLLMResponseForPatient(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Full JSON body:", string(bodyBytes)) // optional debug print
 
 	// Forward the entire JSON payload to your Python microservice
-	flaskURL := "http://127.0.0.1:5001/api/message-request"
+	flaskURL := "https://capstonetest-production.up.railway.app/api/message-request"
 	resp, err := http.Post(flaskURL, "application/json", bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		fmt.Println("Error forwarding JSON to Flask microservice:", err)
