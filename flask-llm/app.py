@@ -152,5 +152,6 @@ SECOND PARAGRAPH (Feedback Instructions):
 
 
 if __name__ == "__main__":
-    # Run on port 5000 for local testing
-    app.run(host="0.0.0.0", port=5001)
+    port = os.getenv("PORT", "5001")
+    print("Starting Flask on port:", port)
+    app.run(host="0.0.0.0", port=int(port))
