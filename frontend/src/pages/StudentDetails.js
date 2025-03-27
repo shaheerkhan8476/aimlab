@@ -115,7 +115,7 @@ function StudentDetails() {
     {
      
         return (
-            <p>Patient loading, please wait</p>
+            <p>Student details loading, please wait</p>
         )
     }
 
@@ -144,7 +144,7 @@ function StudentDetails() {
                                 <h3>Week {week.Week} - Completion Rate: {weeklyCompletionRate}%</h3>
                                 {week.Days.map((day, dindex) => (
                                     <div key={dindex} className="task-day">
-                                        <h4>Day {day.Day} - Completion Rate: {day.CompletionRate}%</h4>
+                                        <h4>Day {day.Day} - Completion Rate: {day.CompletionRate.toFixed(2)}%</h4>
                                         <ul className="task-list">
                                             {day.Tasks.map((task, tindex) => (
                                                 <li key={tindex} className="task-item">

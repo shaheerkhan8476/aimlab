@@ -54,7 +54,8 @@ func main() {
 	patientsRouter.HandleFunc("/{id}", supabase.GetPatientByID).Methods("GET")
 	patientsRouter.HandleFunc("/{id}/prescriptions", supabase.GetPrescriptionsByPatientID).Methods("GET")
 	patientsRouter.HandleFunc("/{id}/results", supabase.GetResultsByPatientID).Methods("GET")
-	patientsRouter.HandleFunc("/{id}/llm-response", supabase.GetLLMResponseForPatient).Methods("GET")
+	// UPDATED: Change method from GET to POST to support the giga json payload.
+	patientsRouter.HandleFunc("/{id}/llm-response", llm.PostLLMResponseForPatient).Methods("POST")
 
 	// Prescriptions
 	prescriptionsRouter := m.PathPrefix("/prescriptions").Subrouter()
