@@ -172,9 +172,9 @@ function PatientPage() {
     // Ai messaging part. This will be actually getting the response to patient that brad made but it's
     // not part of main as of me making this. I will change once brad's thing is in main. Will be easy switch.
     //For now, you type response in the box and ai responds to that, whatever it is.
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const token = localStorage.getItem("accessToken");
-        const userId = localStorage.getItem("userId")
+        const userId = localStorage.getItem("userId");
 
         //do nothing if nothing typed yet
         if (!token || !userMessage) {
@@ -188,11 +188,58 @@ function PatientPage() {
         }
 
         setDisableInput(true);
+        let messageToSend = userMessage;
 
         if (location.state?.task_type === "prescription"){
             let userMessageCopy = userMessage;
             let refillMessage = `\n\nThe prescription should ${refillDecision === "Refill" ? "be refilled" : "not be refilled"}.`
             setUserMessage(userMessageCopy + refillMessage);
+        }
+
+        const giga_json = {
+            patient,
+            results,
+            prescriptions,
+            pdmp: patient.pdmp || [],
+            task_type: location.state?.task_type || "",
+            user_message: messageToSend,
+        };
+
+        console.log(giga_json);
+        
+        try {
+            const response = await fetch(`http://localhost:8060/patients/${id}/llm-response`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(giga_json),
+
+                });
+                const data = await response.json();
+                const fullResponse = data.feedback_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
+                setAIResponse(fullResponse);
+                
+                await fetch(`http://localhost:8060/${userId}/tasks/${location.state.task_id}/completeTask`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        student_response: `${userMessage}`,
+                        llm_feedback: fullResponse,
+
+                    }),
+                })
+
+                setAIResponseUnlocked(true);
+                setActiveTab("ai-response");
+        }
+        catch (error) {
+            console.error ("completing and submitting failed", error);
+            setDisableInput(false);
         }
         
         fetch(`http://localhost:8060/patients/${id}/llm-response`, {
@@ -548,11 +595,7 @@ function PatientPage() {
                         <p><strong>Patient flagged, instructor notified!</strong></p>
                     )}
                     </div>
-                    <div className="complete-container">
-                    {(
-                        <button className="complete-task-btn" onClick={handleCompletion}>Complete Task</button>
-                    )}
-                    </div>
+                    
                 </div>
             )}
         </div>

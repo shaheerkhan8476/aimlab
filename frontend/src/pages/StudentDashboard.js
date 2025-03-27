@@ -18,6 +18,9 @@ function StudentDashboard(){
     const [messageCount, setMessageCount] = useState(0);
     const [resultCount, setResultCount] = useState(0);
     const [prescriptionCount, setPrescriptionCount] = useState(0);
+
+    const [showQuickReply, setShowQuickReply] = useState(null);
+    const [quickReplyText, setQuickReplyText] = useState("");
     
 
     const navigate = useNavigate();
@@ -197,6 +200,36 @@ function StudentDashboard(){
         });
     }, []);
 
+    const handleQuickReplySubmit = async (task) => {
+        const token = localStorage.getItem("accessToken");
+        const userId = localStorage.getItem("userId");
+
+        if (!quickReplyText.trim()) {return;}
+
+        try {
+            await fetch(`http://localhost:8060/${userId}/tasks/${task.id}/completeTask`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    student_response: quickReplyText,
+                    llm_feedback: ""
+                })
+            });
+
+            setMessages((prev) => prev.filter((msg) => msg.id !== task.id));
+            setMessageCount((prev) => prev - 1);
+
+            setShowQuickReply(null);
+            setQuickReplyText("");
+        }
+        catch (error) {
+            console.error("quick reply screwed up", error);
+        }
+        }
+
 
     return (
         <div className="dashboard-container">
@@ -262,7 +295,10 @@ function StudentDashboard(){
                             {view === "messages" && (
                                 <div>
                                     <h2>Patient Messages</h2>
-                                    {messages ? (
+                                    {messages === null ? (
+                                        <p>...Loading...</p> ) : messages.length === 0 ?
+                                        ( <p>No messages tasks! Good job!</p>) : (
+                                        <>
                                         <table className="data-table">
                                             <thead>
                                                 <tr>
@@ -273,6 +309,7 @@ function StudentDashboard(){
                                             </thead>
                                             <tbody>
                                                 {messages.map((message, index) => (
+                                                    <>
                                                     <tr 
                                                         key={index}
                                                         className="clickable-patient"
@@ -286,13 +323,53 @@ function StudentDashboard(){
                                                         <td>{message.patient.name}</td>
                                                         <td>{message.patient.date_of_birth}</td>
                                                         <td>{message.patient.patient_message}</td>
-                                                        {/* <img src={QuickReply} alt="Quick Reply" className="quick-reply"></img> */}
+                                                        <td>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setShowQuickReply(message);
+                                                                        setQuickReplyText("");
+                                                                    }}
+                                                                >               
+                                                                    Quick Reply
+                                                                </button>
+                                                        </td>
                                                     </tr>
+                                                    {showQuickReply?.id === message.id && (
+                                                        <tr>
+                                                            <td colSpan="4">
+                                                                <div className="quick-reply-box">
+                                                                    <textarea
+                                                                        value={quickReplyText}
+                                                                        onChange={(e) => setQuickReplyText(e.target.value)}
+                                                                        placeholder="Reply quickly here..."
+                                                                    />
+                                                                    <div>
+                                                                        <button onClick={() => handleQuickReplySubmit(message)}>Submit</button>
+                                                                        <button onClick={() => setShowQuickReply(null)}>Cancel</button>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </>
                                                 ))}
                                             </tbody>
                                         </table>
-                                    ) : (
-                                        <p>No messages tasks!</p>
+                                        {showQuickReply && (
+                                            <div className="quick-reply-box">
+                                              <textarea
+                                                value={quickReplyText}
+                                                onChange={(e) => setQuickReplyText(e.target.value)}
+                                                placeholder="Type your quick reply here..."
+                                              />
+                                              <div>
+                                                <button onClick={() => handleQuickReplySubmit(showQuickReply)}>Submit</button>
+                                                <button onClick={() => setShowQuickReply(null)}>Cancel</button>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </>
                                     )}
                                 </div>
                             )}
@@ -300,7 +377,11 @@ function StudentDashboard(){
                             {view === "prescriptions" && (
                                 <div>
                                     <h2>Prescriptions/Refills</h2>
-                                    {prescriptions ? (
+                                    {prescriptions === null ? (
+                                        <p>...Loading...</p> ) :
+                                        prescriptions.length === 0 ? (
+                                            <p>No prescriptions tasks! Good job!</p>
+                                        ) : (
                                         <table className="data-table">
                                             <thead>
                                                 <tr>
@@ -328,8 +409,6 @@ function StudentDashboard(){
                                                 ))}
                                             </tbody>
                                         </table>
-                                    ) : (
-                                        <p>No prescriptions tasks!</p>
                                     )}
                                 </div>
                             )}
@@ -337,7 +416,11 @@ function StudentDashboard(){
                             {view === "results" && (
                                 <div>
                                 <h2>Results</h2>
-                                {results ? (
+                                {results === null ? (
+                                    <p>...Loading...</p> ) :
+                                    prescriptions.length === 0 ? (
+                                        <p>No prescriptions tasks! Good job!</p>
+                                    ) : (
                                     <table className="data-table">
                                         <thead>
                                             <tr>
@@ -375,8 +458,6 @@ function StudentDashboard(){
                                             ))}
                                         </tbody>
                                     </table>
-                                ) : (
-                                    <p>No results tasks!</p>
                                 )}
                             </div>
                             )}
@@ -388,7 +469,7 @@ function StudentDashboard(){
     );
 
 
-
 }
+
 
 export default StudentDashboard;

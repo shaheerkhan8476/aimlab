@@ -137,6 +137,18 @@ body {
     background-color: #778cd2;
 }
 
-.quick-reply {
-    width: 2rem;
-}
+/* Quick reply styling */
+
+.quick-reply-box {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border: 1px solid #aaa;
+  }
+  
+  .quick-reply-box textarea {
+    width: 100%;
+    height: 10rem;
+    margin-bottom: 0.5rem;
+  }
+  
