@@ -86,7 +86,7 @@ function StudentDetails() {
             await Promise.all(
                 patient_Id .map(async (patientId) => {
                     try {
-                        //loads paitent with its id
+                        //loads patient with its id
                         const response = await fetch(`http://localhost:8060/patients/${patientId}`, {
                             method: "GET",
                             headers: {
@@ -151,7 +151,12 @@ function StudentDetails() {
                                                 <li key={tindex} className="task-item">
                                                     <span className="task-id">
                                                         Task: {" "}
-                                                        <Link to={`/PatientPage/${task.patient_id}?task_id=${task.id}`} className="task-link">
+                                                        <Link to={{
+                                                            pathname: `/PatientPage/${task.patient_id}`,
+                                                            search: `?task_id=${task.id}&from=studentDetails`,
+                                                        }}
+                                                            className="task-link"
+                                                        >
                                                         {patient[task.patient_id] || "Unknown Patient"} - {task.task_type.replace(/_/g, " ")}
                                                         </Link>
                                                     </span>

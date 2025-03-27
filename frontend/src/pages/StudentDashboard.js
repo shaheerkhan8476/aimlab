@@ -276,7 +276,7 @@ function StudentDashboard(){
                                                     <tr 
                                                         key={index}
                                                         className="clickable-patient"
-                                                        onClick={() => navigate(`/PatientPage/${message.patient_id}`, 
+                                                        onClick={() => navigate(`/PatientPage/${message.patient_id}?task_id=${message.id}`, 
                                                             {state: {
                                                                 task_type: "patient_question", 
                                                                 patient_question: message.patient.patient_message,
