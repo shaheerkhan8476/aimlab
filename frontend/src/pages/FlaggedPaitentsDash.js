@@ -20,7 +20,7 @@ function FlaggedPatientsDash() {
         }
 
         // get instructor name
-        fetch(`http://localhost:8060/students/${userId}`, {
+        fetch(`https://team-corewell-frontend.vercel.app/students/${userId}`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -40,7 +40,7 @@ function FlaggedPatientsDash() {
         .catch((error) => {
             console.error(error);
         });
-        fetch("http://localhost:8060/flaggedPatients", {
+        fetch("https://team-corewell-frontend.vercel.app/flaggedPatients", {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -60,7 +60,7 @@ function FlaggedPatientsDash() {
                 // get each flagger id of flaggers
                 for (const flaggerId of patient.flaggers) {
                     try {
-                        const res = await fetch(`http://localhost:8060/students/${flaggerId}`, {
+                        const res = await fetch(`https://team-corewell-frontend.vercel.app/students/${flaggerId}`, {
                             method: "GET",
                             headers: {
                                 "Authorization": `Bearer ${token}`,
@@ -89,7 +89,7 @@ function FlaggedPatientsDash() {
     const handleKeep = async (patientId) => {
         const token = localStorage.getItem("accessToken");
         try {
-            const response = await fetch("http://localhost:8060/keepPatient", {
+            const response = await fetch("https://team-corewell-frontend.vercel.app/keepPatient", {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -111,7 +111,7 @@ function FlaggedPatientsDash() {
     const handleRemove = async (patientId) => {
         const token = localStorage.getItem("accessToken");
         try {
-            const response = await fetch("http://localhost:8060/removePatient", {
+            const response = await fetch("https://team-corewell-frontend.vercel.app/removePatient", {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,

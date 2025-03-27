@@ -25,7 +25,7 @@ function InstructorDashboard(){
             setIsAuthenticated(false);
             return
         }
-        fetch(`http://localhost:8060/students/${userId}`,{
+        fetch(`https://team-corewell-frontend.vercel.app/students/${userId}`,{
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
@@ -58,7 +58,7 @@ function InstructorDashboard(){
             return;
         }
     
-        fetch(`http://localhost:8060/instructors/${userId}/students`, {
+        fetch(`https://team-corewell-frontend.vercel.app/instructors/${userId}/students`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,

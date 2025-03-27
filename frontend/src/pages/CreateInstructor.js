@@ -28,7 +28,7 @@ function CreateInstructor()
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:8060/addUser',{
+            const response = await fetch('https://team-corewell-frontend.vercel.app/addUser',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
