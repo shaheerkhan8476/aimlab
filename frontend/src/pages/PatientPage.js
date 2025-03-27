@@ -12,7 +12,7 @@ function PatientPage() {
     const [patient, setPatient] = useState(null);
     const [results, setResults] = useState([]);
     const [prescriptions, setPrescriptions] = useState([]);
-    const [aiResponse, setAIResponse] = useState(null); //Ai response. will eventually be sample response to patient
+    const [feedbackResponse, setFeedbackResponse] = useState(null); //Ai response. will eventually be sample response to patient
     const [userMessage, setUserMessage] = useState(""); //userMessage, updates with change to textarea below
     const [aiResponseUnlocked, setAIResponseUnlocked] = useState(false); //Controls ai response tab locking
     const [disableInput, setDisableInput] = useState(false);
@@ -22,6 +22,8 @@ function PatientPage() {
     const [finalMessage, setFinalMessage] = useState("");
     const [isAdmin, setIsAdmin] = useState(null); //If user is admin for flagging page    
     const [activeResultTab, setActiveResultTab] = useState(null);
+
+    const [sampleResponse, setSampleResponse] = useState(null);
     
 
     
@@ -121,7 +123,7 @@ function PatientPage() {
                     setDisableInput(true);
                     setActiveTab("ai-response");
                     setUserMessage(data.student_response);
-                    setAIResponse(data.llm_feedback);
+                    setFeedbackResponse(data.llm_feedback);
                 }
             })
             .catch(error => console.error("Failed to get student and AI response for task", error));
@@ -175,6 +177,7 @@ function PatientPage() {
     const handleSubmit = async () => {
         const token = localStorage.getItem("accessToken");
         const userId = localStorage.getItem("userId");
+        const taskId = location.state.task_id;
 
         //do nothing if nothing typed yet
         if (!token || !userMessage) {
@@ -182,7 +185,7 @@ function PatientPage() {
         }
 
         // do nothing if task info not available
-        if (!token || !userMessage || !studentId || !taskId) {
+        if (!token || !userMessage || !userId || !taskId) {
             console.warn("Missing required data", { studentId, taskId });
             return;
         }
@@ -218,8 +221,13 @@ function PatientPage() {
 
                 });
                 const data = await response.json();
-                const fullResponse = data.feedback_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
-                setAIResponse(fullResponse);
+
+                const feedback = data.feedback_response;
+                const sample = data.sample_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
+                setFeedbackResponse(feedback);
+                setSampleResponse(sample);
+
+                let fullResponse = feedback + sample;
                 
                 await fetch(`http://localhost:8060/${studentId}/tasks/${taskId}/completeTask`, {
                     method: "POST",
@@ -550,7 +558,8 @@ function PatientPage() {
                 <div className="ai-response">
                     <h2>AI Response</h2>
                     <p><strong>Your Response:</strong> {userMessage}</p>
-                    <p><strong>AI Response:</strong> {aiResponse}</p>
+                    <p><strong>Feedback Response:</strong> {feedbackResponse}</p>
+                    <p><strong>Sample Response: </strong>{sampleResponse}</p>
                     <div className="flag-container">
                     {!flagState ? (
                         <button className="flag-patient-btn"><img src={ReportFlag} alt="report case" className="flag-patient" onClick={flagPatient}/></button>
