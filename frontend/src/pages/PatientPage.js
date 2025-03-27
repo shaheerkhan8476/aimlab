@@ -7,6 +7,7 @@ import ReportFlag from "../images/report-flag.png"
 
 function PatientPage() {
     const { id } = useParams(); //gets id from url
+    const [studentId, setStudentId] = useState();
     const [activeTab, setActiveTab] = useState("info");
     const [patient, setPatient] = useState(null);
     const [results, setResults] = useState([]);
@@ -21,11 +22,14 @@ function PatientPage() {
     const [finalMessage, setFinalMessage] = useState("");
     const [isAdmin, setIsAdmin] = useState(null); //If user is admin for flagging page    
     const [activeResultTab, setActiveResultTab] = useState(null);
+    
 
     
     const navigate = useNavigate();
     const location = useLocation();
-   
+    const queryParams = new URLSearchParams(location.search);
+    const taskId = queryParams.get("task_id");
+    const from = queryParams.get("from");
 
     useEffect(() => {
         // Fetch user details (to check if they are an instructor)
@@ -63,7 +67,7 @@ function PatientPage() {
         const userId = localStorage.getItem("userId");//get local userid
         if (!token) return;
 
-        //for patient detials tab
+        //for patient details tab
         fetch(`http://localhost:8060/patients/${id}`, {
             method: "GET",
             headers: {
@@ -87,7 +91,7 @@ function PatientPage() {
         .then(data => setResults(data))
         .catch(error => console.error("Failed to fetch results", error));
 
-        //for prescripitiosn tab
+        //for prescriptions tab
         fetch(`http://localhost:8060/patients/${id}/prescriptions`, {
             method: "GET",
             headers: {
@@ -95,12 +99,35 @@ function PatientPage() {
                 "Content-Type": "application/json",
             },
             
-    })
-    .then(response => response.json())
-    .then(data => setPrescriptions(data))
-    .catch(error => console.error("Failed to fetch prescriptions:", error));
+        })
+        .then(response => response.json())
+        .then(data => setPrescriptions(data))
+        .catch(error => console.error("Failed to fetch prescriptions:", error));
 
-    }, [id]);
+        // for student/AI response tab
+        if (taskId) {  // should only run if there is a task id in the query params
+            fetch(`http://localhost:8060/${studentId}/tasks/${taskId}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            })
+            .then(response => response.json())
+            .then(data => {  
+                setStudentId(data.user_id);
+                if (data.completed) {   // if task is already completed, show the AI response
+                    setAIResponseUnlocked(true);
+                    setDisableInput(true);
+                    setActiveTab("ai-response");
+                    setUserMessage(data.student_response);
+                    setAIResponse(data.llm_feedback);
+                }
+            })
+            .catch(error => console.error("Failed to get student and AI response for task", error));
+        }
+
+    }, [id, taskId]);
 
     useEffect(() => {
         if (!results.length && !prescriptions.length){ //wait for load
@@ -153,6 +180,13 @@ function PatientPage() {
         if (!token || !userMessage) {
             return;
         }
+
+        // do nothing if task info not available
+        if (!token || !userMessage || !studentId || !taskId) {
+            console.warn("Missing required data", { studentId, taskId });
+            return;
+        }
+
         setDisableInput(true);
         let messageToSend = userMessage;
 
@@ -187,7 +221,7 @@ function PatientPage() {
                 const fullResponse = data.feedback_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
                 setAIResponse(fullResponse);
                 
-                await fetch(`http://localhost:8060/${userId}/tasks/${location.state.task_id}/completeTask`, {
+                await fetch(`http://localhost:8060/${studentId}/tasks/${taskId}/completeTask`, {
                     method: "POST",
                     headers: {
                         "Authorization": `Bearer ${token}`,
@@ -232,48 +266,30 @@ function PatientPage() {
 
     };
 
-    const handleCompletion = async (studentMessage, aiMessage) => {
-        const token = localStorage.getItem("accessToken");
-        const userId = localStorage.getItem("userId")
-
-        return fetch(`http://localhost:8060/${userId}/tasks/${location.state.task_id}/completeTask`,{
-            method:'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-               'student_response': `${userMessage}`,
-               'llm_feedback': `${aiResponse}` 
-            }),
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`whoopsies! no task completion`);
-            }
-        })
-        .then(data => {navigate('/StudentDashboard')})
-        .catch(error => console.error("Failed to complete", error));
+    const handleCompletion = () => {
+        // Complete button works as a simple back button now
+        navigate(isAdmin ? "/InstructorDashboard" : "/StudentDashboard") // navigate to respective dashboard after completion
     };
 
     return (
         <div className="patient-container">
-        {/* Header, name, logout button */}
-        {(!isAdmin) && (
-        <div className="patient-header">
-            
-            <button onClick={() => navigate('/StudentDashboard')} className="back-button">⬅ Back to Dashboard</button>
-            <div className="patient-name">{patient.name}</div>
-        </div>
-        )}
-        {/*If teacher going through flagged go back that way*/}
-        {(isAdmin) && (
-        <div className="patient-header">
-            
-            <button onClick={() => navigate('/FlaggedPatientsDash')} className="back-button">⬅ Back to Dashboard</button>
-            <div className="patient-name">{patient.name}</div>
-        </div>
-        )}
+            {/* Header with dynamic back button */}
+            <div className="patient-header">
+                {from === "studentDetails" ? (
+                <button onClick={() => navigate(`/StudentDetails/${studentId}`)} className="back-button">
+                    ⬅ Back to Task List
+                </button>
+                ) : isAdmin ? (
+                <button onClick={() => navigate('/FlaggedPatientsDash')} className="back-button">
+                    ⬅ Back to Flagged Patients
+                </button>
+                ) : (
+                <button onClick={() => navigate('/StudentDashboard')} className="back-button">
+                    ⬅ Back to Dashboard
+                </button>
+                )}
+                <div className="patient-name">{patient.name}</div>
+            </div>
 
 
        {/* Task instruction banner */}
