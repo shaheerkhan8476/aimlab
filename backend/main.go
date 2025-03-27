@@ -101,7 +101,10 @@ func main() {
 
 	// Allow API requests from frontend
 	handler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedOrigins: []string{
+			"http://localhost:3000",                              // for local dev
+			"https://corewell-backend-production.up.railway.app", // for deployed frontend
+		},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
