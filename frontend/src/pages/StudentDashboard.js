@@ -418,7 +418,7 @@ function StudentDashboard(){
                                 <h2>Results</h2>
                                 {results === null ? (
                                     <p>...Loading...</p> ) :
-                                    prescriptions.length === 0 ? (
+                                    results.length === 0 ? (
                                         <p>No prescriptions tasks! Good job!</p>
                                     ) : (
                                     <table className="data-table">
