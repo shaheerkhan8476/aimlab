@@ -201,33 +201,13 @@ function StudentDashboard(){
     }, []);
 
     const handleQuickReplySubmit = async (task) => {
-        const token = localStorage.getItem("accessToken");
-        const userId = localStorage.getItem("userId");
-
-        if (!quickReplyText.trim()) {return;}
-
-        try {
-            await fetch(`http://localhost:8060/${userId}/tasks/${task.id}/completeTask`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    student_response: quickReplyText,
-                    llm_feedback: ""
-                })
-            });
-
-            setMessages((prev) => prev.filter((msg) => msg.id !== task.id));
-            setMessageCount((prev) => prev - 1);
-
-            setShowQuickReply(null);
-            setQuickReplyText("");
-        }
-        catch (error) {
-            console.error("quick reply screwed up", error);
-        }
+        navigate(`/PatientPage/${task.patient_id}?task_id=${task.id}&from=quickReply`,{
+            state: {
+                task_type: "patient_question",
+                auto_submit_response: quickReplyText,
+                task_id: task.id,
+            }
+        })
         }
 
 
