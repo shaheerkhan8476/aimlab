@@ -13,6 +13,7 @@ function PatientPage() {
     const [results, setResults] = useState([]);
     const [prescriptions, setPrescriptions] = useState([]);
     const [aiResponse, setAIResponse] = useState(null); //Ai response. will eventually be sample response to patient
+    const [aiFeedback, setAIFeedback] = useState(null); //Ai feedback. will eventually be feedback on student response
     const [userMessage, setUserMessage] = useState(""); //userMessage, updates with change to textarea below
     const [aiResponseUnlocked, setAIResponseUnlocked] = useState(false); //Controls ai response tab locking
     const [disableInput, setDisableInput] = useState(false);
@@ -121,7 +122,8 @@ function PatientPage() {
                     setDisableInput(true);
                     setActiveTab("ai-response");
                     setUserMessage(data.student_response);
-                    setAIResponse(data.llm_feedback);
+                    setAIResponse(data.llm_response);
+                    setAIFeedback(data.llm_feedback);
                 }
             })
             .catch(error => console.error("Failed to get student and AI response for task", error));
@@ -218,8 +220,10 @@ function PatientPage() {
 
                 });
                 const data = await response.json();
-                const fullResponse = data.feedback_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
-                setAIResponse(fullResponse);
+                const sampleResponse = data.sample_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
+                setAIResponse(sampleResponse);
+                const feedbackResponse = data.feedback_response;
+                setAIFeedback(feedbackResponse);
                 
                 await fetch(`http://localhost:8060/${studentId}/tasks/${taskId}/completeTask`, {
                     method: "POST",
@@ -229,7 +233,8 @@ function PatientPage() {
                     },
                     body: JSON.stringify({
                         student_response: `${userMessage}`,
-                        llm_feedback: fullResponse,
+                        llm_response: sampleResponse,
+                        llm_feedback: feedbackResponse,
 
                     }),
                 })
@@ -551,6 +556,7 @@ function PatientPage() {
                     <h2>AI Response</h2>
                     <p><strong>Your Response:</strong> {userMessage}</p>
                     <p><strong>AI Response:</strong> {aiResponse}</p>
+                    <p><strong>AI Feedback:</strong> {aiFeedback}</p>
                     <div className="flag-container">
                     {!flagState ? (
                         <button className="flag-patient-btn"><img src={ReportFlag} alt="report case" className="flag-patient" onClick={flagPatient}/></button>

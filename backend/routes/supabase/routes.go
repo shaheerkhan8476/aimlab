@@ -828,7 +828,8 @@ func CompleteTask(w http.ResponseWriter, r *http.Request) {
 	// Example request body:
 	// {
 	// 	"student_response": "The student's response to the task",
-	// 	"llm_feedback": "The LLM's response to the task"
+	//  "llm_response": "The LLM's sample response to the task",
+	// 	"llm_feedback": "The LLM's feedback to the student response"
 	// }
 	bodyBytes, _ := io.ReadAll(r.Body)
 	err = json.Unmarshal(bodyBytes, &taskCompleteRequest)
@@ -841,6 +842,7 @@ func CompleteTask(w http.ResponseWriter, r *http.Request) {
 	updateData := map[string]interface{}{
 		"completed":        true,
 		"student_response": taskCompleteRequest.StudentResponse,
+		"llm_response":     taskCompleteRequest.LLMResponse,
 		"llm_feedback":     taskCompleteRequest.LLMFeedback,
 		"completed_at":     time.Now(),
 	}

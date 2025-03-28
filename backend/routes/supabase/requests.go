@@ -35,6 +35,7 @@ type TaskGetRequest struct {
 
 type TaskCompleteRequest struct {
 	StudentResponse string `json:"student_response"`
+	LLMResponse     string `json:"llm_response"`
 	LLMFeedback     string `json:"llm_feedback"`
 }
 
@@ -65,6 +66,6 @@ type ResetPasswordRequest struct {
 }
 
 type AddStudentRequest struct {
-    InstructorId string `json:"instructor_id"`
-    StudentId    string `json:"student_id"`
+	InstructorId string `json:"instructor_id"`
+	StudentId    string `json:"student_id"`
 }
