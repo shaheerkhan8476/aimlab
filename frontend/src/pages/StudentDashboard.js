@@ -394,7 +394,7 @@ function StudentDashboard(){
                                                 {prescriptions.map((prescription, index) => (
                                                     <tr key={index}
                                                         className="clickable-patient"
-                                                        onClick={() => navigate(`/PatientPage/${prescription.patient_id}`, {
+                                                        onClick={() => navigate(`/PatientPage/${prescription.patient_id}?task_id=${prescription.id}`, {
                                                             state: {
                                                                 task_type: "prescription",
                                                                 prescription_id: prescription.prescription_id,
@@ -442,7 +442,7 @@ function StudentDashboard(){
                                                         
                                                         
                                                         
-                                                        navigate(`/PatientPage/${result.patient_id}`, {
+                                                        navigate(`/PatientPage/${result.patient_id}?task_id=${result.id}`, {
                                                         state: {
                                                             task_type: "lab_result",
                                                             result_id: result.result_id,
