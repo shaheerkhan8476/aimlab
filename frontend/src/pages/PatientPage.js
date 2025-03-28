@@ -555,8 +555,8 @@ function PatientPage() {
                 <div className="ai-response">
                     <h2>AI Response</h2>
                     <p><strong>Your Response:</strong> {userMessage}</p>
-                    <p><strong>AI Response:</strong> {aiResponse}</p>
                     <p><strong>AI Feedback:</strong> {aiFeedback}</p>
+                    <p><strong>AI Response:</strong> {aiResponse}</p>
                     <div className="flag-container">
                     {!flagState ? (
                         <button className="flag-patient-btn"><img src={ReportFlag} alt="report case" className="flag-patient" onClick={flagPatient}/></button>
