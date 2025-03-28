@@ -336,19 +336,6 @@ function StudentDashboard(){
                                                 ))}
                                             </tbody>
                                         </table>
-                                        {showQuickReply && (
-                                            <div className="quick-reply-box">
-                                              <textarea
-                                                value={quickReplyText}
-                                                onChange={(e) => setQuickReplyText(e.target.value)}
-                                                placeholder="Type your quick reply here..."
-                                              />
-                                              <div>
-                                                <button onClick={() => handleQuickReplySubmit(showQuickReply)}>Submit</button>
-                                                <button onClick={() => setShowQuickReply(null)}>Cancel</button>
-                                              </div>
-                                            </div>
-                                          )}
                                         </>
                                     )}
                                 </div>
