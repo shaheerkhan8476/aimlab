@@ -153,7 +153,7 @@ function StudentDetails() {
                                                         Task: {" "}
                                                         <Link to={{
                                                             pathname: `/PatientPage/${task.patient_id}`,
-                                                            search: `?task_id=${task.id}&from=studentDetails`,
+                                                            search: `?task_id=${task.id}&task_type=${task.task_type}&from=studentDetails`,
                                                         }}
                                                             className="task-link"
                                                         >

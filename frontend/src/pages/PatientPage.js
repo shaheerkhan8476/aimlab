@@ -8,6 +8,10 @@ import ReportFlag from "../images/report-flag.png"
 function PatientPage() {
     const { id } = useParams(); //gets id from url
     const [studentId, setStudentId] = useState();
+    const [taskType, setTaskType] = useState(); //task type (prescription, lab result, etc.)
+    const [prescriptionId, setPrescriptionId] = useState(); //prescription id (if task type is prescription)
+    const [resultId, setResultId] = useState(); //result id (if task type is lab result)
+    const [patientQuestion, setPatientQuestion] = useState(); //patient question (if task type is patient question)
     const [activeTab, setActiveTab] = useState("info");
     const [patient, setPatient] = useState(null);
     const [results, setResults] = useState([]);
@@ -105,7 +109,7 @@ function PatientPage() {
         .then(data => setPrescriptions(data))
         .catch(error => console.error("Failed to fetch prescriptions:", error));
 
-        // for student/AI response tab
+        // for student/AI response tab & patient question (since it's stored in task info)
         if (taskId) {  // should only run if there is a task id in the query params
             fetch(`http://localhost:8060/${studentId}/tasks/${taskId}`, {
                 method: "GET",
@@ -117,6 +121,17 @@ function PatientPage() {
             .then(response => response.json())
             .then(data => {  
                 setStudentId(data.user_id);
+                setTaskType(data.task_type);
+                if (data.task_type === "prescription"){
+                    setPrescriptionId(data.prescription_id);
+                }
+                if (data.task_type === "lab_result"){
+                    setResultId(data.result_id);
+                }
+                if (data.task_type === "patient_question"){
+                    setPatientQuestion(data.patient_question);
+                }
+
                 if (data.completed) {   // if task is already completed, show the AI response
                     setAIResponseUnlocked(true);
                     setDisableInput(true);
@@ -135,8 +150,8 @@ function PatientPage() {
         if (!results.length && !prescriptions.length){ //wait for load
             return;
         }
-        if (location.state?.task_type === "lab_result") {
-            const relevantResult = results.find(res => res.id === location.state.result_id);
+        if (taskType === "lab_result") {
+            const relevantResult = results.find(res => res.id === resultId);
             if (relevantResult) {
                 setBannerMessage(`Analyze the results of the ${relevantResult.test_name} for your patient!`);
             }
@@ -144,8 +159,8 @@ function PatientPage() {
             setActiveTab("results");
         }
 
-        else if (location.state?.task_type === "prescription") {
-            const relevantPrescription = prescriptions.find(pres => pres.id === location.state.prescription_id);
+        else if (taskType === "prescription") {
+            const relevantPrescription = prescriptions.find(pres => pres.id === prescriptionId);
             if (relevantPrescription) {
                 setBannerMessage(`Should the ${relevantPrescription.medication} prescription be refilled? Why or why not?`);
             }
@@ -153,11 +168,11 @@ function PatientPage() {
             setActiveTab("prescriptions");
         }
 
-        else if (location.state?.task_type === "patient_question") {
+        else if (taskType === "patient_question") {
             setBannerMessage("Respond to the patient's message!");
             setActiveTab("info");
         }
-    }, [location.state, results, prescriptions]);
+    }, [results, prescriptions]);
 
     if (!patient)
     {
@@ -192,7 +207,7 @@ function PatientPage() {
         setDisableInput(true);
         let messageToSend = userMessage;
 
-        if (location.state?.task_type === "prescription"){
+        if (taskType === "prescription"){
             let userMessageCopy = userMessage;
             let refillMessage = `\n\nThe prescription should ${refillDecision === "Refill" ? "be refilled" : "not be refilled"}.`
             setUserMessage(userMessageCopy + refillMessage);
@@ -203,7 +218,7 @@ function PatientPage() {
             results,
             prescriptions,
             pdmp: patient.pdmp || [],
-            task_type: location.state?.task_type || "",
+            task_type: taskType || "",
             user_message: messageToSend,
         };
 
@@ -413,10 +428,10 @@ function PatientPage() {
                     <p><strong>Blood Pressure:</strong> {patient.last_bp}</p>
                 </div>
 
-                {location.state?.task_type === "patient_question" && (
+                {taskType === "patient_question" && (
                 <div className="info-group full-width">
                     <h3>Patient Message</h3>
-                    <p className="patient-message">{patient.patient_message}</p>
+                    <p className="patient-message">{patientQuestion}</p>
                 </div>
                 )}
 
@@ -575,7 +590,7 @@ function PatientPage() {
         {(!disableInput && !isAdmin) && (
         <div>
             <div className="ai-input-area">
-                {location.state?.task_type === "prescription" && (
+                {taskType === "prescription" && (
                     <div className="refill-buttons-container">
                         <input
                             type="radio"
