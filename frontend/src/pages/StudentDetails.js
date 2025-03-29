@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+
 import "./css/StudentDetails.css";
 
 function StudentDetails() {
@@ -85,7 +86,7 @@ function StudentDetails() {
             await Promise.all(
                 patient_Id .map(async (patientId) => {
                     try {
-                        //loads paitent with its id
+                        //loads patient with its id
                         const response = await fetch(`http://localhost:8060/patients/${patientId}`, {
                             method: "GET",
                             headers: {
@@ -148,7 +149,17 @@ function StudentDetails() {
                                         <ul className="task-list">
                                             {day.Tasks.map((task, tindex) => (
                                                 <li key={tindex} className="task-item">
-                                                    <span className="task-id">Task: {patient[task.patient_id] || "Unknown Patient"} - {task.task_type.replace(/_/g, " ")}</span>
+                                                    <span className="task-id">
+                                                        Task: {" "}
+                                                        <Link to={{
+                                                            pathname: `/PatientPage/${task.patient_id}`,
+                                                            search: `?task_id=${task.id}&from=studentDetails`,
+                                                        }}
+                                                            className="task-link"
+                                                        >
+                                                        {patient[task.patient_id] || "Unknown Patient"} - {task.task_type.replace(/_/g, " ")}
+                                                        </Link>
+                                                    </span>
                                                     <span className={`task-status-${task.completed ? "completed" : "incomplete"}`}>
                                                         {task.completed ? " Complete" : " Incomplete"}
                                                     </span>
