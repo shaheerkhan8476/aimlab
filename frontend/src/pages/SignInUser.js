@@ -45,7 +45,6 @@ function SignInUser()
                 localStorage.setItem("isAdmin", loginData.isAdmin);
                 localStorage.setItem("isAssigned", loginData.isAssigned);
                 localStorage.setItem("userEmail", loginData.email);
-                localStorage.setItem("userPassword", loginData.password);
                 localStorage.setItem("userId", userId);
                 console.log('Login Successful', data);
 
