@@ -1,0 +1,21 @@
+.spinner-container {
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    height: 10vh;
+    margin-top: 1rem;
+}
+
+.loading-spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 0.5rem solid rgba(0,0,0,0.1);
+    border-top: 0.5rem solid green;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
