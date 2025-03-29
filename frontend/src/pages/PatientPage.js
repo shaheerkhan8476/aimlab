@@ -219,7 +219,13 @@ function PatientPage() {
     //For now, you type response in the box and ai responds to that, whatever it is.
     const handleSubmit = async () => {
         const token = localStorage.getItem("accessToken");
-        const userId = localStorage.getItem("userId");
+        
+        // Should prevent multiple submissions at the same time
+        if (isLoadingAIResponse) {
+            console.warn("AI response is already loading. Please wait.");
+            return;
+        }
+
         console.log("KING OF THE CASLTE WA  WA WEE WA")
         console.log("message is:", userMessage);
         //do nothing if nothing typed yet
