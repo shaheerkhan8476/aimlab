@@ -35,6 +35,7 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	bodyBytes, err := io.ReadAll(r.Body)
 
 	if err != nil {
+		fmt.Println(err)
 		msg := fmt.Sprintf("SignUpUser: failed to read request body: %v", err)
 		fmt.Println(msg)
 		http.Error(w, msg, http.StatusBadRequest) // 400
@@ -42,6 +43,7 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.Unmarshal(bodyBytes, &userRequest)
 	if err != nil {
+		fmt.Println(err)
 		msg := fmt.Sprintf("SignUpUser: cannot unmarshal user from request: %v", err)
 		fmt.Println(msg)
 		http.Error(w, msg, http.StatusBadRequest) // 400
@@ -53,6 +55,7 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		Password: userRequest.Password,
 	})
 	if err != nil {
+		fmt.Println(err)
 		msg := fmt.Sprintf("Supabase Sign Up Error: %v", err)
 		fmt.Println(msg)
 		http.Error(w, "Sign Up User Error", http.StatusNotAcceptable)
@@ -74,6 +77,7 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err = Supabase.DB.From("users").Insert(newUser).Execute(nil)
 	if err != nil {
+		fmt.Println(err)
 		msg := fmt.Sprintf("SignUpUser: insert to DB failed, possibly conflict: %v", err)
 		fmt.Println(msg)
 		http.Error(w, "User has already been created", http.StatusConflict) // 409
@@ -81,6 +85,7 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 	}
 	b, err := json.Marshal(user)
 	if err != nil {
+		fmt.Println(err)
 		msg := fmt.Sprintf("SignUpUser: error marshaling supabase user response: %v", err)
 		fmt.Println(msg)
 		http.Error(w, msg, http.StatusInternalServerError) // 500
@@ -101,6 +106,7 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.Unmarshal(bodyBytes, &userRequest)
 	if err != nil {
+		fmt.Println(err)
 		msg := fmt.Sprintf("SignInUser: failed to Unmarshal request body: %v", err)
 		fmt.Println(msg)
 		http.Error(w, msg, http.StatusBadRequest)
@@ -112,6 +118,7 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 		Password: userRequest.Password,
 	})
 	if err != nil {
+		fmt.Println(err)
 		msg := fmt.Sprintf("Supabase Sign In Error: %v", err)
 		fmt.Println(msg)
 		http.Error(w, "Sign In User Error", http.StatusNotAcceptable)
@@ -126,6 +133,7 @@ func ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	var ForgotPasswordRequest ForgotPasswordRequest
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
+		fmt.Println(err)
 		msg := fmt.Sprintf("Error Reading Forgot Password Request Body: %v", err)
 		fmt.Println(msg)
 		http.Error(w, msg, http.StatusBadRequest)
@@ -133,6 +141,7 @@ func ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.Unmarshal(bodyBytes, &ForgotPasswordRequest)
 	if err != nil {
+		fmt.Println(err)
 		msg := fmt.Sprintf("ForgotPassword: cannot unmarshal request body: %v", err)
 		fmt.Println(msg)
 		http.Error(w, msg, http.StatusBadRequest) // 400
