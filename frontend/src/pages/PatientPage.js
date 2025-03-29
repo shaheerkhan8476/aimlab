@@ -268,10 +268,21 @@ function PatientPage() {
 
                 });
                 const data = await response.json();
-                const sampleResponse = data.sample_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
+                let sampleResponse = data.sample_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
                 setAIResponse(sampleResponse);
-                const feedbackResponse = data.feedback_response;
+                let feedbackResponse = data.feedback_response;
                 setAIFeedback(feedbackResponse);
+
+                if (!sampleResponse) {
+                    console.error("AI response is missing", { sampleResponse });
+                    sampleResponse = "Error occurred in our systems. No response has been generated.";
+                    return;
+                }
+                if (!feedbackResponse) {
+                    console.error("AI feedback is missing", { sampleResponse });
+                    sampleResponse = "Error occurred in our systems. No feedback has been generated.";
+                    return;
+                }
                 
                 await fetch(`http://localhost:8060/${studentId}/tasks/${taskId}/completeTask`, {
                     method: "POST",
