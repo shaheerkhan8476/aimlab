@@ -119,6 +119,7 @@ body {
 
 .data-table th,
 .data-table td {
+    width: 0.5rem;
     padding: 1em;
     text-align: left;
 }

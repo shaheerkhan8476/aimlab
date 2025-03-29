@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import "./css/StudentDashboard.css";
+import LoadingSpinner from "./components/LoadingSpinner";
 import QuickReply from "../images/quick-reply.png"
 
 
@@ -276,7 +277,7 @@ function StudentDashboard(){
                                 <div>
                                     <h2>Patient Messages</h2>
                                     {messages === null ? (
-                                        <p>...Loading...</p> ) : messages.length === 0 ?
+                                        <LoadingSpinner /> ) : messages.length === 0 ?
                                         ( <p>No messages tasks! Good job!</p>) : (
                                         <>
                                         <table className="data-table">
@@ -345,7 +346,7 @@ function StudentDashboard(){
                                 <div>
                                     <h2>Prescriptions/Refills</h2>
                                     {prescriptions === null ? (
-                                        <p>...Loading...</p> ) :
+                                        <LoadingSpinner /> ) :
                                         prescriptions.length === 0 ? (
                                             <p>No prescriptions tasks! Good job!</p>
                                         ) : (
@@ -384,7 +385,7 @@ function StudentDashboard(){
                                 <div>
                                 <h2>Results</h2>
                                 {results === null ? (
-                                    <p>...Loading...</p> ) :
+                                    <LoadingSpinner /> ) :
                                     results.length === 0 ? (
                                         <p>No prescriptions tasks! Good job!</p>
                                     ) : (

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation, data} from 'react-router-dom';
 import "./css/PatientPage.css";
 import ReportFlag from "../images/report-flag.png"
+import LoadingSpinner from "./components/LoadingSpinner";
 
 
 
@@ -23,10 +24,12 @@ function PatientPage() {
     const [disableInput, setDisableInput] = useState(false);
     const [flagState, setFlagState] = useState(false);
     const [bannerMessage, setBannerMessage] = useState("");
-    const [refillDecision, setRefillDecision] = useState("");
+    const [refillDecision, setRefillDecision] = useState(false);
     const [finalMessage, setFinalMessage] = useState("");
     const [isAdmin, setIsAdmin] = useState(null); //If user is admin for flagging page    
     const [activeResultTab, setActiveResultTab] = useState(null);
+
+    const [isLoadingAIResponse, setIsLoadingAIResponse] = useState(null);
 
     const [autoSubmitTrigger, setAutoSubmitTrigger] = useState(false);
 
@@ -206,7 +209,7 @@ function PatientPage() {
             and it breaks */}
         return (
             <div className="loading-screen">
-                ...loading patient data...
+                <LoadingSpinner />
             </div>
         )
     }
@@ -232,13 +235,8 @@ function PatientPage() {
         }
 
         setDisableInput(true);
+        setIsLoadingAIResponse(true);
         let messageToSend = userMessage;
-
-        if (taskType === "prescription"){
-            let userMessageCopy = userMessage;
-            let refillMessage = `\n\nThe prescription should ${refillDecision === "Refill" ? "be refilled" : "not be refilled"}.`
-            setUserMessage(userMessageCopy + refillMessage);
-        }
 
         const giga_json = {
             patient,
@@ -246,6 +244,8 @@ function PatientPage() {
             prescriptions,
             pdmp: patient.pdmp || [],
             task_type: taskType || "",
+            mission: bannerMessage,
+            refill_bool: refillDecision,
             user_message: messageToSend,
         };
 
@@ -287,6 +287,10 @@ function PatientPage() {
         catch (error) {
             console.error ("completing and submitting failed", error);
             setDisableInput(false);
+        }
+        finally {
+            setIsLoadingAIResponse(false);
+            console.log("refill decision was: ", refillDecision);
         }
     };
 
@@ -370,14 +374,18 @@ function PatientPage() {
             </button>
 
             {/*Ai repsonse tab locked until response submitted */}
-            <button 
+            <>
+            {!isLoadingAIResponse ? (<button 
                 className={activeTab === "ai-response" ? "active-tab" : ""} 
                 onClick={() => aiResponseUnlocked && setActiveTab("ai-response")}
                 disabled={!aiResponseUnlocked} // no click allowed if response locked
                 style={{ opacity: aiResponseUnlocked ? 1 : 0.5 }} // grayed if locked. can make padlock icon later if we want it
             >
                 AI Response
-            </button>
+            </button>) : <LoadingSpinner />}
+            
+
+            </>
         </div>
 
         {activeTab === "results" && results.length > 0 && (
@@ -624,8 +632,8 @@ function PatientPage() {
                             name="refillDecision"
                             value="Refill"
                             id="refill"
-                            checked={refillDecision === "Refill"}
-                            onChange={(e) => setRefillDecision(e.target.value)}
+                            checked={refillDecision === true}
+                            onChange={() => setRefillDecision(true)}
                         />
                         <label htmlFor="refill">Refill</label>
                     
@@ -634,8 +642,8 @@ function PatientPage() {
                             name="refillDecision"
                             value="Don't Refill"
                             id="dont-refill"
-                            checked={refillDecision === "Don't Refill"}
-                            onChange={(e) => setRefillDecision(e.target.value)}
+                            checked={refillDecision === false}
+                            onChange={() => setRefillDecision(false)}
                         />
                         <label htmlFor="dont-refill">Don't Refill</label>
                 </div>
