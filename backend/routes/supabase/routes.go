@@ -139,7 +139,7 @@ func ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := context.Background()
-	err = Supabase.Auth.ResetPasswordForEmail(ctx, ForgotPasswordRequest.Email, "http://localhost:3000/reset-password")
+	err = Supabase.Auth.ResetPasswordForEmail(ctx, ForgotPasswordRequest.Email, "https://team-corewell-frontend.vercel.app/reset-password")
 	if err != nil {
 		msg := fmt.Sprintf("ForgotPassword: ResetPasswordForEmail failed: %v", err)
 		fmt.Println(msg)
