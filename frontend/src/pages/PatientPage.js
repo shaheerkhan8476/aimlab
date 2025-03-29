@@ -176,7 +176,7 @@ function PatientPage() {
             setBannerMessage("Respond to the patient's message!");
             setActiveTab("info");
         }
-    }, [results, prescriptions]);
+    }, [taskType, results, prescriptions]);
 
     const [quickReplyUsed, setQuickReplyUsed] = useState(false);
 
@@ -194,10 +194,10 @@ function PatientPage() {
     }, [location.state?.auto_submit_response, patient, results, prescriptions]);
 
     useEffect(() => {
-        if (autoSubmitTrigger && userMessage) {
+        if (autoSubmitTrigger && userMessage && studentId && taskId) {
             handleSubmit();
         }
-    }, [autoSubmitTrigger, userMessage]);
+    }, [autoSubmitTrigger, userMessage, studentId, taskId]);
 
     if (!patient)
     {
@@ -217,7 +217,6 @@ function PatientPage() {
     const handleSubmit = async () => {
         const token = localStorage.getItem("accessToken");
         const userId = localStorage.getItem("userId");
-        const taskId = location.state.task_id;
         console.log("KING OF THE CASLTE WA  WA WEE WA")
         console.log("message is:", userMessage);
         //do nothing if nothing typed yet
@@ -227,8 +226,8 @@ function PatientPage() {
         // }
 
         // do nothing if task info not available
-        if (!token || !userMessage || !userId || !taskId) {
-            console.warn("Missing required data", { userId, taskId });
+        if (!token || !userMessage || !studentId || !taskId) {
+            console.warn("Missing required data", { studentId, taskId });
             return;
         }
 
