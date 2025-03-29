@@ -162,12 +162,13 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	err = ResetUserPassword(ctx, Supabase, req.AccessToken, req.NewPassword)
 	if err != nil {
+		fmt.Println(err)
 		msg := fmt.Sprintf("ResetPassword: error resetting user password: %v", err)
 		fmt.Println(msg)
 		http.Error(w, msg, http.StatusInternalServerError) // 500
 		return
 	}
-
+	fmt.Println("Received Access Token:", req.AccessToken)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Password updated successfully"))
 }
