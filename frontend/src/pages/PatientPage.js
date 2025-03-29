@@ -27,6 +27,10 @@ function PatientPage() {
     const [finalMessage, setFinalMessage] = useState("");
     const [isAdmin, setIsAdmin] = useState(null); //If user is admin for flagging page    
     const [activeResultTab, setActiveResultTab] = useState(null);
+
+    const [autoSubmitTrigger, setAutoSubmitTrigger] = useState(false);
+
+    const [sampleResponse, setSampleResponse] = useState(null);
     
 
     
@@ -172,7 +176,28 @@ function PatientPage() {
             setBannerMessage("Respond to the patient's message!");
             setActiveTab("info");
         }
-    }, [results, prescriptions]);
+    }, [taskType, results, prescriptions]);
+
+    const [quickReplyUsed, setQuickReplyUsed] = useState(false);
+
+    useEffect(() => {
+        console.log("skibidy idjawi 1");
+        const userId = localStorage.getItem("userId");//get local userid
+        const autoResponse = location.state?.auto_submit_response;
+        
+        if (autoResponse && !autoSubmitTrigger && patient && results.length >= 0 && prescriptions.length >= 0) {
+            setUserMessage(autoResponse);
+            setQuickReplyUsed(true);
+            setAutoSubmitTrigger(true);
+            console.log("fanum tax ijwjf 2")
+        }
+    }, [location.state?.auto_submit_response, patient, results, prescriptions]);
+
+    useEffect(() => {
+        if (autoSubmitTrigger && userMessage && studentId && taskId) {
+            handleSubmit();
+        }
+    }, [autoSubmitTrigger, userMessage, studentId, taskId]);
 
     if (!patient)
     {
@@ -192,11 +217,13 @@ function PatientPage() {
     const handleSubmit = async () => {
         const token = localStorage.getItem("accessToken");
         const userId = localStorage.getItem("userId");
-
+        console.log("KING OF THE CASLTE WA  WA WEE WA")
+        console.log("message is:", userMessage);
         //do nothing if nothing typed yet
-        if (!token || !userMessage) {
-            return;
-        }
+        // if (!token || !userMessage) {
+
+        //     return;
+        // }
 
         // do nothing if task info not available
         if (!token || !userMessage || !studentId || !taskId) {
