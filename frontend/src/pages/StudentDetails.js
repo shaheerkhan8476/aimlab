@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import "./css/StudentDetails.css";
+import LoadingSpinner from "./components/LoadingSpinner";
 
 function StudentDetails() {
     const { id } = useParams(); //Gets Id From Url
@@ -116,7 +117,7 @@ function StudentDetails() {
     {
      
         return (
-            <p>Student details loading, please wait</p>
+            <LoadingSpinner />
         )
     }
 
