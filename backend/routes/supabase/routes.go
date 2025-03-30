@@ -1,16 +1,16 @@
 package supabase
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"math/rand/v2"
 	"net/http"
-	"time"
-
-	"bytes"
-	"fmt"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -75,7 +75,10 @@ func SignUpUser(w http.ResponseWriter, r *http.Request) {
 		IsAdmin:         userRequest.IsAdmin,
 		StudentStanding: &userRequest.StudentStanding,
 	}
-	err = Supabase.DB.From("users").Insert(newUser).Execute(nil)
+	url := os.Getenv("SUPABASE_URL")
+	key := os.Getenv("SUPABASE_KEY")
+	supa := supabase.CreateClient(url, key)
+	err = supa.DB.From("users").Insert(newUser).Execute(nil)
 	if err != nil {
 		fmt.Println(err)
 		msg := fmt.Sprintf("SignUpUser: insert to DB failed, possibly conflict: %v", err)
