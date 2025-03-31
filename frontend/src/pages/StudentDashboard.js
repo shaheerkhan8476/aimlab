@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import "./css/StudentDashboard.css";
+import LoadingSpinner from "./components/LoadingSpinner";
 import QuickReply from "../images/quick-reply.png"
 
 
@@ -201,33 +202,13 @@ function StudentDashboard(){
     }, []);
 
     const handleQuickReplySubmit = async (task) => {
-        const token = localStorage.getItem("accessToken");
-        const userId = localStorage.getItem("userId");
-
-        if (!quickReplyText.trim()) {return;}
-
-        try {
-            await fetch(`http://localhost:8060/${userId}/tasks/${task.id}/completeTask`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    student_response: quickReplyText,
-                    llm_feedback: ""
-                })
-            });
-
-            setMessages((prev) => prev.filter((msg) => msg.id !== task.id));
-            setMessageCount((prev) => prev - 1);
-
-            setShowQuickReply(null);
-            setQuickReplyText("");
-        }
-        catch (error) {
-            console.error("quick reply screwed up", error);
-        }
+        navigate(`/PatientPage/${task.patient_id}?task_id=${task.id}&from=quickReply`,{
+            state: {
+                task_type: "patient_question",
+                auto_submit_response: quickReplyText,
+                task_id: task.id,
+            }
+        })
         }
 
 
@@ -296,7 +277,7 @@ function StudentDashboard(){
                                 <div>
                                     <h2>Patient Messages</h2>
                                     {messages === null ? (
-                                        <p>...Loading...</p> ) : messages.length === 0 ?
+                                        <LoadingSpinner /> ) : messages.length === 0 ?
                                         ( <p>No messages tasks! Good job!</p>) : (
                                         <>
                                         <table className="data-table">
@@ -356,19 +337,6 @@ function StudentDashboard(){
                                                 ))}
                                             </tbody>
                                         </table>
-                                        {showQuickReply && (
-                                            <div className="quick-reply-box">
-                                              <textarea
-                                                value={quickReplyText}
-                                                onChange={(e) => setQuickReplyText(e.target.value)}
-                                                placeholder="Type your quick reply here..."
-                                              />
-                                              <div>
-                                                <button onClick={() => handleQuickReplySubmit(showQuickReply)}>Submit</button>
-                                                <button onClick={() => setShowQuickReply(null)}>Cancel</button>
-                                              </div>
-                                            </div>
-                                          )}
                                         </>
                                     )}
                                 </div>
@@ -378,7 +346,7 @@ function StudentDashboard(){
                                 <div>
                                     <h2>Prescriptions/Refills</h2>
                                     {prescriptions === null ? (
-                                        <p>...Loading...</p> ) :
+                                        <LoadingSpinner /> ) :
                                         prescriptions.length === 0 ? (
                                             <p>No prescriptions tasks! Good job!</p>
                                         ) : (
@@ -394,7 +362,7 @@ function StudentDashboard(){
                                                 {prescriptions.map((prescription, index) => (
                                                     <tr key={index}
                                                         className="clickable-patient"
-                                                        onClick={() => navigate(`/PatientPage/${prescription.patient_id}`, {
+                                                        onClick={() => navigate(`/PatientPage/${prescription.patient_id}?task_id=${prescription.id}`, {
                                                             state: {
                                                                 task_type: "prescription",
                                                                 prescription_id: prescription.prescription_id,
@@ -417,8 +385,8 @@ function StudentDashboard(){
                                 <div>
                                 <h2>Results</h2>
                                 {results === null ? (
-                                    <p>...Loading...</p> ) :
-                                    prescriptions.length === 0 ? (
+                                    <LoadingSpinner /> ) :
+                                    results.length === 0 ? (
                                         <p>No prescriptions tasks! Good job!</p>
                                     ) : (
                                     <table className="data-table">
@@ -442,7 +410,7 @@ function StudentDashboard(){
                                                         
                                                         
                                                         
-                                                        navigate(`/PatientPage/${result.patient_id}`, {
+                                                        navigate(`/PatientPage/${result.patient_id}?task_id=${result.id}`, {
                                                         state: {
                                                             task_type: "lab_result",
                                                             result_id: result.result_id,
