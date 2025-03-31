@@ -1062,6 +1062,9 @@ func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 			ID:        uuid.New(),
 			PatientID: req.PatientID,
 			Flaggers:  []uuid.UUID{req.UserID},
+			Messages: map[string]string{
+				req.Name: req.Explanation,
+			},
 		}
 
 		err = Supabase.DB.
@@ -1095,9 +1098,13 @@ func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	flaggedRow.Flaggers = append(flaggedRow.Flaggers, req.UserID)
-
+	if flaggedRow.Messages == nil {
+		flaggedRow.Messages = make(map[string]string)
+	}
+	flaggedRow.Messages[req.Name] = req.Explanation
 	updateData := map[string]interface{}{
 		"flaggers": flaggedRow.Flaggers,
+		"messages": flaggedRow.Messages,
 	}
 
 	err = Supabase.DB.

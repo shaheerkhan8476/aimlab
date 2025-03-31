@@ -53,9 +53,10 @@ type Result struct {
 }
 
 type FlaggedPatient struct {
-	ID        uuid.UUID   `json:"id"`
-	PatientID uuid.UUID   `json:"patient_id"`
-	Flaggers  []uuid.UUID `json:"flaggers"`
+	ID        uuid.UUID         `json:"id"`
+	PatientID uuid.UUID         `json:"patient_id"`
+	Flaggers  []uuid.UUID       `json:"flaggers"`
+	Messages  map[string]string `json:"messages"`
 	Patient   struct {
 		Name string `json:"name"`
 	} `json:"patient"`
