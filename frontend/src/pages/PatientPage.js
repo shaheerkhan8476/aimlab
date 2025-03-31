@@ -32,8 +32,6 @@ function PatientPage() {
     const [isLoadingAIResponse, setIsLoadingAIResponse] = useState(null);
 
     const [autoSubmitTrigger, setAutoSubmitTrigger] = useState(false);
-
-    const [sampleResponse, setSampleResponse] = useState(null);
     
 
     
@@ -280,8 +278,8 @@ function PatientPage() {
                     return;
                 }
                 if (!feedbackResponse) {
-                    console.error("AI feedback is missing", { sampleResponse });
-                    sampleResponse = "Error occurred in our systems. No feedback has been generated.";
+                    console.error("AI feedback is missing", { feedbackResponse });
+                    feedbackResponse = "Error occurred in our systems. No feedback has been generated.";
                     return;
                 }
                 
