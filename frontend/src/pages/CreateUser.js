@@ -27,6 +27,11 @@ function CreateUser()
     //Handle submit button and make POST request to backend to run /addUser
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (formData.password.length < 6) {//if password less than 6 char
+            setMessage("Password has to be at least 6 characters.");
+            return;
+        }
         try {
             const response = await fetch('http://localhost:8060/addUser',{
                 method: 'POST',
