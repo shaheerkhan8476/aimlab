@@ -251,7 +251,7 @@ function PatientPage() {
             pdmp: patient.pdmp || [],
             task_type: taskType || "",
             mission: bannerMessage,
-            refill_bool: refillDecision,
+            student_refilled: refillDecision,
             user_message: messageToSend,
         };
 
@@ -268,6 +268,7 @@ function PatientPage() {
 
                 });
                 const data = await response.json();
+                console.log(data);
                 let sampleResponse = data.sample_response + ` Best Regards, ${localStorage.getItem("userName")}.`;
                 setAIResponse(sampleResponse);
                 let feedbackResponse = data.feedback_response;
