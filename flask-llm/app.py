@@ -32,7 +32,7 @@ def message_request():
     5) The LLM must output exactly one JSON object with only the two keys:
          "sample_response" and "feedback_response"
        and each of their values must be plain text (no nested key values).
-    6) NEW: The new refill_bool field is only considered if task_type is "prescription". For non-prescription tasks, any false value is treated as null.
+    6) NEW: The new student_refilled field is only considered if task_type is "prescription". For non-prescription tasks, any false value is treated as null.
     7) NEW: If a mission is provided, include it in the sample response instructions so the response adheres to the specific task instruction.
     8) NEW: In the feedback instructions, refer to the complete JSON as "comprehensive patient information" instead of "giga json."
     9) NEW: Regardless of task type, include the base instructions:
@@ -51,9 +51,9 @@ def message_request():
         if "patient" in original_data:
             original_data["patient"].pop("patient_message", None)
 
-    # 6) For non-prescription tasks, remove the refill_bool field so that false is treated as null.
+    # 6) For non-prescription tasks, remove the student_refilled field so that false is treated as null.
     if task_type != "prescription":
-        original_data.pop("refill_bool", None)
+        original_data.pop("student_refilled", None)
 
     # 2) Prepare data for the sample response: remove user_message and task_type.
     data_for_first_paragraph = dict(original_data)
@@ -105,7 +105,7 @@ and relevant next steps. No concluding phrases or farewells.
     elif task_type == "prescription":
         task_specific_part = """
 Since task_type is prescription, provide a concise plan for prescription changes, 
-refills, or dosage. (Note: the refill_bool field indicates if the prescription should be refilled: true means refill, false means not refill.)
+refills, or dosage. (Note: the student_refilled field indicates if the prescription should be refilled: true means refill, false means not refill.)
 Avoid farewells or fluff.
         """
     else:
@@ -138,7 +138,7 @@ SECOND PARAGRAPH (Feedback Instructions):
 """
 
     # Reprompt up to 5 times until valid JSON is produced.
-    max_attempts = 5
+    max_attempts = 15
     attempts = 0
     valid_output = None
 
