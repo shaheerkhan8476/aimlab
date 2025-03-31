@@ -137,8 +137,8 @@ SECOND PARAGRAPH (Feedback Instructions):
 {second_paragraph}
 """
 
-    # Reprompt up to 5 times until valid JSON is produced.
-    max_attempts = 15
+    # Reprompt up to 10 times until valid JSON is produced.
+    max_attempts = 10
     attempts = 0
     valid_output = None
 
@@ -159,7 +159,7 @@ SECOND PARAGRAPH (Feedback Instructions):
             attempts += 1
 
     if valid_output is None:
-        return jsonify({"error": "Failed to produce valid JSON after 5 attempts"}), 500
+        return jsonify({"error": "Failed to produce valid JSON after 10 attempts"}), 500
 
     return Response(valid_output, mimetype="application/json")
 
