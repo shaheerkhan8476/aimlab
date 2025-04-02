@@ -40,13 +40,17 @@ type TaskCompleteRequest struct {
 }
 
 type FlaggedPatientRequest struct {
-	PatientID uuid.UUID `json:"patient_id"`
-	UserID    uuid.UUID `json:"user_id"`
+	PatientID   uuid.UUID `json:"patient_id"`
+	UserID      uuid.UUID `json:"user_id"`
+	Name        string    `json:"user_name"`
+	Explanation string    `json:"explanation"`
 }
+
 type InsertFlaggedPatient struct {
-	ID        uuid.UUID   `json:"id"`
-	PatientID uuid.UUID   `json:"patient_id"`
-	Flaggers  []uuid.UUID `json:"flaggers"`
+	ID        uuid.UUID         `json:"id"`
+	PatientID uuid.UUID         `json:"patient_id"`
+	Flaggers  []uuid.UUID       `json:"flaggers"`
+	Messages  map[string]string `json:"messages"`
 }
 
 type ForgotPasswordRequest struct {

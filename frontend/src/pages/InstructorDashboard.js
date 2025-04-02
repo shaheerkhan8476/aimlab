@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
+import LoadingSpinner from "./components/LoadingSpinner";
 
 
 //Right now this either displays ugly patient data, or
@@ -170,7 +171,7 @@ function InstructorDashboard(){
                                             </tbody>
                                         </table>
                                     ) : (
-                                        <p>Loading student list...</p>
+                                        <LoadingSpinner />
                                     )}
                                 </div>
                             )}
