@@ -236,7 +236,7 @@ else{
                                                             </div>
                                                         ))
                                                     ) : (
-                                                        <p>There are no messages for this flagged paitent.</p>
+                                                        <p>There are no messages for this flagged patient.</p>
                                                     )}
                                                 </div>
                                             </td>
