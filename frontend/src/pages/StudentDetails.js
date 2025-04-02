@@ -121,7 +121,16 @@ function StudentDetails() {
         )
     }
 
+    function isLate(createdAt, completedAt) {
+        const created = new Date(createdAt);
+        const completed = new Date(completedAt);
+        const diffInMs = completed - created;
+        const hoursDiff = diffInMs / (1000 * 60 * 60);
+        return hoursDiff >= 24;
+    }
+      
     return (
+        
         <div className="student-container">
             {/* Header */}
             <div className="student-header">
@@ -162,6 +171,9 @@ function StudentDetails() {
                                                         </Link>
                                                     </span>
                                                     <span className={`task-status-${task.completed ? "completed" : "incomplete"}`}>
+                                                        {task.completed && isLate(task.created_at, task.completed_at) && (
+                                                            <span className="late-tag"> LATE </span>
+                                                        )}
                                                         {task.completed ? " Complete" : " Incomplete"}
                                                     </span>
                                                 </li>
