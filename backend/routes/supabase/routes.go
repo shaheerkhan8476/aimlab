@@ -431,7 +431,6 @@ func GenerateTasksHTMLWrapper(w http.ResponseWriter, r *http.Request) {
 	//     "patient_task_count": 3,
 	//     "lab_result_task_count": 0,
 	//     "prescription_task_count": 0,
-	//     "generate_question": false
 	// }
 	var taskCreateRequest TaskCreateRequest
 	bodyBytes, _ := io.ReadAll(r.Body)
@@ -443,7 +442,8 @@ func GenerateTasksHTMLWrapper(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Run the task generation function
-	err = GenerateTasks(taskCreateRequest.PatientTaskCount, taskCreateRequest.LabResultTaskCount, taskCreateRequest.PrescriptionTaskCount, taskCreateRequest.GenerateQuestion)
+	// Removed generating patient question for now
+	err = GenerateTasks(taskCreateRequest.PatientTaskCount, taskCreateRequest.LabResultTaskCount, taskCreateRequest.PrescriptionTaskCount, false)
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "Error generating tasks", http.StatusInternalServerError)
@@ -458,6 +458,7 @@ func GenerateTasksHTMLWrapper(w http.ResponseWriter, r *http.Request) {
 // This function is called by the API endpoint
 func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, generate_question bool) error {
 	var students []model.User
+	errLatest := error(nil) // Keeps track of the latest error, if any
 	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
 	if err != nil || len(students) == 0 {
 		fmt.Println("No students found")
@@ -540,14 +541,16 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 				body, err := io.ReadAll(response.Body)
 				if err != nil {
 					fmt.Println("Error reading LLM response")
-					return err
+					fmt.Println(err) // skip this task instead of returning
+					errLatest = err
 				}
 
 				question_body := map[string]string{}
 				err = json.Unmarshal(body, &question_body)
 				if err != nil {
 					fmt.Println("Error parsing LLM response")
-					return err
+					fmt.Println(err) // skip this task instead of returning
+					errLatest = err
 				}
 
 				question = strings.Trim(question_body["completion"], "\"")
@@ -564,6 +567,7 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 					Completed:       false,
 					CreatedAt:       &createdAt,
 					StudentResponse: nil, // won't be filled in until student responds
+					LLMResponse:     nil, // won't be filled in until LLM provides response
 					LLMFeedback:     nil, // won't be filled in until LLM provides feedback
 				},
 				PatientQuestion: &question, // task is generated with patient question
@@ -600,8 +604,9 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 					TaskType:        model.LabResultTaskType,
 					Completed:       false,
 					CreatedAt:       &createdAt,
-					StudentResponse: nil,
-					LLMFeedback:     nil,
+					StudentResponse: nil, // won't be filled in until student responds
+					LLMResponse:     nil, // won't be filled in until LLM provides response
+					LLMFeedback:     nil, // won't be filled in until LLM provides feedback
 				},
 				ResultId: result_uuid,
 			}
@@ -637,6 +642,7 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 					Completed:       false,
 					CreatedAt:       &createdAt,
 					StudentResponse: nil, // won't be filled in until student responds
+					LLMResponse:     nil, // won't be filled in until LLM provides response
 					LLMFeedback:     nil, // won't be filled in until LLM provides feedback
 				},
 				PrescriptionId: prescription_uuid,
@@ -649,7 +655,13 @@ func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, gener
 		}
 		random_index += numPrescriptions // Not needed, but just in case we add more types
 	}
-	return nil // no errors
+	if errLatest != nil {
+		fmt.Println("One or more tasks failed to generate, but continuing")
+		return errLatest // return the error if one or more tasks failed to generate
+	} else {
+		fmt.Println("All tasks generated successfully")
+		return nil // no errors
+	}
 }
 
 // Helper function for getting the entire task (including specific task type parts)
@@ -828,7 +840,8 @@ func CompleteTask(w http.ResponseWriter, r *http.Request) {
 	// Example request body:
 	// {
 	// 	"student_response": "The student's response to the task",
-	// 	"llm_feedback": "The LLM's response to the task"
+	//  "llm_response": "The LLM's sample response to the task",
+	// 	"llm_feedback": "The LLM's feedback to the student response"
 	// }
 	bodyBytes, _ := io.ReadAll(r.Body)
 	err = json.Unmarshal(bodyBytes, &taskCompleteRequest)
@@ -841,6 +854,7 @@ func CompleteTask(w http.ResponseWriter, r *http.Request) {
 	updateData := map[string]interface{}{
 		"completed":        true,
 		"student_response": taskCompleteRequest.StudentResponse,
+		"llm_response":     taskCompleteRequest.LLMResponse,
 		"llm_feedback":     taskCompleteRequest.LLMFeedback,
 		"completed_at":     time.Now(),
 	}
@@ -1048,6 +1062,9 @@ func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 			ID:        uuid.New(),
 			PatientID: req.PatientID,
 			Flaggers:  []uuid.UUID{req.UserID},
+			Messages: map[string]string{
+				req.Name: req.Explanation,
+			},
 		}
 
 		err = Supabase.DB.
@@ -1081,9 +1098,13 @@ func AddFlaggedPatient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	flaggedRow.Flaggers = append(flaggedRow.Flaggers, req.UserID)
-
+	if flaggedRow.Messages == nil {
+		flaggedRow.Messages = make(map[string]string)
+	}
+	flaggedRow.Messages[req.Name] = req.Explanation
 	updateData := map[string]interface{}{
 		"flaggers": flaggedRow.Flaggers,
+		"messages": flaggedRow.Messages,
 	}
 
 	err = Supabase.DB.

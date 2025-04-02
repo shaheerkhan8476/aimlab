@@ -26,13 +26,8 @@ type Task struct {
 	Completed       bool       `json:"completed"`
 	CompletedAt     *time.Time `json:"completed_at,omitempty"`
 	StudentResponse *string    `json:"student_response,omitempty"`
+	LLMResponse     *string    `json:"llm_response,omitempty"`
 	LLMFeedback     *string    `json:"llm_feedback,omitempty"`
-}
-
-// Shared method for marking a task as completed
-// NOT USED ANYMORE, completing a task updates the DB directly instead of altering a struct
-func (t *Task) CompleteTask() {
-	t.Completed = true
 }
 
 // Define the different types of tasks

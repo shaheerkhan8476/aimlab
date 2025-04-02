@@ -79,7 +79,7 @@ button {
 }
 
 /* style of keep and remove */
-.keep-button, .remove-button {
+.keep-button, .remove-button, .message-button {
     display: block;
     width: 70%; 
     margin: 0 auto 10px; 
@@ -104,6 +104,16 @@ button {
 .remove-button:hover {
     background-color: #c82333;
 }
+/*color of message button*/
+.message-button {
+    background-color: blue;
+    color: white;
+}
+/*color of hover message*/
+.remove-button:hover {
+    background-color: lightblue;
+}
+
 
 /* login button  */
 .login-button {
@@ -118,3 +128,20 @@ button {
     padding: 1em;
     
 }
+/* message box  */
+.message-box {
+    background-color: #e6eeff;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #002855;
+}
+
+/* test */
+.message-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #b8c7e0;
+    margin-bottom: 8px;
+}
+

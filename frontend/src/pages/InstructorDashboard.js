@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
+import LoadingSpinner from "./components/LoadingSpinner";
 
 
 //Right now this either displays ugly patient data, or
@@ -19,6 +20,12 @@ function InstructorDashboard(){
     //determines if user authenticated
     useEffect(() => {
         const userId = localStorage.getItem("userId");
+        const isAdmin = localStorage.getItem("isAdmin")  === "true"; //get is admin and make it a bool
+
+        if (!isAdmin ) {
+            setIsAuthenticated(false);
+            return;
+        }
         console.log(userId);
         if (!userId) {
             console.error("User ID is not in local storage");
@@ -86,7 +93,19 @@ function InstructorDashboard(){
         });
     }, [isAuthenticated]);
 
+    if (!isAuthenticated) {
+        return (
+            <div className="not-authenticated">
+                <h2>Access Denied</h2>
+                <p>Please log in to continue.</p>
+                <button onClick={() => navigate("/")} className="login-button">
+                    Go to Login
+                </button>
+            </div>
+        );
+    }
 
+    else{
     return (
         <>
         <div className="dashboard-container">
@@ -152,7 +171,7 @@ function InstructorDashboard(){
                                             </tbody>
                                         </table>
                                     ) : (
-                                        <p>Loading student list...</p>
+                                        <LoadingSpinner />
                                     )}
                                 </div>
                             )}
@@ -165,6 +184,7 @@ function InstructorDashboard(){
         </>
         
     )
+}
 
 
 }

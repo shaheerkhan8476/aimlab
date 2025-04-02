@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+
 import "./css/StudentDetails.css";
+import LoadingSpinner from "./components/LoadingSpinner";
 
 function StudentDetails() {
     const { id } = useParams(); //Gets Id From Url
@@ -115,7 +117,7 @@ function StudentDetails() {
     {
      
         return (
-            <p>Student details loading, please wait</p>
+            <LoadingSpinner />
         )
     }
 
@@ -148,7 +150,17 @@ function StudentDetails() {
                                         <ul className="task-list">
                                             {day.Tasks.map((task, tindex) => (
                                                 <li key={tindex} className="task-item">
-                                                    <span className="task-id">Task: {patient[task.patient_id] || "Unknown Patient"} - {task.task_type.replace(/_/g, " ")}</span>
+                                                    <span className="task-id">
+                                                        Task: {" "}
+                                                        <Link to={{
+                                                            pathname: `/PatientPage/${task.patient_id}`,
+                                                            search: `?task_id=${task.id}&task_type=${task.task_type}&from=studentDetails`,
+                                                        }}
+                                                            className="task-link"
+                                                        >
+                                                        {patient[task.patient_id] || "Unknown Patient"} - {task.task_type.replace(/_/g, " ")}
+                                                        </Link>
+                                                    </span>
                                                     <span className={`task-status-${task.completed ? "completed" : "incomplete"}`}>
                                                         {task.completed ? " Complete" : " Incomplete"}
                                                     </span>

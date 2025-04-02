@@ -100,3 +100,13 @@
     color: rgb(145, 34, 34);
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
+
+.task-link {
+    color: #0e3054; /* any color you want */
+    text-decoration: none; /* optional: removes underline */
+}
+
+.task-link:hover {
+    color: #0056b3; /* optional: color on hover */
+}
+  
