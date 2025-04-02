@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { data, useNavigate } from "react-router-dom";
+import React from "react";
 import "./css/Flagg.css";
+import LoadingSpinner from "./components/LoadingSpinner";
 function FlaggedPatientsDash() {
     const [userName, setUserName] = useState(""); //helps sets instructor name deafault Instructor Name
     const [flaggedPatients, setFlaggedPatients] = useState(null);//set flagged paitents
@@ -8,20 +10,23 @@ function FlaggedPatientsDash() {
     const [isAuthenticated, setIsAuthenticated] = useState(true);//checks if auth default true
     const [refresh, setRefresh] = useState(0); //used to refresh screen
     const navigate = useNavigate();//naviagte to new page
+    const [messages, setMessages] = useState({});
+    const [showMessage, setShowMessage] = useState(null);
+ 
 
     useEffect(() => {
         const userId = localStorage.getItem("userId");//get local userid
         const token = localStorage.getItem("accessToken");//get access token
         const isAdmin = localStorage.getItem("isAdmin")  === "true"; //get is admin and make it a bool
 
-  
+        
         //check if auth
         if (!userId || !token || !isAdmin ) {
             setIsAuthenticated(false);
             return;
         }
+       
         
-
         // get instructor name
         fetch(`http://localhost:8060/students/${userId}`, {
             method: "GET",
@@ -54,41 +59,46 @@ function FlaggedPatientsDash() {
         .then(async (data) => {
             //empty arrary to hold flagger name
             const flaggerName = [];
-            
-            // get each patient of name
-            for (const patient of data) {
-                //Empty array to hold student name
-                const studentName = [];
-                
-                // get each flagger id of flaggers
-                for (const flaggerId of patient.flaggers) {
-                    try {
-                        const res = await fetch(`http://localhost:8060/students/${flaggerId}`, {
-                            method: "GET",
-                            headers: {
-                                "Authorization": `Bearer ${token}`,
-                                "Content-Type": "application/json",
-                            },
-                        });
-                        const student = await res.json();
-                        //add name of student to array
-                        studentName.push(student.name);
-                    } catch {
-                        return "Error flagger name not found";
-                    }
-                }
-                //Replace flagger id with student name
-                flaggerName.push({ ...patient, flaggers: studentName });
-            }
-            //Set the flagged patient to array of flaggers
-            setFlaggedPatients(flaggerName);
-        })
-        .catch(error => {
-            console.error("Error fetching flagged patients:", error);
-        });
-    }, [refresh]);//refresh screen
+            const studentMessage = {};
 
-    // Handle keep patient request
+                     // get each patient of name
+                    for (const patient of data) {
+                        //Empty array to hold student name
+                        const studentName = [];
+                  
+                        
+                        studentMessage[patient.patient_id] = patient.messages || {};
+
+                        // get each flagger id of flaggers
+                        for (const flaggerId of patient.flaggers) {
+                            try {
+                                const res = await fetch(`http://localhost:8060/students/${flaggerId}`, {
+                                    method: "GET",
+                                    headers: {
+                                        "Authorization": `Bearer ${token}`,
+                                        "Content-Type": "application/json",
+                                    },
+                                });
+                                const student = await res.json();
+                                //add name of student to array
+                                studentName.push(student.name);
+                            } catch {
+                                return "Error flagger name not found";
+                            }
+                        }
+                        //Replace flagger id with student name
+                        flaggerName.push({ ...patient, flaggers: studentName });
+                    }
+                    //Set the flagged patient to array of flaggers
+                    setFlaggedPatients(flaggerName);
+                    setMessages(studentMessage);
+                })
+                .catch(error => {
+                    console.error("Error fetching flagged patients:", error);
+                });
+            }, [refresh]);//refresh screen
+        
+            // Handle keep patient request   
     const handleKeep = async (patientId) => {
         const token = localStorage.getItem("accessToken");
         try {
@@ -110,7 +120,7 @@ function FlaggedPatientsDash() {
             console.error("Error keeping patient:", error);
         }
     };
-    //Handle remove patient request
+     //Handle remove patient request
     const handleRemove = async (patientId) => {
         const token = localStorage.getItem("accessToken");
         try {
@@ -120,7 +130,7 @@ function FlaggedPatientsDash() {
                     "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
-                //feeds the patient id
+                 //feeds the patient id
                 body: JSON.stringify({ patient_id: patientId }),
             });
             if (response.ok) {
@@ -147,7 +157,7 @@ function FlaggedPatientsDash() {
             </div>
         );
     }
-    else{
+else{
     return (
         <div className="dashboard-container">
             {/* Top Banner */}
@@ -164,11 +174,11 @@ function FlaggedPatientsDash() {
             {/* Main content */}
             <div className="content">
                 <h2>Flagged Patients</h2>
-
+                
                 {error ? (
                     <p className="error-message">{error}</p>
                 ) : flaggedPatients === null ? (
-                    <p className="loading-message">...loading flagged patients...</p>
+                    <LoadingSpinner />
                 ) : flaggedPatients.length === 0 ? (
                     <p>No flagged patients found.</p>
                 ) : (
@@ -177,19 +187,21 @@ function FlaggedPatientsDash() {
                             <tr>
                                 <th>Name</th>
                                 <th>Flaggers</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {flaggedPatients.map((patient, index) => (
-                                <tr key={index} className="clickable-patient"
+                                <React.Fragment key={index}> {/*tr cant be child of another */}
+                                 <tr key={index} className="clickable-patient"
                                     onClick={() => navigate(`/PatientPage/${patient.patient_id}`)}>
-                
+
                                     <td>{patient.patient?.name }</td>
-                                    {/*displays flaggers with , in betweeb*/}
-                                    <td>{(patient.flaggers || []).join(", ")}</td>
-                
+                                        {/*displays flaggers with , in betweeb*/}
+                                        <td>{(patient.flaggers || []).join(", ")}</td>
+
                                     {/* Keep and Remove buttons */}
-                                    <td>
+                                        <td>
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation(); // Prevents from clicking on flagged patient
@@ -201,8 +213,36 @@ function FlaggedPatientsDash() {
                                             handleRemove(patient.patient_id);//runs remove
                                              }} className="remove-button">Remove
                                         </button>
-                                    </td>
-                                </tr>
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); //prevents from clicking on flagged patient
+                                                setShowMessage(showMessage === index ? null : index);//Runs Show message
+                                             }} className="message-button">View Message
+                                        </button>
+                                            
+                                        </td>
+                                    </tr>
+                                    {showMessage === index && (
+                                        <tr>
+                                            <td colSpan="3">
+                                                <div className="message-box">
+                                                    {messages[patient.patient_id] && Object.keys(messages[patient.patient_id]).length > 0 ? (
+                                                        Object.entries(messages[patient.patient_id]).map(([flagger, message], msgIndex) => (
+                                                            <div 
+                                                                key={msgIndex} 
+                                                                className={`message-item ${msgIndex === Object.entries(messages[patient.patient_id]).length - 1 ? 'last-message' : ''}`}
+                                                            >
+                                                                <span className="flagger-name">{flagger}:</span>
+                                                                <span className="message-text">{message}</span>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <p>There are no messages for this flagged paitent.</p>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </React.Fragment>
                             ))}
                         </tbody>
                     </table>
