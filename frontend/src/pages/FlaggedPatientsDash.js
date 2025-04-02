@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { data, useNavigate } from "react-router-dom";
 import React from "react";
 import "./css/Flagg.css";
+import LoadingSpinner from "./components/LoadingSpinner";
 function FlaggedPatientsDash() {
     const [userName, setUserName] = useState(""); //helps sets instructor name deafault Instructor Name
     const [flaggedPatients, setFlaggedPatients] = useState(null);//set flagged paitents
@@ -177,7 +178,7 @@ else{
                 {error ? (
                     <p className="error-message">{error}</p>
                 ) : flaggedPatients === null ? (
-                    <p className="loading-message">...loading flagged patients...</p>
+                    <LoadingSpinner />
                 ) : flaggedPatients.length === 0 ? (
                     <p>No flagged patients found.</p>
                 ) : (
