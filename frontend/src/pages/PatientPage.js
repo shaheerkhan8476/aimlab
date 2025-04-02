@@ -224,7 +224,6 @@ function PatientPage() {
     const handleSubmit = async () => {
         const token = localStorage.getItem("accessToken");
         const userId = localStorage.getItem("userId");
-        const taskId = location.state.task_id;
 
         //do nothing if nothing typed yet
         if (!token || !userMessage) {
