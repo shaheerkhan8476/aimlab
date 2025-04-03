@@ -72,14 +72,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #8B9EB7;
+    background: #cbd8e9;
     padding: 10px;
     margin: 5px 0;
     border-radius: 5px;
 }
 /* other color */
 .tasks-section li:nth-child(odd) {
-    background: #d3d3d3;
+    background: #a1bcd3;
 }
 /* font */
 .tasks-section li span {
@@ -102,11 +102,19 @@
 }
 
 .task-link {
-    color: #0e3054; /* any color you want */
-    text-decoration: none; /* optional: removes underline */
+    color: #0e3054;
+    text-decoration: underline; 
 }
 
 .task-link:hover {
-    color: #0056b3; /* optional: color on hover */
+    color: #0056b3;
 }
+
+.late-tag {
+    background-color: yellow;
+    color: rgb(0, 0, 0);
+    font-weight: bold;
+    padding-left: 5px;
+    margin-right: 10px;
+}  
   

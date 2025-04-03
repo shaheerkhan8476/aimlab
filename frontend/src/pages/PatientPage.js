@@ -28,10 +28,16 @@ function PatientPage() {
     const [finalMessage, setFinalMessage] = useState("");
     const [isAdmin, setIsAdmin] = useState(null); //If user is admin for flagging page    
     const [activeResultTab, setActiveResultTab] = useState(null);
-
+    
     const [isLoadingAIResponse, setIsLoadingAIResponse] = useState(null);
 
     const [autoSubmitTrigger, setAutoSubmitTrigger] = useState(false);
+
+    const [sampleResponse, setSampleResponse] = useState(null);
+
+            //flaggging explanation
+            const [showFlagBox, setShowFlagBox] = useState(false);
+            const [explanation, setExplanation] = useState("");
     
 
     
@@ -217,7 +223,13 @@ function PatientPage() {
     //For now, you type response in the box and ai responds to that, whatever it is.
     const handleSubmit = async () => {
         const token = localStorage.getItem("accessToken");
-        
+        const userId = localStorage.getItem("userId");
+
+        //do nothing if nothing typed yet
+        if (!token || !userMessage) {
+            return;
+        }
+                
         // Should prevent multiple submissions at the same time
         if (isLoadingAIResponse) {
             console.warn("AI response is already loading. Please wait.");
@@ -233,8 +245,8 @@ function PatientPage() {
         // }
 
         // do nothing if task info not available
-        if (!token || !userMessage || !studentId || !taskId) {
-            console.warn("Missing required data", { studentId, taskId });
+        if (!token || !userMessage || !userId || !taskId) {
+            console.warn("Missing required data", { userId, taskId });
             return;
         }
 
@@ -322,12 +334,16 @@ function PatientPage() {
             body: JSON.stringify( {
                 "id": `${userId}`,
                 "patient_id": `${id}`,
-                "user_id": `${userId}`
+                "user_id": `${userId}`,
+                "user_name": `${localStorage.getItem("userName")}`,
+                "explanation": `${explanation}`
             }),
 
         })
         .then(data => {
+            console.log(localStorage.getItem("userName"), explanation);
             setFlagState(true);
+            setShowFlagBox(false);
         })
         .catch(error => console.error("Failed to flag patient", error));
 
@@ -614,9 +630,6 @@ function PatientPage() {
                     </div>
             )}
 
-            
-            {/* <img src={QuickReply} alt="Quick Reply" className="quick-reply"></img> */}
-
             {activeTab === "ai-response" && (
                 <div className="ai-response">
                     <h2>AI Response</h2>
@@ -625,11 +638,28 @@ function PatientPage() {
                     <p><strong>AI Response:</strong> {aiResponse}</p>
                     <div className="flag-container">
                     {!flagState ? (
-                        <button className="flag-patient-btn"><img src={ReportFlag} alt="report case" className="flag-patient" onClick={flagPatient}/></button>
-                    
+                        <div className="flag-section">
+                            {!showFlagBox ? (
+                                <button className="flag-patient-btn" onClick={() => setShowFlagBox(true)}>
+                                    <img src={ReportFlag} alt="report case" className="flag-patient" />
+                                </button>
+                            ) : (
+                                <div className="flag-input-box">
+                                    <textarea
+                                        value={explanation}
+                                        onChange={(e) => setExplanation(e.target.value)}
+                                        placeholder="Explain your flag"
+                                        rows={3}
+                                    />
+                                    <button onClick={flagPatient} className="submit-flag-btn">Submit</button>
+                                    <button onClick={() => setShowFlagBox(false)}>Cancel</button>
+                                </div>
+                            )}
+                        </div>
                     ) : (
                         <p><strong>Patient flagged, instructor notified!</strong></p>
                     )}
+
                     </div>
                     
                 </div>
