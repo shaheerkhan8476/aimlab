@@ -96,7 +96,7 @@ func main() {
 
 	// Allow API requests from frontend
 	handler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "https://team-corewell-frontend.vercel.app", "https://www.aimlabhealth.com/"},
+		AllowedOrigins:   []string{"http://localhost:3000", "https://team-corewell-frontend.vercel.app", "https://aimlabhealth.com/", "https://www.aimlabhealth.com/"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
