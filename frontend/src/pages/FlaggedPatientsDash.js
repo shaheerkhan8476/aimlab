@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { data, useNavigate } from "react-router-dom";
 import React from "react";
-import "./css/Flagg.css";
-import LoadingSpinner from "./components/LoadingSpinner";
+import "./css/Flagg.css";//My Provided Style
+import LoadingSpinner from "./components/LoadingSpinner";//Your Provided Style
 function FlaggedPatientsDash() {
     const [userName, setUserName] = useState(""); //helps sets instructor name deafault Instructor Name
     const [flaggedPatients, setFlaggedPatients] = useState(null);//set flagged paitents
@@ -10,8 +10,8 @@ function FlaggedPatientsDash() {
     const [isAuthenticated, setIsAuthenticated] = useState(true);//checks if auth default true
     const [refresh, setRefresh] = useState(0); //used to refresh screen
     const navigate = useNavigate();//naviagte to new page
-    const [messages, setMessages] = useState({});
-    const [showMessage, setShowMessage] = useState(null);
+    const [messages, setMessages] = useState({});//uses to set flagged messages
+    const [showMessage, setShowMessage] = useState(null);//used to show flagged messages
  
 
     useEffect(() => {
@@ -146,6 +146,7 @@ function FlaggedPatientsDash() {
 
 
     };
+    //if user isnt auth go back to login
     if (!isAuthenticated) {
         return (
             <div className="not-authenticated">

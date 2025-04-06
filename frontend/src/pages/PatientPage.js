@@ -450,7 +450,7 @@ function PatientPage() {
                 </div>
 
                 <div className="info-group">
-                    <h3>Medical Condition</h3>
+                    <h3>Problem List</h3>
                     <p>{patient.medical_condition}</p>
                 </div>
 

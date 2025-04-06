@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import "./css/Login.css";
+import "./css/Login.css";//My Provided Style
 function ForgotPassword()
 {
     //Create blank form for data user enters
     const [formData, setFormData] = useState({
         email: ''
     });
-    const [message, setMessage] = useState(""); 
-    const navigate = useNavigate();
+    const [message, setMessage] = useState(""); //set the message to display
+    const navigate = useNavigate();//navigate back to login
 
     //Listen for user adjustment of html and apply to form
     const handleChange = (e) => {
