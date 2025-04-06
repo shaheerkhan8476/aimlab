@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import "./css/Login.css";
+import "./css/Login.css"; //My Provided Style
 function CreateUser()
 {
     //Create blank form for data user enters
@@ -81,7 +81,6 @@ function CreateUser()
                             <select className="styled-dropdown drop" name="studentStanding" value={formData.studentStanding} onChange={handleChange} required>
                                 <option value="">Select standing</option>
                                 <option value="Resident">Resident</option>
-                                <option value="Clerkship">Clerkship</option>
                                 <option value="Medical Student">Medical Student</option>
                             </select>
                         </div>

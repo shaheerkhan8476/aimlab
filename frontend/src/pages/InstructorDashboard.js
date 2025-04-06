@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
-import LoadingSpinner from "./components/LoadingSpinner";
+import LoadingSpinner from "./components/LoadingSpinner";//Your Provided Style
 
 
 //Right now this either displays ugly patient data, or
 function InstructorDashboard(){
     const [students, setStudents] = useState(null); //state for student data
     const [error, setError] = useState(null);   //state for error message
-    const [isAuthenticated, setIsAuthenticated] = useState(true);
-    const [view, setView] = useState("students");
-    const [userName, setUserName] = useState("")
+    const [isAuthenticated, setIsAuthenticated] = useState(true);//checks if user is authed or not
+    const [view, setView] = useState("students");//sets for students
+    const [userName, setUserName] = useState("")//set sthe username
     
 
     const navigate = useNavigate();
@@ -55,9 +55,9 @@ function InstructorDashboard(){
             setError("fetch user data failed");
         });
     }, []);
-
+    //this useeffect runs whne we want to display students
     useEffect(() => {
-        const token = localStorage.getItem("accessToken");
+        const token = localStorage.getItem("accessToken");//get access token
         const userId = localStorage.getItem("userId"); //gets teacher id
     
         if (!token || !userId) {
@@ -92,7 +92,7 @@ function InstructorDashboard(){
             setIsAuthenticated(false);
         });
     }, [isAuthenticated]);
-
+    //if user isnt authed go back to login
     if (!isAuthenticated) {
         return (
             <div className="not-authenticated">

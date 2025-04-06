@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import "./css/Login.css";
+import "./css/Login.css";//My Provided Style
 
 function SignUpTeacher() {
-    const [teachers, setTeachers] = useState([]);
-    const [formData, setFormData] = useState({ instructor_id: "", student_id: "" });
-    const [message, setMessage] = useState(""); 
-    const navigate = useNavigate();
+    const [teachers, setTeachers] = useState([]);//sets the teacheher
+    const [formData, setFormData] = useState({ instructor_id: "", student_id: "" });//sets the ids
+    const [message, setMessage] = useState(""); //shows messages
+    const navigate = useNavigate();// naviagte back to login
 
+    //runs to get instrctors
     useEffect(() => {
         fetch("http://localhost:8060/instructors")
             .then(response => response.json())
@@ -15,6 +16,7 @@ function SignUpTeacher() {
             .catch(error => console.error("Error fetching instructors:", error));
     }, []);
 
+    //runs to get the user id
     useEffect(() => {
         const userId = localStorage.getItem("userId");
         console.log("User ID:", userId);
@@ -33,6 +35,7 @@ function SignUpTeacher() {
         }));
     };
 
+    //adds the student to teacher
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
