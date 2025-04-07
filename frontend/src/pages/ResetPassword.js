@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import "./css/Login.css";
+import "./css/Login.css";//My Provided Style
 function ResetPassword()
 {
     //Create blank form for data user enters
@@ -9,8 +9,8 @@ function ResetPassword()
         password: '',
         token: ''
     });
-    const [message, setMessage] = useState(""); 
-    const navigate = useNavigate();
+    const [message, setMessage] = useState(""); //sets the message to display
+    const navigate = useNavigate();//used to navigate back to login
 
     //gets acess token from url with hash
     useEffect(() => {
@@ -34,6 +34,10 @@ function ResetPassword()
     //Handle submit button and make POST request to backend to run /forgotPassword
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (formData.password.length < 6) {//if password less than 6 char
+            setMessage("Password has to be at least 6 characters.");
+            return;
+        }
         try {
             const response = await fetch('https://corewell-backend-production.up.railway.app/resetPassword',{
                 method: 'POST',

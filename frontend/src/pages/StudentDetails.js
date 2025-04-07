@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import "./css/StudentDetails.css";
-import LoadingSpinner from "./components/LoadingSpinner";
+import "./css/StudentDetails.css";//My Provided Style
+import LoadingSpinner from "./components/LoadingSpinner";//Your Provided Style
 
 function StudentDetails() {
     const { id } = useParams(); //Gets Id From Url
@@ -10,9 +10,9 @@ function StudentDetails() {
     const [tasks, setTasks] = useState([]); //store task
     const [patient, setPatients] = useState({}); // Store patient names
 
-    const navigate = useNavigate();
+    const navigate = useNavigate();//naviagtes back to instrctor dash
 
-    const [isInstructor, setIsInstructor] = useState(null);
+    const [isInstructor, setIsInstructor] = useState(null);//checks if teacher
 
     useEffect(() => {
         // Fetch user details (to check if they are an instructor)

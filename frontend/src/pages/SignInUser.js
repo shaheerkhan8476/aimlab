@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import "./css/Login.css";
+import "./css/Login.css";//My Provided Style
 
 function SignInUser()
 {
@@ -41,11 +41,11 @@ function SignInUser()
                 const data = await response.json();
                 const token = data.access_token;
                 const userId = data.user.id;
-                localStorage.setItem("accessToken", token);
-                localStorage.setItem("isAdmin", loginData.isAdmin);
-                localStorage.setItem("isAssigned", loginData.isAssigned);
-                localStorage.setItem("userEmail", loginData.email);
-                localStorage.setItem("userId", userId);
+                localStorage.setItem("accessToken", token);//assign acess token
+                localStorage.setItem("isAdmin", loginData.isAdmin);//assign  if adimin or not
+                localStorage.setItem("isAssigned", loginData.isAssigned);//assign if has teacher
+                localStorage.setItem("userEmail", loginData.email);//assign user email
+                localStorage.setItem("userId", userId);//assign  user id
                 console.log('Login Successful', data);
 
                 const userResponse = await fetch(`https://corewell-backend-production.up.railway.app/students/${userId}`, {
