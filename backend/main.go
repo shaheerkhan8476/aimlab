@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/robfig/cron/v3"
@@ -22,8 +23,15 @@ func main() {
 	// API Gateway
 	m := mux.NewRouter()
 
+	//Set time to EST
+	loc, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		fmt.Println("Error loading timezone:", err)
+		return
+	}
+
 	//Job Scheduler
-	c := cron.New(cron.WithSeconds())
+	c := cron.New(cron.WithSeconds(), cron.WithLocation(loc))
 	_, err = c.AddFunc("@daily", func() {
 		fmt.Println("Job Scheduler Triggered. ")
 		err = supabase.GenerateTasks(3, 3, 3, false)
