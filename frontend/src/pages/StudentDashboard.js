@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import "./css/StudentDashboard.css";
 import LoadingSpinner from "./components/LoadingSpinner";
 import QuickReply from "../images/quick-reply.png"
+import Confetti from "./components/Confetti";
 
 
 //styling patient message and prescription page
@@ -22,7 +23,8 @@ function StudentDashboard(){
 
     const [showQuickReply, setShowQuickReply] = useState(null);
     const [quickReplyText, setQuickReplyText] = useState("");
-    
+
+    const [isVisible, setIsVisible] = useState(false);
 
     const navigate = useNavigate();
 
@@ -183,7 +185,7 @@ function StudentDashboard(){
                 "Content-Type": "application/json",
             },
         })
-        
+
         .then((response) => {
             if (!response.ok) {
                 throw new Error("failed fetching user data");
@@ -201,6 +203,12 @@ function StudentDashboard(){
         });
     }, []);
 
+    useEffect(() => {
+        if (prescriptions?.length === 0) {
+            setIsVisible(true);
+        }
+    }, [prescriptions]);
+
     const handleQuickReplySubmit = async (task) => {
         navigate(`/PatientPage/${task.patient_id}?task_id=${task.id}&from=quickReply`,{
             state: {
@@ -211,6 +219,7 @@ function StudentDashboard(){
         })
         }
 
+        
 
     return (
         <div className="dashboard-container">
@@ -347,8 +356,11 @@ function StudentDashboard(){
                                     <h2>Prescriptions/Refills</h2>
                                     {prescriptions === null ? (
                                         <LoadingSpinner /> ) :
-                                        prescriptions.length === 0 ? (
-                                            <p>No prescriptions tasks! Good job!</p>
+                                        prescriptions?.length === 0 ? (
+                                            <>
+                                                <p>No prescriptions tasks! Good job!</p>
+                                                {isVisible && <Confetti />}
+                                            </>
                                         ) : (
                                         <table className="data-table">
                                             <thead>
