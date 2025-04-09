@@ -1,4 +1,4 @@
-# team-corewell-capstone-2025 | aimlabhealth.com
+aimlabhealth.com
 
 How to run frontend:
 
