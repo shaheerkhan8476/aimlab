@@ -471,6 +471,9 @@ func GenerateTasksHTMLWrapper(w http.ResponseWriter, r *http.Request) {
 func GenerateTasks(numQuestions int, numResults int, numPrescriptions int, generate_question bool) error {
 	var students []model.User
 	errLatest := error(nil) // Keeps track of the latest error, if any
+	url := os.Getenv("SUPABASE_URL")
+    key := os.Getenv("SUPABASE_KEY")
+    Supabase := supabase.CreateClient(url, key)
 	err := Supabase.DB.From("users").Select("*").Eq("isAdmin", "FALSE").Execute(&students)
 	if err != nil || len(students) == 0 {
 		fmt.Println("No students found")
