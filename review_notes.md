@@ -46,3 +46,29 @@ prompts differently.
 
 Another metric I would definitely collect is the number of retries and attempts that happen
 on lines 140-164. We have to know if chatgpt is repeatedly failing to output in JSON.
+
+## backend
+
+The first big takeaway is that there isn't separation of concerns here. For example,
+GetPrescriptionByID(...) can throw an error if there's a supabase select error, or
+if the select returns zero rows, likely due to an invalid or missing id.
+
+Pseudocode for how I'd rewrite it:
+
+- GetPrescriptionById(w http.ResponseWriter, r *http.Request) {
+    // do http-related stuff
+    // call database.GetPrescriptionById(id) (which should return a prescription)
+    // if it returns an error, return a 500
+    // if it returns 0 records, return that 404, or a 418.
+    // if it returns 1 record, marshal it and return
+}
+
+And then use dependency injection to inject either:
+- a supabase library
+- a mock that can be used to unit test the http method
+- some other database (in-memory sqlite?) for local development
+- some other database entirely if and when we have to migrate.
+
+The second takeaway is pagination: the responses for GetPatients(), GetPrescriptions(),
+GetStudents(), and the like are going to return quite a few records eventually. (Totally
+of scope for the beta!)
