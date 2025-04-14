@@ -1,5 +1,48 @@
 # mrw review notes
 
+The biggest philosophical thing I learned at Google is to break down code into the 
+smallest possible chunks, and test the hell out of those tiny chunks. Especially when
+you've got multiple people working on the codebase, somebody's going to have to rebase/merge
+and they're going to have a bad day.
+
+Right now, the entire application is in `frontend/src/pages/PatientPage.js`,
+`backend/routes/supabase/routes.go`, and `flask-llm/app.py`.
+- PatientPage should be broken down, at the very least, into multiple components.
+  lines 633-660 should be `{activeTab === 'ai-response" && <AiResponse/>}`,
+- routes.go, one file per route. 
+- app.py, I discuss further down...
+
+Another place to optimize is subroutines...in frontend/src/pages/StudentDetails.js, 
+there are multiple calls to the backend's /students endpoint. That can be broken into
+a GetStudent(...) function and tested (and *changed*) in one place.
+
+## business logic
+
+The biggest revision I'd propose is to move a lot of "business logic" from the frontend
+to the backend. You have to be checking if a user's authenticated on the server side anyway.
+
+Another example I'd look to here is on PatientPage.js, on line 111, you fetch the prescriptions
+from the server. Then on 260, you load it into a large JSON object, which then gets sent
+back to the server on 271. The server has that data already, and cloud services charge you by
+the byte of bandwidth.
+
+I'd probably merge all the code from 81-158 into one call to `/patientPage/${patientId}`.
+And then the server could use a join to grab all of that data in one query to Supabase.
+
+
+## auth
+
+*"If I have seen further it is by standing on the shoulders of giants."* - Sir Issac Newton
+
+Never, ever, ever roll your own auth. It can lead to you doing things like not having rate limits
+on your signin page, or sending an unencrypted password in plain JSON to an http endpoint.
+
+~50% of your routes are related to auth. Auth.js, for example, abstracts all
+of these problems away.
+
+Never, ever roll your own cryptography either.
+
+
 ## flask-llm
 
 The first topic I'd discuss is observability. With an AI application, that comes
@@ -72,3 +115,5 @@ And then use dependency injection to inject either:
 The second takeaway is pagination: the responses for GetPatients(), GetPrescriptions(),
 GetStudents(), and the like are going to return quite a few records eventually. (Totally
 of scope for the beta!)
+
+
